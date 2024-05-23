@@ -1,0 +1,7 @@
+_version: 1
+list: "lister"
+wait_user_info: "en attente d'authenfication utilisateur"
+menu_bookmarks: " favoris"
+button_hacker_news: " récupérer les flux hacker news"
+fetch_hacker_news: "récupération des flux hacker news"
+fetched_hacker_news: "flux hacker news récupérés"

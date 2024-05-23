@@ -1,0 +1,7 @@
+_version: 1
+list: "list"
+wait_user_info: "waiting for user authentication"
+menu_bookmarks: " bookmarks"
+button_hacker_news: " fetch hacker news feeds"
+fetch_hacker_news: "fetching hacker news feeds"
+fetched_hacker_news: "hacker news feeds fetched"
