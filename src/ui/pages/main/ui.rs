@@ -1,4 +1,7 @@
-use crate::ui::{app::App, pages::product, state::Page};
+use crate::{
+    api::storelocation::retrieve_storelocations,
+    ui::{app::App, pages::product, pages::storelocation, state::Page},
+};
 use egui::{Frame, RichText};
 use rust_i18n::t;
 
@@ -92,17 +95,11 @@ pub fn update(app: &mut App, ctx: &egui::Context, frame: &mut eframe::Frame) {
                         }
                     });
 
-                    // ui.menu_button("Edit", |ui| {
-                    //     if ui.button("Cut").clicked() {
-                    //         //functionality
-                    //     }
-                    //     if ui.button("Copy").clicked() {
-                    //         //functionality
-                    //     }
-                    //     if ui.button("Paste").clicked() {
-                    //         //funtionality
-                    //     }
-                    // })
+                    ui.menu_button(t!("menu_storelocations"), |ui| {
+                        if ui.button(t!("list")).clicked() {
+                            app.promise_storelocations = Some(retrieve_storelocations(ctx));
+                        }
+                    });
                 });
             });
         });
@@ -119,5 +116,6 @@ pub fn update(app: &mut App, ctx: &egui::Context, frame: &mut eframe::Frame) {
         })
         .show(ctx, |ui| match app.state.active_page {
             Page::ProductList => product::list::update(app, ctx, frame, ui),
+            Page::StorelocationList => storelocation::list::update(app, ctx, frame, ui),
         });
 }

@@ -1,5 +1,6 @@
 mod api;
 mod error;
+mod promises;
 pub mod ui;
 
 // Init translations for current crate.

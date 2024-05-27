@@ -6,6 +6,7 @@ use std::rc::Rc;
 pub enum Page {
     #[default]
     ProductList,
+    StorelocationList,
 }
 
 /// Application state.

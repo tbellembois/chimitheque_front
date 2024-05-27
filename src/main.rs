@@ -2,6 +2,7 @@
 #![allow(rustdoc::missing_crate_level_docs)] // it's an example
 mod api;
 mod error;
+mod promises;
 mod ui;
 
 use eframe::egui;

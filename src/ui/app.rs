@@ -1,16 +1,13 @@
 use super::state::ApplicationState;
-use crate::{
-    api::{self},
-    error::apperror::AppError,
-    ui::pages::main,
-};
-use chimitheque_types::userinfo::UserInfo;
+use crate::promises::check_storelocations_promise;
+use crate::{api, error::apperror::AppError, ui::pages::main};
+use chimitheque_types::{storelocation::Storelocation, userinfo::UserInfo};
 use eframe::CreationContext;
 use egui_aesthetix::{
     themes::{CarlDark, StandardDark, StandardLight},
     Aesthetix,
 };
-use log::{debug, error, info};
+use log::debug;
 use poll_promise::Promise;
 use rust_i18n::t;
 use std::{rc::Rc, sync::Once};
@@ -32,9 +29,13 @@ pub struct App {
 
     // User information.
     pub user_info: Option<UserInfo>,
+    // Store locations.
+    pub storelocations: Option<(Vec<Storelocation>, u64)>,
 
     // Request user info promise.
     pub promise_user_info: Option<Promise<Result<UserInfo, AppError>>>,
+    // Request store locations promise.
+    pub promise_storelocations: Option<Promise<Result<(Vec<Storelocation>, u64), AppError>>>,
 }
 
 impl App {
@@ -84,6 +85,9 @@ impl eframe::App for App {
                 self.promise_user_info = None;
             }
         }
+
+        // Check other promises.
+        check_storelocations_promise(self);
 
         // Do one time startup job.
         START.call_once(|| {

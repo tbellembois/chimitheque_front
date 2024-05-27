@@ -742,9 +742,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "chimitheque_traits"
+version = "0.1.0"
+
+[[package]]
 name = "chimitheque_types"
 version = "0.1.0"
 dependencies = [
+ "chimitheque_traits",
  "env_logger 0.10.2",
  "jsonpath-rust",
  "log",
