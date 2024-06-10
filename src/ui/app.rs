@@ -1,6 +1,7 @@
 use super::state::ApplicationState;
-use crate::promises::check_storelocations_promise;
+use crate::promises::{check_products_promise, check_storelocations_promise};
 use crate::{api, error::apperror::AppError, ui::pages::main};
+use chimitheque_types::product::Product;
 use chimitheque_types::{storelocation::Storelocation, userinfo::UserInfo};
 use eframe::CreationContext;
 use egui_aesthetix::{
@@ -31,11 +32,15 @@ pub struct App {
     pub user_info: Option<UserInfo>,
     // Store locations.
     pub storelocations: Option<(Vec<Storelocation>, u64)>,
+    // Products.
+    pub products: Option<(Vec<Product>, u64)>,
 
     // Request user info promise.
     pub promise_user_info: Option<Promise<Result<UserInfo, AppError>>>,
     // Request store locations promise.
     pub promise_storelocations: Option<Promise<Result<(Vec<Storelocation>, u64), AppError>>>,
+    // Request products promise.
+    pub promise_products: Option<Promise<Result<(Vec<Product>, u64), AppError>>>,
 }
 
 impl App {
@@ -88,11 +93,15 @@ impl eframe::App for App {
 
         // Check other promises.
         check_storelocations_promise(self);
+        check_products_promise(self);
 
         // Do one time startup job.
         START.call_once(|| {
             // Get user informations.
             self.promise_user_info = Some(api::userinfo::retrieve_userinfo(ctx));
+
+            // Get products.
+            self.promise_products = Some(api::product::retrieve_products(ctx));
         });
 
         // Render UI when user informations are retrieved.

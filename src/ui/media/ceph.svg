@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="128.73657mm"
+   height="113.82678mm"
+   viewBox="0 0 128.73657 113.82678"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25)"
+   sodipodi:docname="ceph.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.0544998"
+     inkscape:cx="209.10389"
+     inkscape:cy="207.20725"
+     inkscape:window-width="1904"
+     inkscape:window-height="915"
+     inkscape:window-x="1928"
+     inkscape:window-y="40"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <marker
+       style="overflow:visible"
+       id="marker145628"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path145626" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-48.41875,-61.876648)">
+    <g
+       id="g45277"
+       transform="translate(17.462381,6.3453929)"
+       inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
+      <path
+         d="m 32.647243,149.48019 v 11.27245 c 0,0.30999 0.253629,0.56362 0.563622,0.56362 h 11.272449 c 0.309991,0 0.56362,-0.25363 0.56362,-0.56362 v -8.64809 c 0,-0.14792 -0.05989,-0.29237 -0.165568,-0.39805 l 1.194175,-1.19418 c 0.422717,0.42271 0.658733,0.99691 0.658733,1.59575 v 8.64457 c 0,1.24349 -1.010997,2.25448 -2.25449,2.25448 H 33.210859 c -1.243493,0 -2.25449,-1.01099 -2.25449,-2.25448 v -11.27245 c 0,-1.2435 1.010997,-2.2545 2.25449,-2.2545 h 8.648087 c 0.59885,0 1.17304,0.23603 1.595757,0.65873 l 2.624366,2.62438 -1.194175,1.19418 -2.627889,-2.62086 c -0.01067,-0.0101 -0.01771,-0.0181 -0.02818,-0.0282 v 3.52617 c 0,0.4685 -0.376921,0.84543 -0.845433,0.84543 h -6.763471 c -0.468509,0 -0.845432,-0.37693 -0.845432,-0.84543 v -3.66356 h -0.563623 c -0.309993,0 -0.563622,0.25364 -0.563622,0.56362 z m 2.818112,-0.56362 v 2.8181 h 5.072601 v -2.8181 z m 1.127243,8.45433 a 2.2544905,2.2544905 0 1 1 4.508981,0 2.2544905,2.2544905 0 1 1 -4.508981,0 z"
+         id="path16"
+         style="stroke-width:0.0352264" />
+      <path
+         d="m 53.08083,149.48019 v 11.27245 c 0,0.30999 0.253628,0.56362 0.563622,0.56362 h 11.272449 c 0.309991,0 0.56362,-0.25363 0.56362,-0.56362 v -8.64809 c 0,-0.14792 -0.05989,-0.29237 -0.165568,-0.39805 l 1.194175,-1.19418 c 0.422717,0.42271 0.658733,0.99691 0.658733,1.59575 v 8.64457 c 0,1.24349 -1.010997,2.25448 -2.25449,2.25448 H 53.644446 c -1.243493,0 -2.25449,-1.01099 -2.25449,-2.25448 v -11.27245 c 0,-1.2435 1.010997,-2.2545 2.25449,-2.2545 h 8.648087 c 0.59885,0 1.17304,0.23603 1.595757,0.65873 l 2.624366,2.62438 -1.194175,1.19418 -2.627889,-2.62086 c -0.01067,-0.0101 -0.01771,-0.0181 -0.02818,-0.0282 v 3.52617 c 0,0.4685 -0.376921,0.84543 -0.845433,0.84543 h -6.763471 c -0.468509,0 -0.845432,-0.37693 -0.845432,-0.84543 v -3.66356 h -0.563623 c -0.309993,0 -0.563623,0.25364 -0.563623,0.56362 z m 2.818112,-0.56362 v 2.8181 h 5.0726 v -2.8181 z m 1.127243,8.45433 a 2.2544905,2.2544905 0 1 1 4.50898,0 2.2544905,2.2544905 0 1 1 -4.50898,0 z"
+         id="path16-3"
+         style="stroke-width:0.0352264" />
+      <path
+         d="m 73.514417,149.48019 v 11.27245 c 0,0.30999 0.253628,0.56362 0.563622,0.56362 h 11.272449 c 0.309991,0 0.56362,-0.25363 0.56362,-0.56362 v -8.64809 c 0,-0.14792 -0.05989,-0.29237 -0.165568,-0.39805 l 1.194175,-1.19418 c 0.422717,0.42271 0.658733,0.99691 0.658733,1.59575 v 8.64457 c 0,1.24349 -1.010997,2.25448 -2.25449,2.25448 H 74.078033 c -1.243493,0 -2.25449,-1.01099 -2.25449,-2.25448 v -11.27245 c 0,-1.2435 1.010997,-2.2545 2.25449,-2.2545 h 8.648087 c 0.59885,0 1.17304,0.23603 1.595757,0.65873 l 2.624366,2.62438 -1.194175,1.19418 -2.627889,-2.62086 c -0.01067,-0.0101 -0.01771,-0.0181 -0.02818,-0.0282 v 3.52617 c 0,0.4685 -0.376921,0.84543 -0.845433,0.84543 h -6.763471 c -0.468509,0 -0.845432,-0.37693 -0.845432,-0.84543 v -3.66356 H 74.07804 c -0.309993,0 -0.563623,0.25364 -0.563623,0.56362 z m 2.818112,-0.56362 v 2.8181 h 5.0726 v -2.8181 z m 1.127243,8.45433 a 2.2544905,2.2544905 0 1 1 4.50898,0 2.2544905,2.2544905 0 1 1 -4.50898,0 z"
+         id="path16-3-6"
+         style="stroke-width:0.0352264" />
+      <path
+         d="m 93.948011,149.48019 v 11.27245 c 0,0.30999 0.253627,0.56362 0.563621,0.56362 h 11.272448 c 0.30999,0 0.56362,-0.25363 0.56362,-0.56362 v -8.64809 c 0,-0.14792 -0.0599,-0.29237 -0.16557,-0.39805 l 1.19418,-1.19418 c 0.42271,0.42271 0.65873,0.99691 0.65873,1.59575 v 8.64457 c 0,1.24349 -1.011,2.25448 -2.25449,2.25448 H 94.511627 c -1.243493,0 -2.254491,-1.01099 -2.254491,-2.25448 v -11.27245 c 0,-1.2435 1.010998,-2.2545 2.254491,-2.2545 h 8.648083 c 0.59885,0 1.17304,0.23603 1.59576,0.65873 l 2.62437,2.62438 -1.19418,1.19418 -2.62789,-2.62086 c -0.0107,-0.0101 -0.0177,-0.0181 -0.0282,-0.0282 v 3.52617 c 0,0.4685 -0.37692,0.84543 -0.84543,0.84543 h -6.763472 c -0.46851,0 -0.845433,-0.37693 -0.845433,-0.84543 v -3.66356 h -0.563623 c -0.309993,0 -0.563623,0.25364 -0.563623,0.56362 z m 2.818111,-0.56362 v 2.8181 h 5.072598 v -2.8181 z m 1.127243,8.45433 a 2.2544905,2.2544905 0 1 1 4.508975,0 2.2544905,2.2544905 0 1 1 -4.508975,0 z"
+         id="path16-3-6-7"
+         style="stroke-width:0.0352264" />
+      <path
+         d="m 114.3816,149.48019 v 11.27245 c 0,0.30999 0.25363,0.56362 0.56362,0.56362 h 11.27245 c 0.30999,0 0.56362,-0.25363 0.56362,-0.56362 v -8.64809 c 0,-0.14792 -0.0599,-0.29237 -0.16557,-0.39805 l 1.19418,-1.19418 c 0.42271,0.42271 0.65873,0.99691 0.65873,1.59575 v 8.64457 c 0,1.24349 -1.011,2.25448 -2.25449,2.25448 h -11.26892 c -1.2435,0 -2.25449,-1.01099 -2.25449,-2.25448 v -11.27245 c 0,-1.2435 1.01099,-2.2545 2.25449,-2.2545 h 8.64808 c 0.59885,0 1.17304,0.23603 1.59576,0.65873 l 2.62437,2.62438 -1.19418,1.19418 -2.62789,-2.62086 c -0.0107,-0.0101 -0.0177,-0.0181 -0.0282,-0.0282 v 3.52617 c 0,0.4685 -0.37692,0.84543 -0.84543,0.84543 h -6.76347 c -0.46851,0 -0.84544,-0.37693 -0.84544,-0.84543 v -3.66356 h -0.56362 c -0.30999,0 -0.56362,0.25364 -0.56362,0.56362 z m 2.81811,-0.56362 v 2.8181 h 5.0726 v -2.8181 z m 1.12725,8.45433 a 2.2544905,2.2544905 0 1 1 4.50897,0 2.2544905,2.2544905 0 1 1 -4.50897,0 z"
+         id="path16-3-6-7-5"
+         style="stroke-width:0.0352264" />
+    </g>
+    <g
+       id="g45282"
+       transform="translate(17.462381,6.3453929)"
+       inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
+      <path
+         d="m 48.47995,114.49771 c -0.911619,0 -1.652796,0.74118 -1.652796,1.6528 v 1.6528 c 0,0.91162 0.741177,1.6528 1.652796,1.6528 h 9.916779 c 0.911621,0 1.652798,-0.74118 1.652798,-1.6528 v -1.6528 c 0,-0.91162 -0.741177,-1.6528 -1.652798,-1.6528 z m 7.230987,1.8594 a 0.6198,0.6198 0 1 1 0,1.2396 0.6198,0.6198 0 1 1 0,-1.2396 z m 1.239598,0.6198 a 0.61979873,0.61979873 0 1 1 1.239597,0 0.61979873,0.61979873 0 1 1 -1.239597,0 z m -8.470585,4.132 c -0.911619,0 -1.652796,0.74117 -1.652796,1.65279 v 1.6528 c 0,0.91162 0.741177,1.65279 1.652796,1.65279 h 9.916779 c 0.911621,0 1.652798,-0.74117 1.652798,-1.65279 v -1.6528 c 0,-0.91162 -0.741177,-1.65279 -1.652798,-1.65279 z m 7.230987,1.85939 a 0.6198,0.6198 0 1 1 0,1.2396 0.6198,0.6198 0 1 1 0,-1.2396 z m 1.446196,0.6198 a 0.61979873,0.61979873 0 1 1 1.239597,0 0.61979873,0.61979873 0 1 1 -1.239597,0 z"
+         id="path153"
+         style="stroke-width:0.0258249" />
+      <path
+         d="m 74.754105,114.49771 c -0.91162,0 -1.652796,0.74117 -1.652796,1.6528 v 1.6528 c 0,0.91162 0.741176,1.6528 1.652796,1.6528 h 9.916779 c 0.911621,0 1.652799,-0.74118 1.652799,-1.6528 v -1.6528 c 0,-0.91163 -0.741177,-1.6528 -1.652799,-1.6528 z m 7.230986,1.8594 a 0.6198,0.6198 0 1 1 0,1.2396 0.6198,0.6198 0 1 1 0,-1.2396 z m 1.239598,0.6198 a 0.61979873,0.61979873 0 1 1 1.239597,0 0.61979873,0.61979873 0 1 1 -1.239597,0 z m -8.470584,4.132 c -0.91162,0 -1.652796,0.74117 -1.652796,1.65279 v 1.6528 c 0,0.91162 0.741176,1.65279 1.652796,1.65279 h 9.916779 c 0.911621,0 1.652799,-0.74117 1.652799,-1.65279 v -1.6528 c 0,-0.91162 -0.741177,-1.65279 -1.652799,-1.65279 z m 7.230986,1.85939 a 0.6198,0.6198 0 1 1 0,1.2396 0.6198,0.6198 0 1 1 0,-1.2396 z m 1.446196,0.6198 a 0.61979873,0.61979873 0 1 1 1.239597,0 0.61979873,0.61979873 0 1 1 -1.239597,0 z"
+         id="path153-3"
+         style="stroke-width:0.0258249" />
+      <path
+         d="m 101.02826,114.49771 c -0.91162,0 -1.652789,0.74117 -1.652789,1.6528 v 1.6528 c 0,0.91162 0.741169,1.6528 1.652789,1.6528 h 9.91678 c 0.91162,0 1.6528,-0.74118 1.6528,-1.6528 v -1.6528 c 0,-0.91163 -0.74118,-1.6528 -1.6528,-1.6528 z m 7.23099,1.8594 a 0.6198,0.6198 0 1 1 0,1.2396 0.6198,0.6198 0 1 1 0,-1.2396 z m 1.2396,0.6198 a 0.61979873,0.61979873 0 1 1 1.23959,0 0.61979873,0.61979873 0 1 1 -1.23959,0 z m -8.47059,4.132 c -0.91162,0 -1.652789,0.74117 -1.652789,1.65279 v 1.6528 c 0,0.91162 0.741169,1.65279 1.652789,1.65279 h 9.91678 c 0.91162,0 1.6528,-0.74117 1.6528,-1.65279 v -1.6528 c 0,-0.91162 -0.74118,-1.65279 -1.6528,-1.65279 z m 7.23099,1.85939 a 0.6198,0.6198 0 1 1 0,1.2396 0.6198,0.6198 0 1 1 0,-1.2396 z m 1.4462,0.6198 a 0.61979873,0.61979873 0 1 1 1.23959,0 0.61979873,0.61979873 0 1 1 -1.23959,0 z"
+         id="path153-3-5"
+         style="stroke-width:0.0258249" />
+    </g>
+    <path
+       d="m 97.66901,138.06764 c -0.2733,-0.27331 -0.71715,-0.27331 -0.99045,0 l -2.098969,2.09897 c -0.273301,0.2733 -0.273301,0.71714 0,0.99045 0.2733,0.2733 0.71715,0.2733 0.990449,0 l 0.90518,-0.90518 v 6.41497 l -0.90518,-0.90299 c -0.2733,-0.27331 -0.71715,-0.27331 -0.990449,0 -0.273301,0.2733 -0.273301,0.71715 0,0.99045 l 2.098969,2.09897 c 0.273301,0.2733 0.71715,0.2733 0.99045,0 l 2.09897,-2.09897 c 0.2733,-0.2733 0.2733,-0.71715 0,-0.99045 -0.2733,-0.27331 -0.71715,-0.27331 -0.99045,0 l -0.90299,0.90299 v -6.41497 l 0.90518,0.90518 c 0.2733,0.2733 0.71715,0.2733 0.99045,0 0.2733,-0.27331 0.2733,-0.71715 0,-0.99045 l -2.09897,-2.09897 z"
+       id="path13910"
+       style="stroke-width:0.0218642"
+       inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <g
+       id="g5"
+       transform="translate(10.240311)">
+      <g
+         id="g3"
+         transform="translate(0,-0.56175995)">
+        <rect
+           style="opacity:0.207492;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.246074;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect13941"
+           width="31.351801"
+           height="9.348258"
+           x="103.19485"
+           y="109.50082"
+           inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+           x="112.11682"
+           y="116.0295"
+           id="text17802"
+           inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96"><tspan
+             sodipodi:role="line"
+             id="tspan17800"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+             x="112.11682"
+             y="116.0295">file st.</tspan></text>
+      </g>
+      <g
+         id="g1">
+        <rect
+           style="opacity:0.207492;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.246074;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect13941-4"
+           width="31.351801"
+           height="9.348258"
+           x="39.322487"
+           y="108.93906"
+           inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+           x="45.434231"
+           y="115.45539"
+           id="text17802-9"
+           inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96"><tspan
+             sodipodi:role="line"
+             id="tspan17800-5"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+             x="45.434231"
+             y="115.45539">block st.</tspan></text>
+      </g>
+      <g
+         id="g2"
+         transform="translate(-1.3579941,-0.79229736)">
+        <rect
+           style="opacity:0.207492;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.246074;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect13941-0"
+           width="31.351801"
+           height="9.348258"
+           x="72.616661"
+           y="109.73135"
+           inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+           x="77.836937"
+           y="115.68959"
+           id="text17802-6"
+           inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96"><tspan
+             sodipodi:role="line"
+             id="tspan17800-8"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+             x="77.836937"
+             y="115.68959">object st.</tspan></text>
+      </g>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none"
+       x="137.14043"
+       y="124.20184"
+       id="text17802-8-4"
+       inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan17800-5-8"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ff0000;fill-opacity:1;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none"
+         x="137.14043"
+         y="124.20184">snapshots cat.png </tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="78.609589"
+       y="174.5181"
+       id="text17802-8-4-3"
+       inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><tspan
+         sodipodi:role="line"
+         id="tspan17800-5-8-0"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ff0000;fill-opacity:1;stroke-width:0.264583"
+         x="78.609589"
+         y="174.5181">triplicats cat.png </tspan></text>
+    <path
+       d="m 145.48085,117.89353 h -6.46777 v -6.46777 h 1.84793 v -1.84793 h -1.84793 c -1.01925,0 -1.84793,0.82868 -1.84793,1.84793 v 6.46777 c 0,1.01925 0.82868,1.84793 1.84793,1.84793 h 6.46777 c 1.01925,0 1.84793,-0.82868 1.84793,-1.84793 v -1.84794 h -1.84793 z m -1.84794,-2.7719 h 6.46777 c 1.01925,0 1.84793,-0.82868 1.84793,-1.84793 v -6.46777 c 0,-1.01925 -0.82868,-1.84793 -1.84793,-1.84793 h -6.46777 c -1.01925,0 -1.84793,0.82868 -1.84793,1.84793 v 6.46777 c 0,1.01925 0.82868,1.84793 1.84793,1.84793 z"
+       id="path68335"
+       style="fill:#ff0000;fill-opacity:1;stroke-width:0.0288739"
+       inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <rect
+       style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.529167;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect92283"
+       width="4.5887241"
+       height="4.5887241"
+       x="78.188606"
+       y="158.0519"
+       inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <rect
+       style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.529167;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect92283-0"
+       width="4.5887241"
+       height="4.5887241"
+       x="139.7347"
+       y="158.08006"
+       inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <rect
+       style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.529167;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect92283-1"
+       width="4.5887241"
+       height="4.5887241"
+       x="98.867508"
+       y="158.08006"
+       inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <path
+       style="fill:none;stroke-width:0.264583"
+       d="M 94.177132,87.789768 V 105.05934"
+       id="path3" />
+    <g
+       id="g4"
+       transform="translate(3.0557591)">
+      <text
+         xml:space="preserve"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none"
+         x="85.737816"
+         y="85.683662"
+         id="text17802-8-4-7"
+         inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96"><tspan
+           sodipodi:role="line"
+           id="tspan17800-5-8-5"
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ff0000;fill-opacity:1;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none"
+           x="85.737816"
+           y="85.683662">cat.png </tspan></text>
+      <path
+         d="m 94.119119,67.876647 a 2.9999999,2.9999999 0 1 0 0,-5.999999 2.9999999,2.9999999 0 1 0 0,5.999999 z m -1.07109,1.125 c -2.3086,0 -4.17891,1.870316 -4.17891,4.178906 0,0.38437 0.31172,0.69609 0.6961,0.69609 h 9.10781 c 0.38437,0 0.69609,-0.31172 0.69609,-0.69609 0,-2.30859 -1.87031,-4.178906 -4.17891,-4.178906 z"
+         id="path144736"
+         style="stroke-width:0.0234374"
+         inkscape:export-filename="/home/thbellem/Seafile/infra-doc/mesocentre-storm/shema-infra.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96" />
+      <text
+         xml:space="preserve"
+         style="font-size:12.7px;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans, Normal';fill:none;stroke-width:0.264583"
+         x="89.351738"
+         y="98.077545"
+         id="text4"><tspan
+           sodipodi:role="line"
+           id="tspan4"
+           style="fill:#ff0000;fill-opacity:1;stroke-width:0.264583"
+           x="89.351738"
+           y="98.077545"></tspan></text>
+    </g>
+  </g>
+</svg>

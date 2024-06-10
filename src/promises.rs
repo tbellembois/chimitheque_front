@@ -20,3 +20,23 @@ pub fn check_storelocations_promise(app: &mut App) {
         }
     }
 }
+
+pub fn check_products_promise(app: &mut App) {
+    if let Some(p) = &app.promise_products {
+        if let Some(try_products) = p.ready() {
+            match try_products {
+                Ok((products, count)) => {
+                    app.products = Some((products.to_vec(), *count));
+                    app.state.active_page = Page::ProductList;
+                }
+                Err(e) => {
+                    app.current_error = Some(crate::error::apperror::AppError::InternalError(
+                        e.to_string(),
+                    ));
+                    error!("promise_products error: {e}");
+                }
+            }
+            app.promise_products = None;
+        }
+    }
+}
