@@ -1,121 +1,158 @@
 use crate::{
-    api::storelocation::retrieve_storelocations,
-    ui::{app::App, pages::product, pages::storelocation, state::Page},
+    api::{product::retrieve_products, storelocation::retrieve_store_locations},
+    ui::{
+        app::App,
+        pages::{product, storelocation},
+        state::Page,
+    },
 };
+use chimitheque_types::requestfilter::RequestFilter;
 use egui::{Frame, RichText};
+use egui_material_icons::icons::{ICON_BOOKMARK, ICON_HOME_STORAGE, ICON_LABEL, ICON_PERSON};
 use rust_i18n::t;
+use std::sync::Arc;
 
-pub fn update(app: &mut App, ctx: &egui::Context, frame: &mut eframe::Frame) {
-    //
-    // Render top panel with user info, logo, info/error message, menu, theme switcher and locale switcher.
-    //
-    egui::TopBottomPanel::top("info_error_panel")
-        .min_height(40.)
-        .max_height(40.)
-        .show_separator_line(true)
-        .frame(Frame {
-            inner_margin: app.state.active_theme.margin_style().into(),
-            fill: app.state.active_theme.bg_secondary_color_visuals(),
-            stroke: egui::Stroke::new(1.0, app.state.active_theme.bg_secondary_color_visuals()),
-            ..Default::default()
-        })
-        .show(ctx, |ui| {
-            // Display possible error.
-            if let Some(error) = &app.current_error {
-                ui.label(
-                    RichText::new(format!(" {}", error))
-                        .color(app.state.active_theme.fg_error_text_color_visuals()),
-                );
-            }
+pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
+    egui::CentralPanel::default()
+        .frame(egui::Frame::default().inner_margin(egui::Margin::symmetric(16, 16)))
+        .show(ui, |ui| {
+            // Your UI code here
 
-            // Display possible message.
-            if let Some(info) = &app.current_info {
-                ui.label(
-                    RichText::new(format!(" {}", info))
-                        .color(app.state.active_theme.fg_success_text_color_visuals()),
-                );
-            }
+            //
+            // Render top panel with user info, logo, info/error message, menu, and locale switcher.
+            //
+            egui::Panel::top("info_error_panel")
+                .show_separator_line(true)
+                // .frame(Frame {
+                //     ..Default::default()
+                // })
+                .show_inside(ui, |ui| {
+                    ui.vertical_centered(|ui| {
+                        // Display possible error.
+                        if let Some(error) = &app.current_error {
+                            ui.label(RichText::new(format!(" {}", error)));
+                        }
 
-            // Switch locale, theme and user info.
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                // Switch theme.
-                egui::ComboBox::from_id_source("theme_combo_box")
-                    .width(200.0)
-                    .selected_text(app.state.active_theme.name())
-                    .show_ui(ui, |ui_combobox| {
-                        for theme in app.themes.iter() {
-                            let res: egui::Response = ui_combobox.selectable_value(
-                                &mut app.state.active_theme,
-                                theme.clone(),
-                                theme.name(),
-                            );
-                            if res.changed() {
-                                ui_combobox
-                                    .ctx()
-                                    .set_style(app.state.active_theme.custom_style());
-                            }
+                        // Display possible message.
+                        if let Some(info) = &app.current_info {
+                            ui.label(RichText::new(format!(" {}", info)));
                         }
                     });
 
-                // Switch locale.
-                let fr_locale_icon = egui::include_image!("../../media/fr.svg");
-                let en_locale_icon = egui::include_image!("../../media/gb.svg");
-                if ui
-                    .add(egui::Button::image_and_text(fr_locale_icon, ""))
-                    .clicked()
-                {
-                    rust_i18n::set_locale("fr-FR");
-                }
-                if ui
-                    .add(egui::Button::image_and_text(en_locale_icon, ""))
-                    .clicked()
-                {
-                    rust_i18n::set_locale("en-GB");
-                }
-
-                // User info.
-                ui.label(app.user_info.as_ref().unwrap().clone().person_email)
-            });
-
-            // Render logo and menu.
-            ui.horizontal(|ui| {
-                // Logo.
-                ui.add_sized(
-                    [50., 50.],
-                    egui::Image::new(egui::include_image!(
-                        "../../media/chimitheque_logo_simple.svg"
-                    )),
-                );
-
-                // Menu.
-                egui::menu::bar(ui, |ui| {
-                    ui.menu_button(t!("menu_bookmarks"), |ui| {
-                        if ui.button(t!("list")).clicked() {
-                            //functionality
+                    // Switch locale, theme and user info.
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        // Switch locale.
+                        let fr_locale_icon = egui::include_image!("../../media/fr.svg");
+                        let en_locale_icon = egui::include_image!("../../media/gb.svg");
+                        if ui
+                            .add(egui::Button::image_and_text(fr_locale_icon, ""))
+                            .clicked()
+                        {
+                            rust_i18n::set_locale("fr-FR");
                         }
-                    });
-
-                    ui.menu_button(t!("menu_storelocations"), |ui| {
-                        if ui.button(t!("list")).clicked() {
-                            app.promise_storelocations = Some(retrieve_storelocations(ctx));
+                        if ui
+                            .add(egui::Button::image_and_text(en_locale_icon, ""))
+                            .clicked()
+                        {
+                            rust_i18n::set_locale("en-GB");
                         }
+
+                        // User info.
+                        let connected_user = Arc::clone(&app.connected_user);
+                        let connected_user_locked = connected_user.lock().unwrap();
+                        let email = connected_user_locked
+                            .as_ref()
+                            .map(|u| u.person_email.clone())
+                            .unwrap_or_default();
+                        ui.label(format!("{} {}", ICON_PERSON.codepoint, email));
                     });
                 });
-            });
-        });
 
-    //
-    // Render active page.
-    //
-    egui::CentralPanel::default()
-        .frame(Frame {
-            inner_margin: app.state.active_theme.margin_style().into(),
-            fill: app.state.active_theme.bg_primary_color_visuals(),
-            stroke: egui::Stroke::new(1.0, app.state.active_theme.bg_secondary_color_visuals()),
-            ..Default::default()
-        })
-        .show(ctx, |ui| match app.state.active_page {
-            Page::ProductList => product::list::update(app, ctx, frame, ui),
-            Page::StorelocationList => storelocation::list::update(app, ctx, frame, ui),
+            egui::Panel::top("menu_panel")
+                .show_separator_line(true)
+                // .frame(Frame {
+                //     ..Default::default()
+                // })
+                .show_inside(ui, |ui| {
+                    // Render logo and menu.
+                    ui.horizontal(|ui| {
+                        // Logo.
+                        ui.add_sized(
+                            [50., 50.],
+                            egui::Image::new(egui::include_image!(
+                                "../../media/chimitheque_logo_simple.svg"
+                            )),
+                        );
+
+                        // Menu.
+                        egui::MenuBar::new().ui(ui, |ui| {
+                            ui.menu_button(
+                                format!("{} {}", ICON_BOOKMARK.codepoint, t!("menu_bookmarks")),
+                                |ui| {
+                                    if ui.button(t!("list")).clicked() {
+                                        //functionality
+                                    }
+                                },
+                            );
+
+                            ui.menu_button(
+                                format!("{} {}", ICON_LABEL.codepoint, t!("menu_products")),
+                                |ui| {
+                                    if ui.button(t!("list")).clicked() {
+                                        retrieve_products(
+                                            RequestFilter {
+                                                limit: Some(10),
+                                                ..Default::default()
+                                            },
+                                            Arc::clone(&app.products),
+                                        );
+
+                                        app.state.active_page = Page::ProductList;
+                                    }
+                                },
+                            );
+
+                            ui.menu_button(
+                                format!(
+                                    "{} {}",
+                                    ICON_HOME_STORAGE.codepoint,
+                                    t!("menu_storelocations")
+                                ),
+                                |ui| {
+                                    if ui.button(t!("list")).clicked() {
+                                        retrieve_store_locations(
+                                            RequestFilter {
+                                                limit: Some(10),
+                                                ..Default::default()
+                                            },
+                                            Arc::clone(&app.storelocations),
+                                        );
+
+                                        app.state.active_page = Page::StorelocationList;
+                                    }
+                                },
+                            );
+                        });
+                    });
+                });
+
+            //
+            // Render active page.
+            //
+            egui::CentralPanel::default()
+                // .frame(Frame {
+                //     ..Default::default()
+                // })
+                .show_inside(ui, |ui| match app.state.active_page {
+                    Page::ProductList => product::list::update(app, ui, frame),
+                    Page::StorelocationList => storelocation::list::update(app, ui, frame),
+                });
+
+            // Footer bar
+            egui::Panel::bottom("footer").show_inside(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("© 2026 Company, all rights reserved.");
+                });
+            });
         });
 }

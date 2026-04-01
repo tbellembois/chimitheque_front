@@ -3,10 +3,11 @@ use std::fmt;
 #[allow(dead_code)]
 pub enum AppError {
     TestError,
+    ChannelReceiveError,
     InternalError(String),
     UnexpectedEmptyResponse,
     NotOkHTTPResponse(String),
-    GetUserInfoError(String),
+    // GetUserInfoError(String),
 }
 
 // Implement std::fmt::Display for AppError
@@ -17,7 +18,8 @@ impl fmt::Display for AppError {
             AppError::InternalError(s) => write!(f, "internal error: {}", s),
             AppError::UnexpectedEmptyResponse => write!(f, "unexpected empty response"),
             AppError::NotOkHTTPResponse(s) => write!(f, "HTTP response not ok: {}", s),
-            AppError::GetUserInfoError(s) => write!(f, "error retrieving user informations: {}", s),
+            AppError::ChannelReceiveError => write!(f, "channel receive error"),
+            // AppError::GetUserInfoError(s) => write!(f, "error retrieving user informations: {}", s),
         }
     }
 }

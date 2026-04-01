@@ -4,9 +4,9 @@ use egui::Ui;
 use egui_extras::{Column, TableBuilder};
 use rust_i18n::t;
 
-pub fn update(app: &mut App, ctx: &egui::Context, frame: &mut eframe::Frame, ui: &mut Ui) {
-    ui.vertical(|ui| {
-        if let Some((storelocations, count)) = &app.storelocations {
+pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
+    ui.vertical(|ui| match app.storelocations.lock().unwrap().as_ref() {
+        Some((storelocations, count)) => {
             ui.label(t!("total", total = count));
 
             let available_height = ui.available_height();
@@ -45,7 +45,7 @@ pub fn update(app: &mut App, ctx: &egui::Context, frame: &mut eframe::Frame, ui:
                     for storelocation in storelocations.iter() {
                         body.row(30.0, |mut row| {
                             row.col(|ui| {
-                                ui.label(storelocation.storelocation_name.clone());
+                                ui.label(storelocation.store_location_name.clone());
                             });
 
                             row.col(|ui| {
@@ -55,20 +55,20 @@ pub fn update(app: &mut App, ctx: &egui::Context, frame: &mut eframe::Frame, ui:
                             });
 
                             row.col(|ui| {
-                                if let Some(color) = &storelocation.storelocation_color {
+                                if let Some(color) = &storelocation.store_location_color {
                                     ui.label(color.clone());
                                 }
                             });
 
                             row.col(|ui| {
-                                if storelocation.storelocation_canstore {
-                                    ui.label("");
+                                if storelocation.store_location_can_store {
+                                    ui.label("ok");
                                 }
                             });
 
                             row.col(|ui| {
-                                if let Some(parent) = &storelocation.storelocation {
-                                    ui.label(parent.storelocation_name.clone());
+                                if let Some(parent) = &storelocation.store_location {
+                                    ui.label(parent.store_location_name.clone());
                                 }
                             });
 
@@ -79,5 +79,6 @@ pub fn update(app: &mut App, ctx: &egui::Context, frame: &mut eframe::Frame, ui:
                     }
                 });
         }
+        None => {}
     });
 }
