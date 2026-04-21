@@ -1,9 +1,17 @@
-use crate::error::apperror::AppError;
+use crate::{error::apperror::AppError, keycloak::get_token};
 use chimitheque_types::person::Person;
 use std::sync::{Arc, Mutex};
 
 pub fn retrieve_connected_user(products: Arc<Mutex<Option<Person>>>) -> Result<(), AppError> {
-    let request = ehttp::Request::get("https://localhost:8443/back/connecteduser");
+    let request = ehttp::Request::get("https://localhost:8443/back/connecteduser").with_headers(
+        ehttp::Headers::new(&[
+            (
+                "Authorization",
+                format!("Bearer {}", get_token().unwrap_or_default()).as_str(),
+            ),
+            ("Content-Type", "application/json; charset=UTF-8;"),
+        ]),
+    );
 
     ehttp::fetch(request, move |response| {
         let mut locked_mutex = products.lock().unwrap();

@@ -1,12 +1,10 @@
 use crate::ui::app::App;
-use chimitheque_types::storelocation;
-use egui::Ui;
 use egui_extras::{Column, TableBuilder};
 use rust_i18n::t;
 
-pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
-    ui.vertical(|ui| match app.storelocations.lock().unwrap().as_ref() {
-        Some((storelocations, count)) => {
+pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+    ui.vertical(|ui| {
+        if let Some((storelocations, count)) = app.storelocations.lock().unwrap().as_ref() {
             ui.label(t!("total", total = count));
 
             let available_height = ui.available_height();
@@ -79,6 +77,5 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     }
                 });
         }
-        None => {}
     });
 }

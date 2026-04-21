@@ -1,16 +1,11 @@
 use super::state::ApplicationState;
 use crate::api::connecteduser::retrieve_connected_user;
-use crate::api::product::retrieve_products;
+use crate::types::{SharedProductList, SharedStoreLocationList, SharedString};
 use crate::ui::pages::main;
-use crate::ui::widgets::mybutton::{self, ButtonSize, ButtonVariant};
-use chimitheque_types::permission::{self, Permission};
 use chimitheque_types::person::Person;
-use chimitheque_types::product::Product;
-use chimitheque_types::requestfilter::RequestFilter;
-use chimitheque_types::storelocation::StoreLocation;
-
 use eframe::CreationContext;
 use egui::{CornerRadius, Style, Theme, vec2};
+use egui_select2::select2::EguiSelect2;
 use rust_i18n::t;
 use std::sync::Once;
 use std::sync::{Arc, Mutex};
@@ -27,16 +22,19 @@ pub struct App {
     // pub sender: Option<Sender<ToWorker>>,
     // receiver: Option<Receiver<ToApp>>,
 
+    // Select for search form: store location.
+    pub search_store_location_widget: EguiSelect2,
+
     // Error messages.
-    pub current_error: Option<String>,
-    pub current_info: Option<String>,
+    pub current_error: SharedString,
+    pub current_info: SharedString,
 
     // User information.
     pub connected_user: Arc<Mutex<Option<Person>>>,
     // Store locations.
-    pub storelocations: Arc<Mutex<Option<(Vec<StoreLocation>, u64)>>>,
+    pub storelocations: SharedStoreLocationList,
     // Products.
-    pub products: Arc<Mutex<Option<(Vec<Product>, u64)>>>,
+    pub products: SharedProductList,
 }
 
 impl App {
@@ -64,14 +62,19 @@ impl App {
         // Initialize the custom theme/styles for egui.
         setup_custom_fonts(&cc.egui_ctx);
         setup_custom_style(&cc.egui_ctx);
-        egui_material_icons::initialize(&cc.egui_ctx);
         egui_extras::install_image_loaders(&cc.egui_ctx);
+
+        // Initialize select2 widgets.
+        let mut search_store_location = EguiSelect2::default();
+        search_store_location.load_suggestions =
+            Box::new(crate::api::storelocation::load_suggestions);
 
         // Create application.
         Self {
             state,
             // sender: Some(app_tx),
             // receiver: Some(worker_rx),
+            search_store_location_widget: search_store_location,
             ..Default::default()
         }
     }
@@ -101,6 +104,9 @@ impl eframe::App for App {
                 log::error!("retrieve_connected_user error: {e}");
             }
         });
+
+        // Check loading state of select2 widgets.
+        self.search_store_location_widget.check_loading();
 
         // Check channels for messages.
         // if let Some(receiver) = &self.receiver {
@@ -164,6 +170,9 @@ fn setup_custom_style(ctx: &egui::Context) {
 fn setup_custom_fonts(ctx: &egui::Context) {
     // Start with the default fonts (we will be adding to them rather than replacing them).
     let mut fonts = egui::FontDefinitions::default();
+
+    // Add Phosphor icons font.
+    egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
 
     // Install custom fonts.
     // .ttf and .otf files supported.
