@@ -15,74 +15,20 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     egui::CentralPanel::default()
         // .frame(egui::Frame::default().inner_margin(egui::Margin::symmetric(16, 16)))
         .show_inside(ui, |ui| {
-            // Your UI code here
-
-            //
-            // Render top panel with user info, logo, info/error message, menu, and locale switcher.
-            //
-            // egui::Panel::top("info_error_panel")
-            //     .show_separator_line(true)
-            //     .show_inside(ui, |ui| {
-            //         // Info and error messages.
-            //         // ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            //         //     ui.label("bla");
-            //         //     // Display possible error.
-            //         //     if let Some(error) = &app.current_error.lock().unwrap().as_ref() {
-            //         //         ui.label(RichText::new(format!(" {}", error)));
-            //         //     }
-
-            //         //     // Display possible message.
-            //         //     if let Some(info) = &app.current_info.lock().unwrap().as_ref() {
-            //         //         ui.label(RichText::new(format!(" {}", info)));
-            //         //     }
-            //         // });
-
-            //         // Switch locale, theme and user info.
-            //         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            //             // Switch locale.
-            //             let fr_locale_icon = egui::include_image!("../../media/fr.svg");
-            //             let en_locale_icon = egui::include_image!("../../media/gb.svg");
-            //             if ui
-            //                 .add(egui::Button::image_and_text(fr_locale_icon, ""))
-            //                 .clicked()
-            //             {
-            //                 rust_i18n::set_locale("fr-FR");
-            //             }
-            //             if ui
-            //                 .add(egui::Button::image_and_text(en_locale_icon, ""))
-            //                 .clicked()
-            //             {
-            //                 rust_i18n::set_locale("en-GB");
-            //             }
-
-            //             // User info.
-            //             let connected_user = Arc::clone(&app.connected_user);
-            //             let connected_user_locked = connected_user.lock().unwrap();
-            //             let email = connected_user_locked
-            //                 .as_ref()
-            //                 .map(|u| u.person_email.clone())
-            //                 .unwrap_or_default();
-            //             ui.label(format!("{} {}", ICON_PERSON.codepoint, email));
-            //         });
-            //     });
-
             egui::Panel::top("menu_panel")
                 .show_separator_line(false)
-                // .frame(Frame {
-                //     ..Default::default()
-                // })
                 .show_inside(ui, |ui| {
                     ui.horizontal(|ui| {
                         // Info and error messages.
                         ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
                             // Display possible error.
                             if let Some(error) = &app.current_error.lock().unwrap().as_ref() {
-                                ui.label(RichText::new(format!(" {}", error)));
+                                ui.label(RichText::new(format!(" {error}")));
                             }
 
                             // Display possible message.
                             if let Some(info) = &app.current_info.lock().unwrap().as_ref() {
-                                ui.label(RichText::new(format!(" {}", info)));
+                                ui.label(RichText::new(format!(" {info}")));
                             }
                         });
 
@@ -117,7 +63,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                                     egui_phosphor::regular::USER,
                                     email
                                 ))
-                                .size(20.0),
+                                .size(16.0),
                             );
                         });
                     });
@@ -140,7 +86,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                                     egui_phosphor::regular::BOOKMARK,
                                     t!("menu_bookmarks")
                                 ))
-                                .size(20.0),
+                                .size(16.0),
                                 |ui| {
                                     if ui.button(t!("list")).clicked() {
                                         //functionality
@@ -154,7 +100,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                                     egui_phosphor::regular::TAG,
                                     t!("menu_products")
                                 ))
-                                .size(20.0),
+                                .size(16.0),
                                 |ui| {
                                     if ui.button(t!("list")).clicked() {
                                         retrieve_products(
@@ -178,7 +124,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                                     egui_phosphor::regular::WAREHOUSE,
                                     t!("menu_storelocations")
                                 ))
-                                .size(20.0),
+                                .size(16.0),
                                 |ui| {
                                     if ui.button(t!("list")).clicked() {
                                         retrieve_store_locations(
@@ -187,6 +133,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                                                 ..Default::default()
                                             },
                                             Arc::clone(&app.storelocations),
+                                            &Arc::clone(&app.current_info),
+                                            &Arc::clone(&app.current_error),
                                         );
 
                                         app.state.active_page = Page::StorelocationList;
@@ -200,7 +148,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             // Footer bar
             egui::Panel::bottom("footer").show_inside(ui, |ui| {
                 ui.horizontal(|ui| {
-                    ui.label("© 2026 Company, all rights reserved.");
+                    ui.label("© 2026 Chimithèque, released under the GPL-3.0 license.");
                 });
             });
 

@@ -2,14 +2,25 @@ _version: 1
 list: "lister"
 total: "total : %{total}"
 wait_user_info: "en attente d'authenfication utilisateur"
+
 menu_bookmarks: "favoris"
 menu_products: "produits"
 menu_storelocations: "entrepôts"
-button_hacker_news: "récupérer les flux hacker news"
-fetch_hacker_news: "récupération des flux hacker news"
-fetched_hacker_news: "flux hacker news récupérés"
+
 storelocation_name: "nom"
 storelocation_entity: "entité"
 storelocation_color: "couleur"
 storelocation_canstore: "peut stocker"
 storelocation_parent: "entrepôt parent"
+
+search_input_name: "nom exact"
+search_input_store_location: "entrepôt"
+
+select2_loading: "chargement..."
+select2_no_results: "pas de résultats"
+select2_add: "ajouter"
+select2_clear_all: "effacer tout"
+select2_hint: "rechercher"
+
+select2_hint_store_location: "entrepôt"
+select2_hint_name: "nom"

@@ -1,4 +1,10 @@
-use crate::{error::apperror::AppError, keycloak::get_token, types::SharedStoreLocationList};
+use std::sync::Arc;
+
+use crate::{
+    error::apperror::AppError,
+    keycloak::get_token,
+    types::{SharedStoreLocationList, SharedString},
+};
 use chimitheque_types::{requestfilter::RequestFilter, storelocation::StoreLocation};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
 
@@ -30,29 +36,53 @@ fn get_store_locations_from_response(
 pub fn retrieve_store_locations(
     request_filter: &RequestFilter,
     shared_store_locations: SharedStoreLocationList,
+    current_info: &SharedString,
+    current_error: &SharedString,
 ) {
     let request = build_request(request_filter);
 
-    ehttp::fetch(request, move |mayerr_response| match mayerr_response {
-        Ok(response) => {
-            // Acquire lock on current store locations.
-            let mut current_store_locations = match shared_store_locations.lock() {
-                Ok(locked) => locked,
-                Err(e) => {
-                    log::error!("{e}");
-                    return;
-                }
-            };
+    let mut locked_current_info = current_info.lock().unwrap_or_else(|e| {
+        log::error!("{e}");
+        e.into_inner()
+    });
+    *locked_current_info = Some("getting store locations".to_string());
 
-            // We don't need to log the errors here as they are already logged in `get_store_locations_from_response`.
-            if let Ok(maybe_store_locations) = get_store_locations_from_response(&response)
-                && let Some(store_locations) = maybe_store_locations
-            {
-                *current_store_locations = Some(store_locations);
-            }
-        }
-        Err(e) => {
+    let current_error_clone = Arc::clone(current_error);
+
+    ehttp::fetch(request, move |mayerr_response| {
+        let mut locked_current_error = current_error_clone.lock().unwrap_or_else(|e| {
             log::error!("{e}");
+            e.into_inner()
+        });
+
+        match mayerr_response {
+            Ok(response) => {
+                // Acquire lock on current store locations.
+                let mut current_store_locations = match shared_store_locations.lock() {
+                    Ok(locked) => locked,
+                    Err(e) => {
+                        log::error!("{e}");
+                        *locked_current_error = Some(e.to_string());
+                        return;
+                    }
+                };
+
+                match get_store_locations_from_response(&response) {
+                    Ok(maybe_store_locations) => {
+                        if let Some(store_locations) = maybe_store_locations {
+                            *current_store_locations = Some(store_locations);
+                        }
+                    }
+                    Err(e) => {
+                        log::error!("{e}");
+                        *locked_current_error = Some(e);
+                    }
+                }
+            }
+            Err(e) => {
+                log::error!("{e}");
+                *locked_current_error = Some(e);
+            }
         }
     });
 }
@@ -61,10 +91,10 @@ pub fn load_suggestions(
     shared_suggestions: SharedSelect2Items,
     limit: usize,
     offset: usize,
-    query: &str,
+    query: String,
 ) {
     let request = build_request(&RequestFilter {
-        search: Some(query.to_string()),
+        search: Some(query),
         limit: Some(limit as u64),
         offset: Some(offset as u64),
         ..Default::default()

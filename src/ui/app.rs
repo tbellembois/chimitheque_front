@@ -17,13 +17,15 @@ pub struct App {
     // Application state.
     pub state: ApplicationState,
 
+    // Does not work in wasm.
     // Channels for communication beetween
     // application (GUI) and worker.
     // pub sender: Option<Sender<ToWorker>>,
     // receiver: Option<Receiver<ToApp>>,
 
-    // Select for search form: store location.
+    // Selects for search form.
     pub search_store_location_widget: EguiSelect2,
+    pub search_name_widget: EguiSelect2,
 
     // Error messages.
     pub current_error: SharedString,
@@ -65,9 +67,24 @@ impl App {
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
         // Initialize select2 widgets.
+        let egui_select2_translations = egui_select2::select2::Translations {
+            loading: t!("select2_loading").to_string(),
+            no_results: t!("select2_no_results").to_string(),
+            add: t!("select2_add").to_string(),
+            clear_all: t!("select2_clear_all").to_string(),
+            hint: t!("select2_hint").to_string(),
+        };
+
         let mut search_store_location = EguiSelect2::default();
         search_store_location.load_suggestions =
-            Box::new(crate::api::storelocation::load_suggestions);
+            Arc::new(crate::api::storelocation::load_suggestions);
+        search_store_location.translations = egui_select2_translations.clone();
+        search_store_location.translations.hint = t!("select2_hint_store_location").to_string();
+
+        let mut search_name = EguiSelect2::default();
+        search_name.load_suggestions = Arc::new(crate::api::name::load_suggestions);
+        search_name.translations = egui_select2_translations;
+        search_name.translations.hint = t!("select2_hint_name").to_string();
 
         // Create application.
         Self {
@@ -75,6 +92,7 @@ impl App {
             // sender: Some(app_tx),
             // receiver: Some(worker_rx),
             search_store_location_widget: search_store_location,
+            search_name_widget: search_name,
             ..Default::default()
         }
     }
@@ -107,41 +125,13 @@ impl eframe::App for App {
 
         // Check loading state of select2 widgets.
         self.search_store_location_widget.check_loading();
+        self.search_name_widget.check_loading();
 
         // Check channels for messages.
         // if let Some(receiver) = &self.receiver {
         //     receiver.try_recv(){
-
         //     }
         // }
-
-        // Render UI when user informations are retrieved.
-        // if mybutton::mybutton(
-        //     ui,
-        //     format!("test {}", ICON_AUDIO_VIDEO_RECEIVER.codepoint).as_str(),
-        //     ButtonSize::Md,
-        //     ButtonVariant::Secondary,
-        // )
-        // .clicked()
-        // {
-        //     // let mayerr_send = self.sender.as_ref().unwrap().send(ToWorker {
-        //     //     message: ToWorkerMessage::GetProducts(
-        //     //         RequestFilter {
-        //     //             limit: Some(10),
-        //     //             ..Default::default()
-        //     //         },
-        //     //         Arc::clone(&self.products),
-        //     //     ),
-        //     // });
-
-        //     retrieve_products(
-        //         RequestFilter {
-        //             limit: Some(10),
-        //             ..Default::default()
-        //         },
-        //         Arc::clone(&self.products),
-        //     );
-        // };
 
         if self.connected_user.lock().unwrap().is_some() {
             main::ui::update(self, ui, frame);
@@ -182,24 +172,6 @@ fn setup_custom_fonts(ctx: &egui::Context) {
             "fonts/B612-Regular.ttf"
         ))),
     );
-    // fonts.font_data.insert(
-    //     "Font_Awesome_7_Brands-Regular-400".to_owned(),
-    //     std::sync::Arc::new(egui::FontData::from_static(include_bytes!(
-    //         "fonts/Font_Awesome_7_Brands-Regular-400.otf"
-    //     ))),
-    // );
-    // fonts.font_data.insert(
-    //     "Font_Awesome_7_Free-Regular-400".to_owned(),
-    //     std::sync::Arc::new(egui::FontData::from_static(include_bytes!(
-    //         "fonts/Font_Awesome_7_Free-Regular-400.otf"
-    //     ))),
-    // );
-    // fonts.font_data.insert(
-    //     "Font_Awesome_7_Free-Solid-900".to_owned(),
-    //     std::sync::Arc::new(egui::FontData::from_static(include_bytes!(
-    //         "fonts/Font_Awesome_7_Free-Solid-900.otf"
-    //     ))),
-    // );
 
     // Start at 1 not 0 to keep the default font.
     fonts
@@ -207,21 +179,6 @@ fn setup_custom_fonts(ctx: &egui::Context) {
         .entry(egui::FontFamily::Proportional)
         .or_default()
         .insert(1, "B612-Regular".to_owned());
-    // fonts
-    //     .families
-    //     .entry(egui::FontFamily::Proportional)
-    //     .or_default()
-    //     .insert(2, "Font_Awesome_7_Brands-Regular-400".to_owned());
-    // fonts
-    //     .families
-    //     .entry(egui::FontFamily::Proportional)
-    //     .or_default()
-    //     .insert(3, "Font_Awesome_7_Free-Regular-400".to_owned());
-    // fonts
-    //     .families
-    //     .entry(egui::FontFamily::Proportional)
-    //     .or_default()
-    //     .insert(4, "Font_Awesome_7_Free-Solid-900".to_owned());
 
     // Tell egui to use these fonts:
     ctx.set_fonts(fonts);

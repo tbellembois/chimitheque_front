@@ -7,7 +7,6 @@ pub enum AppError {
     InternalError(String),
     UnexpectedEmptyResponse,
     NotOkHTTPResponse(String),
-    // GetUserInfoError(String),
 }
 
 // Implement std::fmt::Display for AppError
@@ -15,11 +14,10 @@ impl fmt::Display for AppError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             AppError::TestError => write!(f, "just a test error, nothing anormal"),
-            AppError::InternalError(s) => write!(f, "internal error: {}", s),
+            AppError::InternalError(s) => write!(f, "internal error: {s}"),
             AppError::UnexpectedEmptyResponse => write!(f, "unexpected empty response"),
-            AppError::NotOkHTTPResponse(s) => write!(f, "HTTP response not ok: {}", s),
+            AppError::NotOkHTTPResponse(s) => write!(f, "HTTP response not ok: {s}"),
             AppError::ChannelReceiveError => write!(f, "channel receive error"),
-            // AppError::GetUserInfoError(s) => write!(f, "error retrieving user informations: {}", s),
         }
     }
 }
