@@ -1,3 +1,5 @@
+use egui::{Pos2, Rect};
+
 // Applications pages.
 #[derive(Debug, Default)]
 pub enum Page {
@@ -13,6 +15,10 @@ pub struct ApplicationState {
     pub active_page: Page,
     // The active locale.
     pub active_locale: String,
+    // Window size and position.
+    pub window_rect: Rect,
+    // Advanced search size and position.
+    pub advanced_search_rect: Rect,
 }
 
 impl Default for ApplicationState {
@@ -20,6 +26,14 @@ impl Default for ApplicationState {
         Self {
             active_page: Page::ProductList,
             active_locale: String::from("fr-FR"),
+            window_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
+            advanced_search_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
         }
     }
 }
@@ -31,6 +45,14 @@ impl ApplicationState {
         Self {
             active_page: Page::ProductList,
             active_locale: active_locale.to_string(),
+            window_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
+            advanced_search_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
         }
     }
 }

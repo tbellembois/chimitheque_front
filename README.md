@@ -16,6 +16,10 @@ Visuals -> Colors, shadows, widget states (hovered, active) Global or per-Ui
 Spacing -> Margins, padding, widget dimensions Global or per-Ui
 TextStyle -> Font mappings for labels, headers, etc. Global or per-Ui
 
+# layout tutorial
+
+<https://hackmd.io/@Hamze/Sys9nvF6Jl>
+
 # third party crates
 
 https://github.com/lucasmerlin/hello_egui/tree/main/crates/egui_form

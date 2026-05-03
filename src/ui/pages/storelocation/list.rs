@@ -40,7 +40,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                     });
                 })
                 .body(|mut body| {
-                    for storelocation in storelocations.iter() {
+                    for storelocation in storelocations {
                         body.row(30.0, |mut row| {
                             row.col(|ui| {
                                 ui.label(storelocation.store_location_name.clone());

@@ -1,3 +1,5 @@
+// use std::sync::Arc;
+
 use std::sync::Arc;
 
 use crate::{
@@ -14,8 +16,7 @@ pub fn retrieve_products(
     current_error: SharedString,
 ) -> Result<(), AppError> {
     let request = ehttp::Request::get(format!(
-        "https://localhost:8443/back/products{}",
-        request_filter
+        "https://localhost:8443/back/products{request_filter}"
     ))
     .with_headers(ehttp::Headers::new(&[
         (
@@ -25,7 +26,7 @@ pub fn retrieve_products(
         ("Content-Type", "application/json; charset=UTF-8;"),
     ]));
 
-    let mut locked_current_error = current_error.lock().unwrap();
+    let _locked_current_error = current_error.lock().unwrap();
     let mut locked_current_info = current_info.lock().unwrap();
     *locked_current_info = Some("getting products".to_string());
 
@@ -39,7 +40,7 @@ pub fn retrieve_products(
         let mut locked_mutex = match products.lock() {
             Ok(locked_mutex) => locked_mutex,
             Err(e) => {
-                log::error!("{}", e);
+                log::error!("{e}");
                 *locked_current_error = Some(e.to_string());
                 return;
             }
@@ -58,34 +59,31 @@ fn parse_retrieve_products_response(
     response: ehttp::Response,
 ) -> Result<(Vec<Product>, u64), AppError> {
     match response.status {
-        200 => match response.text() {
-            Some(text_response) => match serde_json::from_str(text_response) {
-                Ok(json_response) => Ok(json_response),
-                Err(e) => {
-                    log::error!("parse_retrieve_products_response: InternalError: {}", e);
-                    Err(AppError::InternalError(e.to_string()))
+        200 => {
+            if let Some(text_response) = response.text() {
+                match serde_json::from_str(text_response) {
+                    Ok(json_response) => Ok(json_response),
+                    Err(e) => {
+                        log::error!("parse_retrieve_products_response: InternalError: {e}");
+                        Err(AppError::InternalError(e.to_string()))
+                    }
                 }
-            },
-            None => {
+            } else {
                 log::error!("parse_retrieve_products_response: UnexpectedEmptyResponse");
                 Err(AppError::UnexpectedEmptyResponse)
             }
-        },
-        _ => match response.text() {
-            Some(text_response) => {
-                log::error!(
-                    "parse_retrieve_products_response: NotOkHTTPResponse: {}",
-                    text_response
-                );
+        }
+        _ => {
+            if let Some(text_response) = response.text() {
+                log::error!("parse_retrieve_products_response: NotOkHTTPResponse: {text_response}");
                 Err(AppError::NotOkHTTPResponse(text_response.to_string()))
-            }
-            None => {
+            } else {
                 log::error!(
                     "parse_retrieve_products_response: NotOkHTTPResponse: {}",
                     response.status
                 );
                 Err(AppError::NotOkHTTPResponse(response.status.to_string()))
             }
-        },
+        }
     }
 }

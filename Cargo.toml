@@ -17,8 +17,8 @@ rust-version = "1.94.1"
 [dependencies]
 eframe = "0.34.0"
 egui = "0.34.0"
-egui_extras = { version = "0.34.0", features = ["svg", "all_loaders"]}
-egui-phosphor = "0.12"
+egui_extras = { version = "0.34.0", features = ["all_loaders", "svg"]}
+egui-phosphor =  { version = "0.12", features = ["regular", "fill"]}
 ehttp = "0.7.1"
 log = "0.4.29"
 rust-i18n = "3"
@@ -39,3 +39,8 @@ js-sys = "0.3.94"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[profile.dev]
+opt-level = 1
+debug = false
+lto = "off"

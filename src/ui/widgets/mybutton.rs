@@ -20,6 +20,7 @@ pub struct ButtonStyle {
     pub radius: CornerRadius,
 }
 
+#[must_use] 
 pub fn style_for(size: ButtonSize) -> ButtonStyle {
     match size {
         ButtonSize::Sm => ButtonStyle {

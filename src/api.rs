@@ -1,4 +1,15 @@
+pub(crate) mod casnumber;
+pub(crate) mod category;
+pub(crate) mod cenumber;
 pub(crate) mod connecteduser;
+pub(crate) mod empiricalformula;
+pub(crate) mod entity;
+pub(crate) mod hazardstatement;
 pub(crate) mod name;
+pub(crate) mod precautionarystatement;
+pub(crate) mod producerref;
 pub(crate) mod product;
+pub(crate) mod signalword;
 pub(crate) mod storelocation;
+pub(crate) mod symbol;
+pub(crate) mod tag;

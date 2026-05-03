@@ -23,9 +23,23 @@ pub struct App {
     // pub sender: Option<Sender<ToWorker>>,
     // receiver: Option<Receiver<ToApp>>,
 
-    // Selects for search form.
-    pub search_store_location_widget: EguiSelect2,
+    // Widgets/variables for search form.
+    pub search_part_of_name: String,
+    pub search_barecode: String,
+
+    pub search_store_location_widget: EguiSelect2, // EguiSelect2 contains its own variable.
     pub search_name_widget: EguiSelect2,
+    pub search_entity_widget: EguiSelect2,
+    pub search_producer_ref_widget: EguiSelect2,
+    pub search_signal_word_widget: EguiSelect2,
+    pub search_category_widget: EguiSelect2,
+    pub search_cas_number_widget: EguiSelect2,
+    pub search_ce_number_widget: EguiSelect2,
+    pub search_empirical_formula_widget: EguiSelect2,
+    pub search_hazard_statement_widget: EguiSelect2,
+    pub search_precautionary_statement_widget: EguiSelect2,
+    pub search_symbol_widget: EguiSelect2,
+    pub search_tag_widget: EguiSelect2,
 
     // Error messages.
     pub current_error: SharedString,
@@ -83,8 +97,69 @@ impl App {
 
         let mut search_name = EguiSelect2::default();
         search_name.load_suggestions = Arc::new(crate::api::name::load_suggestions);
-        search_name.translations = egui_select2_translations;
+        search_name.translations = egui_select2_translations.clone();
         search_name.translations.hint = t!("select2_hint_name").to_string();
+
+        let mut search_entity = EguiSelect2::default();
+        search_entity.load_suggestions = Arc::new(crate::api::entity::load_suggestions);
+        search_entity.translations = egui_select2_translations.clone();
+        search_entity.translations.hint = t!("select2_hint_entity").to_string();
+
+        let mut search_cas_number = EguiSelect2::default();
+        search_cas_number.load_suggestions = Arc::new(crate::api::casnumber::load_suggestions);
+        search_cas_number.translations = egui_select2_translations.clone();
+        search_cas_number.translations.hint = t!("select2_hint_cas_number").to_string();
+
+        let mut search_ce_number = EguiSelect2::default();
+        search_ce_number.load_suggestions = Arc::new(crate::api::cenumber::load_suggestions);
+        search_ce_number.translations = egui_select2_translations.clone();
+        search_ce_number.translations.hint = t!("select2_hint_ce_number").to_string();
+
+        let mut search_empirical_formula = EguiSelect2::default();
+        search_empirical_formula.load_suggestions =
+            Arc::new(crate::api::empiricalformula::load_suggestions);
+        search_empirical_formula.translations = egui_select2_translations.clone();
+        search_empirical_formula.translations.hint =
+            t!("select2_hint_empirical_formula").to_string();
+
+        let mut search_hazard_statement = EguiSelect2::default();
+        search_hazard_statement.load_suggestions =
+            Arc::new(crate::api::hazardstatement::load_suggestions);
+        search_hazard_statement.translations = egui_select2_translations.clone();
+        search_hazard_statement.translations.hint = t!("select2_hint_hazard_statement").to_string();
+
+        let mut search_precautionary_statement = EguiSelect2::default();
+        search_precautionary_statement.load_suggestions =
+            Arc::new(crate::api::precautionarystatement::load_suggestions);
+        search_precautionary_statement.translations = egui_select2_translations.clone();
+        search_precautionary_statement.translations.hint =
+            t!("select2_hint_precautionary_statement").to_string();
+
+        let mut search_symbol = EguiSelect2::default();
+        search_symbol.load_suggestions = Arc::new(crate::api::symbol::load_suggestions);
+        search_symbol.format_suggestion = Box::new(crate::api::symbol::format_suggestion);
+        search_symbol.translations = egui_select2_translations.clone();
+        search_symbol.translations.hint = t!("select2_hint_symbol").to_string();
+
+        let mut search_tag = EguiSelect2::default();
+        search_tag.load_suggestions = Arc::new(crate::api::tag::load_suggestions);
+        search_tag.translations = egui_select2_translations.clone();
+        search_tag.translations.hint = t!("select2_hint_tag").to_string();
+
+        let mut search_signal_word = EguiSelect2::default();
+        search_signal_word.load_suggestions = Arc::new(crate::api::signalword::load_suggestions);
+        search_signal_word.translations = egui_select2_translations.clone();
+        search_signal_word.translations.hint = t!("select2_hint_signal_word").to_string();
+
+        let mut search_producer_ref = EguiSelect2::default();
+        search_producer_ref.load_suggestions = Arc::new(crate::api::producerref::load_suggestions);
+        search_producer_ref.translations = egui_select2_translations.clone();
+        search_producer_ref.translations.hint = t!("select2_hint_producer_ref").to_string();
+
+        let mut search_category = EguiSelect2::default();
+        search_category.load_suggestions = Arc::new(crate::api::category::load_suggestions);
+        search_category.translations = egui_select2_translations.clone();
+        search_category.translations.hint = t!("select2_hint_category").to_string();
 
         // Create application.
         Self {
@@ -93,6 +168,18 @@ impl App {
             // receiver: Some(worker_rx),
             search_store_location_widget: search_store_location,
             search_name_widget: search_name,
+            search_entity_widget: search_entity,
+            search_producer_ref_widget: search_producer_ref,
+            search_signal_word_widget: search_signal_word,
+            search_tag_widget: search_tag,
+            search_cas_number_widget: search_cas_number,
+            search_ce_number_widget: search_ce_number,
+            search_category_widget: search_category,
+            search_empirical_formula_widget: search_empirical_formula,
+            search_hazard_statement_widget: search_hazard_statement,
+            search_precautionary_statement_widget: search_precautionary_statement,
+            search_symbol_widget: search_symbol,
+
             ..Default::default()
         }
     }
@@ -123,9 +210,23 @@ impl eframe::App for App {
             }
         });
 
+        // Update window size.
+        self.state.window_rect = ui.max_rect();
+
         // Check loading state of select2 widgets.
         self.search_store_location_widget.check_loading();
         self.search_name_widget.check_loading();
+        self.search_entity_widget.check_loading();
+        self.search_category_widget.check_loading();
+        self.search_empirical_formula_widget.check_loading();
+        self.search_hazard_statement_widget.check_loading();
+        self.search_precautionary_statement_widget.check_loading();
+        self.search_symbol_widget.check_loading();
+        self.search_tag_widget.check_loading();
+        self.search_cas_number_widget.check_loading();
+        self.search_ce_number_widget.check_loading();
+        self.search_producer_ref_widget.check_loading();
+        self.search_signal_word_widget.check_loading();
 
         // Check channels for messages.
         // if let Some(receiver) = &self.receiver {
@@ -142,13 +243,15 @@ impl eframe::App for App {
 }
 
 fn use_custom_accent(style: &mut Style) {
-    style.visuals.widgets.active.corner_radius = CornerRadius::same(30);
-    style.visuals.widgets.hovered.corner_radius = CornerRadius::same(30);
-    style.visuals.widgets.inactive.corner_radius = CornerRadius::same(30);
+    style.visuals.widgets.active.corner_radius = CornerRadius::same(20);
+    style.visuals.widgets.hovered.corner_radius = CornerRadius::same(20);
+    style.visuals.widgets.inactive.corner_radius = CornerRadius::same(20);
     style.visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
-    style.visuals.widgets.open.corner_radius = CornerRadius::same(30);
-
+    style.visuals.widgets.open.corner_radius = CornerRadius::same(20);
+    style.spacing.scroll = egui::style::ScrollStyle::floating();
     style.spacing.button_padding = vec2(10., 5.);
+
+    style.override_font_id = Some(egui::FontId::proportional(18.0));
 }
 
 fn setup_custom_style(ctx: &egui::Context) {
@@ -158,28 +261,41 @@ fn setup_custom_style(ctx: &egui::Context) {
 }
 
 fn setup_custom_fonts(ctx: &egui::Context) {
-    // Start with the default fonts (we will be adding to them rather than replacing them).
     let mut fonts = egui::FontDefinitions::default();
 
-    // Add Phosphor icons font.
-    egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
-
-    // Install custom fonts.
-    // .ttf and .otf files supported.
+    // Font data
     fonts.font_data.insert(
-        "B612-Regular".to_owned(),
-        std::sync::Arc::new(egui::FontData::from_static(include_bytes!(
+        "B612".into(),
+        Arc::new(egui::FontData::from_static(include_bytes!(
             "fonts/B612-Regular.ttf"
         ))),
     );
 
-    // Start at 1 not 0 to keep the default font.
-    fonts
-        .families
-        .entry(egui::FontFamily::Proportional)
-        .or_default()
-        .insert(1, "B612-Regular".to_owned());
+    fonts.font_data.insert(
+        "phosphor".into(),
+        Arc::new(egui_phosphor::Variant::Regular.font_data()),
+    );
 
-    // Tell egui to use these fonts:
+    fonts.font_data.insert(
+        "phosphor-fill".into(),
+        Arc::new(egui_phosphor::Variant::Fill.font_data()),
+    );
+
+    // Proportional family
+    let proportional = fonts
+        .families
+        .get_mut(&egui::FontFamily::Proportional)
+        .unwrap();
+
+    proportional.insert(0, "B612".into());
+    proportional.push("phosphor".into());
+    proportional.push("phosphor-fill".into());
+
+    // 🔥 THIS is what you were missing
+    fonts.families.insert(
+        egui::FontFamily::Name("phosphor-fill".into()),
+        vec!["phosphor-fill".into()],
+    );
+
     ctx.set_fonts(fonts);
 }

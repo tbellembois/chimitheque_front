@@ -26,37 +26,29 @@ pub fn retrieve_connected_user(products: Arc<Mutex<Option<Person>>>) -> Result<(
 
 fn parse_retrieve_connected_user_response(response: ehttp::Response) -> Result<Person, AppError> {
     match response.status {
-        200 => match response.text() {
-            Some(text_response) => match serde_json::from_str(text_response) {
-                Ok(json_response) => Ok(json_response),
-                Err(e) => {
-                    log::error!(
-                        "parse_retrieve_connected_user_response: InternalError: {}",
-                        e,
-                    );
-                    Err(AppError::InternalError(e.to_string()))
-                }
-            },
-            None => {
-                log::error!("parse_retrieve_connected_user_response: UnexpectedEmptyResponse");
-                Err(AppError::UnexpectedEmptyResponse)
+        200 => if let Some(text_response) = response.text() { match serde_json::from_str(text_response) {
+            Ok(json_response) => Ok(json_response),
+            Err(e) => {
+                log::error!(
+                    "parse_retrieve_connected_user_response: InternalError: {e}",
+                );
+                Err(AppError::InternalError(e.to_string()))
             }
+        } } else {
+            log::error!("parse_retrieve_connected_user_response: UnexpectedEmptyResponse");
+            Err(AppError::UnexpectedEmptyResponse)
         },
-        _ => match response.text() {
-            Some(text_response) => {
-                log::error!(
-                    "parse_retrieve_connected_user_response: NotOkHTTPResponse: {}",
-                    text_response
-                );
-                Err(AppError::NotOkHTTPResponse(text_response.to_string()))
-            }
-            None => {
-                log::error!(
-                    "parse_retrieve_connected_user_response: NotOkHTTPResponse: {}",
-                    response.status
-                );
-                Err(AppError::NotOkHTTPResponse(response.status.to_string()))
-            }
+        _ => if let Some(text_response) = response.text() {
+            log::error!(
+                "parse_retrieve_connected_user_response: NotOkHTTPResponse: {text_response}"
+            );
+            Err(AppError::NotOkHTTPResponse(text_response.to_string()))
+        } else {
+            log::error!(
+                "parse_retrieve_connected_user_response: NotOkHTTPResponse: {}",
+                response.status
+            );
+            Err(AppError::NotOkHTTPResponse(response.status.to_string()))
         },
     }
 }
