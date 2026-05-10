@@ -12,6 +12,7 @@
     clippy::too_many_lines
 )]
 mod api;
+mod defines;
 mod error;
 mod keycloak;
 mod types;

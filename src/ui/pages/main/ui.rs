@@ -8,27 +8,44 @@ use crate::{
     },
 };
 use chimitheque_types::requestfilter::RequestFilter;
-use egui::RichText;
+use egui::Color32;
+use egui::{Margin, RichText};
 use rust_i18n::t;
 use std::sync::Arc;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     egui::Panel::top("menu_panel")
+        .frame(
+            egui::Frame::NONE
+                .inner_margin(Margin {
+                    top: 20,
+                    bottom: 10,
+                    left: 50,
+                    right: 50,
+                })
+                .fill(Color32::WHITE),
+        )
         .show_separator_line(false)
         .show_inside(ui, |ui| {
             ui.horizontal(|ui| {
                 // Info and error messages.
-                // ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                //     // Display possible error.
-                //     if let Some(error) = &app.current_error.lock().unwrap().as_ref() {
-                //         ui.label(RichText::new(format!(" {error}")));
-                //     }
+                ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                    // Display possible error.
+                    if let Some(error) = &app.current_error.lock().unwrap().as_ref() {
+                        ui.label(RichText::new(format!(
+                            "{} {error}",
+                            egui_phosphor::fill::WARNING,
+                        )));
+                    }
 
-                //     // Display possible message.
-                //     if let Some(info) = &app.current_info.lock().unwrap().as_ref() {
-                //         ui.label(RichText::new(format!(" {info}")));
-                //     }
-                // });
+                    // Display possible message.
+                    if let Some(info) = &app.current_info.lock().unwrap().as_ref() {
+                        ui.label(RichText::new(format!(
+                            "{} {info}",
+                            egui_phosphor::fill::INFO,
+                        )));
+                    }
+                });
 
                 // Switch locale, theme and user info.
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -36,16 +53,16 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     let fr_locale_icon = egui::include_image!("../../media/fr.svg");
                     let en_locale_icon = egui::include_image!("../../media/gb.svg");
                     if ui
-                        .add(egui::Button::image_and_text(fr_locale_icon, "Fr"))
-                        .clicked()
-                    {
-                        rust_i18n::set_locale("fr-FR");
-                    }
-                    if ui
                         .add(egui::Button::image_and_text(en_locale_icon, "En"))
                         .clicked()
                     {
                         rust_i18n::set_locale("en-GB");
+                    }
+                    if ui
+                        .add(egui::Button::image_and_text(fr_locale_icon, "Fr"))
+                        .clicked()
+                    {
+                        rust_i18n::set_locale("fr-FR");
                     }
 
                     // User info.
@@ -75,73 +92,66 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
                 // Menu.
                 egui::MenuBar::new().ui(ui, |ui| {
-                    // Simulate button, best way to separate icon from text.
-                    let bookmark_response = ui
-                        .horizontal(|ui| {
-                            ui.label(
-                                egui::RichText::new(egui_phosphor::fill::BOOKMARK)
-                                    .family(egui::FontFamily::Name("phosphor-fill".into()))
-                                    .size(32.0),
-                            );
-                            ui.label(t!("menu_bookmarks"));
-                        })
-                        .response;
+                    ui.menu_button(
+                        egui::RichText::new(format!(
+                            "{} {}",
+                            egui_phosphor::fill::BOOKMARK,
+                            t!("menu_bookmarks")
+                        )),
+                        |ui| {
+                            if ui.button(t!("list")).clicked() {
+                                //functionality
+                            }
+                        },
+                    );
 
-                    if bookmark_response.clicked() {
-                        // handle click
-                    }
+                    ui.menu_button(
+                        egui::RichText::new(format!(
+                            "{} {}",
+                            egui_phosphor::fill::TAG,
+                            t!("menu_products")
+                        )),
+                        |ui| {
+                            if ui.button(t!("list")).clicked() {
+                                retrieve_products(
+                                    &RequestFilter {
+                                        limit: Some(10),
+                                        ..Default::default()
+                                    },
+                                    Arc::clone(&app.products),
+                                    false,
+                                    // Arc::clone(&app.loading_state),
+                                    &Arc::clone(&app.current_info),
+                                    &Arc::clone(&app.current_error),
+                                );
 
-                    // Simulate button, best way to separate icon from text.
-                    let products_response = ui
-                        .horizontal(|ui| {
-                            ui.label(
-                                egui::RichText::new(egui_phosphor::fill::TAG)
-                                    .family(egui::FontFamily::Name("phosphor-fill".into()))
-                                    .size(32.0),
-                            );
-                            ui.label(t!("menu_products"));
-                        })
-                        .response;
+                                app.state.active_page = Page::ProductList;
+                            }
+                        },
+                    );
 
-                    if products_response.clicked() {
-                        retrieve_products(
-                            RequestFilter {
-                                limit: Some(10),
-                                ..Default::default()
-                            },
-                            Arc::clone(&app.products),
-                            Arc::clone(&app.current_info),
-                            Arc::clone(&app.current_error),
-                        );
+                    ui.menu_button(
+                        egui::RichText::new(format!(
+                            "{} {}",
+                            egui_phosphor::fill::WAREHOUSE,
+                            t!("menu_storelocations")
+                        )),
+                        |ui| {
+                            if ui.button(t!("list")).clicked() {
+                                retrieve_store_locations(
+                                    &RequestFilter {
+                                        limit: Some(10),
+                                        ..Default::default()
+                                    },
+                                    Arc::clone(&app.storelocations),
+                                    &Arc::clone(&app.current_info),
+                                    &Arc::clone(&app.current_error),
+                                );
 
-                        app.state.active_page = Page::ProductList;
-                    }
-
-                    // Simulate button, best way to separate icon from text.
-                    let store_locations_response = ui
-                        .horizontal(|ui| {
-                            ui.label(
-                                egui::RichText::new(egui_phosphor::fill::WAREHOUSE)
-                                    .family(egui::FontFamily::Name("phosphor-fill".into()))
-                                    .size(32.0),
-                            );
-                            ui.label(t!("menu_storelocations"));
-                        })
-                        .response;
-
-                    if store_locations_response.clicked() {
-                        retrieve_store_locations(
-                            &RequestFilter {
-                                limit: Some(10),
-                                ..Default::default()
-                            },
-                            Arc::clone(&app.storelocations),
-                            &Arc::clone(&app.current_info),
-                            &Arc::clone(&app.current_error),
-                        );
-
-                        app.state.active_page = Page::StorelocationList;
-                    }
+                                app.state.active_page = Page::StorelocationList;
+                            }
+                        },
+                    );
                 });
             });
         });
@@ -158,12 +168,26 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     //
     // Render active page.
     //
-    egui::CentralPanel::default().show_inside(ui, |ui| match app.state.active_page {
-        Page::ProductList => {
-            render_search_form(app, ui, frame);
 
-            product::list::update(app, ui, frame);
-        }
-        Page::StorelocationList => storelocation::list::update(app, ui, frame),
-    });
+    egui::CentralPanel::default()
+        .frame(
+            egui::Frame::NONE
+                .inner_margin(Margin {
+                    top: 10,
+                    bottom: 10,
+                    left: 50,
+                    right: 50,
+                })
+                .fill(Color32::WHITE),
+        )
+        .show_inside(ui, |ui| match app.state.active_page {
+            Page::ProductList => {
+                render_search_form(app, ui, frame);
+
+                ui.add_space(20.0);
+
+                product::list::update(app, ui, frame);
+            }
+            Page::StorelocationList => storelocation::list::update(app, ui, frame),
+        });
 }

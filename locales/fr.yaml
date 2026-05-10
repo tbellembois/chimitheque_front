@@ -13,10 +13,25 @@ storelocation_color: "couleur"
 storelocation_canstore: "peut stocker"
 storelocation_parent: "entrepôt parent"
 
+search_form_shrink: "cacher le formulaire de recherche"
+search_form_expand: "afficher le formulaire de recherche"
+
 search_input_name: "nom exact"
 search_input_store_location: "entrepôt"
 search_input_part_of_name: "partie du nom"
 search_input_barecode: "code barre"
+
+search_form_product_type_chemical: "produits chimiques"
+search_form_product_type_biological: "réactifs biologiques"
+search_form_product_type_consumable: "consommables"
+search_form_product_type_all: "tout"
+
+search_form_product_cmr: "CMR"
+search_form_product_to_destroy: "à détruire"
+search_form_product_borrowed: "emprunté"
+
+search_form_action_reset_filter: "supprimer les filtres"
+search_form_action_search: "rechercher"
 
 advanced_search: "recherche avancée"
 
@@ -39,3 +54,5 @@ select2_hint_ce_number: "numéro CE"
 select2_hint_empirical_formula: "formule brute"
 select2_hint_hazard_statement: "phrases de risque"
 select2_hint_precautionary_statement: "phrases de sécurité"
+
+product_label_storages: "stockages"

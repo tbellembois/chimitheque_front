@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     error::apperror::AppError,
     keycloak::get_token,
-    types::{SharedEntityList, SharedString},
+    types::{SharedEntityAndCountList, SharedString},
 };
 use chimitheque_types::{entity::Entity, requestfilter::RequestFilter};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
@@ -35,7 +35,7 @@ fn get_entities_from_response(
 
 pub fn retrieve_entities(
     request_filter: &RequestFilter,
-    shared_entities: SharedEntityList,
+    shared_entities: SharedEntityAndCountList,
     current_info: &SharedString,
     current_error: &SharedString,
 ) {

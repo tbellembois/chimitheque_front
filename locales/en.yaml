@@ -13,10 +13,25 @@ storelocation_color: "color"
 storelocation_canstore: "can store"
 storelocation_parent: "parent store location"
 
+search_form_shrink: "shrink search form"
+search_form_expand: "expand search form"
+
 search_input_name: "exact name"
 search_input_store_location: "store location"
 search_input_part_of_name: "part of name"
 search_input_barecode: "barecode"
+
+search_form_product_type_chemical: "chemical products"
+search_form_product_type_biological: "biological reagents"
+search_form_product_type_consumable: "lab consumables"
+search_form_product_type_all: "all"
+
+search_form_product_cmr: "CMR"
+search_form_product_to_destroy: "to destroy"
+search_form_product_borrowed: "borrowed"
+
+search_form_action_reset_filter: "reset filters"
+search_form_action_search: "search"
 
 advanced_search: "advanced search"
 
@@ -39,3 +54,5 @@ select2_hint_ce_number: "CE number"
 select2_hint_empirical_formula: "empirical formula"
 select2_hint_hazard_statement: "hazard statement"
 select2_hint_precautionary_statement: "precautionary statement"
+
+product_label_storages: "storages"

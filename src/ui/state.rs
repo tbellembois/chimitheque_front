@@ -19,6 +19,8 @@ pub struct ApplicationState {
     pub window_rect: Rect,
     // Advanced search size and position.
     pub advanced_search_rect: Rect,
+    // Whether the scroll area was near the bottom.
+    pub scrollarea_was_near_bottom: bool,
 }
 
 impl Default for ApplicationState {
@@ -34,12 +36,12 @@ impl Default for ApplicationState {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
+            scrollarea_was_near_bottom: false,
         }
     }
 }
 
 impl ApplicationState {
-    /// Create a new state with an active theme
     #[must_use]
     pub fn new(active_locale: &str) -> Self {
         Self {
@@ -53,6 +55,7 @@ impl ApplicationState {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
+            scrollarea_was_near_bottom: false,
         }
     }
 }

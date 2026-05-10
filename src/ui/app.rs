@@ -1,16 +1,33 @@
 use super::state::ApplicationState;
 use crate::api::connecteduser::retrieve_connected_user;
-use crate::types::{SharedProductList, SharedStoreLocationList, SharedString};
+use crate::types::{SharedProductAndCountList, SharedStoreLocationAndCountList, SharedString};
 use crate::ui::pages::main;
 use chimitheque_types::person::Person;
 use eframe::CreationContext;
-use egui::{CornerRadius, Style, Theme, vec2};
+use egui::{CornerRadius, Margin, Style, Theme, vec2};
 use egui_select2::select2::EguiSelect2;
 use rust_i18n::t;
 use std::sync::Once;
 use std::sync::{Arc, Mutex};
 
 static START: Once = Once::new();
+
+#[derive(Default, PartialEq)]
+pub enum ProductType {
+    Chemical,
+    Biological,
+    Consumable,
+    #[default]
+    All,
+}
+
+#[derive(Default, PartialEq, Eq)]
+pub enum LoadingState {
+    #[default]
+    NotLoading, // value at program startup.
+    LoadingForOffset(u64),
+    LoadedForOffset(u64),
+}
 
 #[derive(Default)]
 pub struct App {
@@ -22,6 +39,7 @@ pub struct App {
     // application (GUI) and worker.
     // pub sender: Option<Sender<ToWorker>>,
     // receiver: Option<Receiver<ToApp>>,
+    pub search_form_expanded: bool,
 
     // Widgets/variables for search form.
     pub search_part_of_name: String,
@@ -41,6 +59,11 @@ pub struct App {
     pub search_symbol_widget: EguiSelect2,
     pub search_tag_widget: EguiSelect2,
 
+    pub search_product_cmr: bool,
+    pub search_product_to_destroy: bool,
+    pub search_product_borrowed: bool,
+    pub search_product_type: ProductType,
+
     // Error messages.
     pub current_error: SharedString,
     pub current_info: SharedString,
@@ -48,9 +71,13 @@ pub struct App {
     // User information.
     pub connected_user: Arc<Mutex<Option<Person>>>,
     // Store locations.
-    pub storelocations: SharedStoreLocationList,
+    pub storelocations: SharedStoreLocationAndCountList,
     // Products.
-    pub products: SharedProductList,
+    pub products: SharedProductAndCountList,
+
+    // Current search offset.
+    pub current_search_offset: usize,
+    pub loading_state: Arc<Mutex<LoadingState>>,
 }
 
 impl App {
@@ -179,7 +206,7 @@ impl App {
             search_hazard_statement_widget: search_hazard_statement,
             search_precautionary_statement_widget: search_precautionary_statement,
             search_symbol_widget: search_symbol,
-
+            search_form_expanded: true,
             ..Default::default()
         }
     }
@@ -243,15 +270,17 @@ impl eframe::App for App {
 }
 
 fn use_custom_accent(style: &mut Style) {
-    style.visuals.widgets.active.corner_radius = CornerRadius::same(20);
-    style.visuals.widgets.hovered.corner_radius = CornerRadius::same(20);
-    style.visuals.widgets.inactive.corner_radius = CornerRadius::same(20);
-    style.visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
-    style.visuals.widgets.open.corner_radius = CornerRadius::same(20);
-    style.spacing.scroll = egui::style::ScrollStyle::floating();
-    style.spacing.button_padding = vec2(10., 5.);
+    style.visuals.widgets.active.corner_radius =
+        crate::defines::VISUALS_WIDGETS_ACTIVE_CORNER_RADIUS;
+    style.visuals.widgets.hovered.corner_radius =
+        crate::defines::VISUALS_WIDGETS_HOVERED_CORNER_RADIUS;
+    style.visuals.widgets.inactive.corner_radius =
+        crate::defines::VISUALS_WIDGETS_INACTIVE_CORNER_RADIUS;
+    style.visuals.widgets.noninteractive.corner_radius =
+        crate::defines::VISUALS_WIDGETS_NONINTERACTIVE_CORNER_RADIUS;
+    style.visuals.widgets.open.corner_radius = crate::defines::VISUALS_WIDGETS_OPEN_CORNER_RADIUS;
 
-    style.override_font_id = Some(egui::FontId::proportional(18.0));
+    style.override_font_id = Some(egui::FontId::proportional(crate::defines::GLOBAL_FONT_SIZE));
 }
 
 fn setup_custom_style(ctx: &egui::Context) {
@@ -272,13 +301,13 @@ fn setup_custom_fonts(ctx: &egui::Context) {
     );
 
     fonts.font_data.insert(
-        "phosphor".into(),
-        Arc::new(egui_phosphor::Variant::Regular.font_data()),
+        "phosphor-fill".into(),
+        Arc::new(egui_phosphor::Variant::Fill.font_data()),
     );
 
     fonts.font_data.insert(
-        "phosphor-fill".into(),
-        Arc::new(egui_phosphor::Variant::Fill.font_data()),
+        "phosphor".into(),
+        Arc::new(egui_phosphor::Variant::Regular.font_data()),
     );
 
     // Proportional family
@@ -287,14 +316,17 @@ fn setup_custom_fonts(ctx: &egui::Context) {
         .get_mut(&egui::FontFamily::Proportional)
         .unwrap();
 
-    proportional.insert(0, "B612".into());
-    proportional.push("phosphor".into());
+    // proportional.insert(0, "B612".into());
     proportional.push("phosphor-fill".into());
+    proportional.push("phosphor".into());
 
-    // 🔥 THIS is what you were missing
     fonts.families.insert(
         egui::FontFamily::Name("phosphor-fill".into()),
         vec!["phosphor-fill".into()],
+    );
+    fonts.families.insert(
+        egui::FontFamily::Name("phosphor".into()),
+        vec!["phosphor".into()],
     );
 
     ctx.set_fonts(fonts);

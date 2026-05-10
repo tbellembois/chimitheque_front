@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     error::apperror::AppError,
     keycloak::get_token,
-    types::{SharedStoreLocationList, SharedString},
+    types::{SharedStoreLocationAndCountList, SharedString},
 };
 use chimitheque_types::{requestfilter::RequestFilter, storelocation::StoreLocation};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
@@ -35,17 +35,18 @@ fn get_store_locations_from_response(
 
 pub fn retrieve_store_locations(
     request_filter: &RequestFilter,
-    shared_store_locations: SharedStoreLocationList,
+    shared_store_locations: SharedStoreLocationAndCountList,
     current_info: &SharedString,
     current_error: &SharedString,
 ) {
+    let offset = request_filter.offset.unwrap_or_default();
     let request = build_request(request_filter);
 
     let mut locked_current_info = current_info.lock().unwrap_or_else(|e| {
         log::error!("{e}");
         e.into_inner()
     });
-    *locked_current_info = Some("getting store locations".to_string());
+    *locked_current_info = Some(format!("getting store locations (offset: {offset})"));
 
     let current_error_clone = Arc::clone(current_error);
 
