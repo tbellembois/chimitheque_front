@@ -1,6 +1,6 @@
 use crate::{error::apperror::AppError, keycloak::get_token};
 use chimitheque_types::{requestfilter::RequestFilter, symbol::Symbol};
-use egui::{Response, Ui, Vec2};
+use egui::{Image, Response, Ui, Vec2};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
 
 fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
@@ -29,13 +29,20 @@ fn get_symbols_from_response(
 }
 
 pub fn format_suggestion(ui: &mut Ui, selected: bool, select_item: &SelectItem) -> Response {
-    let image_name = format!("{}.png", select_item.label);
-    // let image_path =
-    //     std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("src/assets/{image_name}"));
-    let image_path = format!("assets/{image_name}");
-    let image = egui::Image::new(format!("file://{image_path}")).corner_radius(5.0);
+    let image = match select_item.label.as_str() {
+        "GHS01" => egui::Image::new(egui::include_image!("../assets/GHS01.svg")).corner_radius(5.0),
+        "GHS02" => egui::Image::new(egui::include_image!("../assets/GHS02.svg")).corner_radius(5.0),
+        "GHS03" => egui::Image::new(egui::include_image!("../assets/GHS03.svg")).corner_radius(5.0),
+        "GHS04" => egui::Image::new(egui::include_image!("../assets/GHS04.svg")).corner_radius(5.0),
+        "GHS05" => egui::Image::new(egui::include_image!("../assets/GHS05.svg")).corner_radius(5.0),
+        "GHS06" => egui::Image::new(egui::include_image!("../assets/GHS06.svg")).corner_radius(5.0),
+        "GHS07" => egui::Image::new(egui::include_image!("../assets/GHS07.svg")).corner_radius(5.0),
+        "GHS08" => egui::Image::new(egui::include_image!("../assets/GHS08.svg")).corner_radius(5.0),
+        "GHS09" => egui::Image::new(egui::include_image!("../assets/GHS09.svg")).corner_radius(5.0),
+        _ => egui::Image::new(egui::include_image!("../assets/wrong.svg")).corner_radius(5.0),
+    };
 
-    let image = image.fit_to_exact_size(Vec2::new(20.0, 20.0));
+    let image = image.fit_to_exact_size(Vec2::new(40.0, 40.0));
 
     ui.add(egui::Button::image_and_text(image, select_item.label.clone()).selected(selected))
 }

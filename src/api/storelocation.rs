@@ -7,6 +7,7 @@ use crate::{
 };
 use chimitheque_types::{requestfilter::RequestFilter, storelocation::StoreLocation};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
+use wasm_rs_shared_channel::spsc::Sender;
 
 fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
     ehttp::Request::get(format!(
@@ -35,56 +36,83 @@ fn get_store_locations_from_response(
 
 pub fn retrieve_store_locations(
     request_filter: &RequestFilter,
-    shared_store_locations: SharedStoreLocationAndCountList,
-    current_info: &SharedString,
-    current_error: &SharedString,
+    shared_maybe_store_locations_and_count: SharedStoreLocationAndCountList,
+    append: bool,
+    info_sender: Option<Sender<String>>,
+    error_sender: Option<Sender<String>>,
+    loading_sender: Option<Sender<bool>>,
 ) {
     let offset = request_filter.offset.unwrap_or_default();
     let request = build_request(request_filter);
 
-    let mut locked_current_info = current_info.lock().unwrap_or_else(|e| {
-        log::error!("{e}");
-        e.into_inner()
-    });
-    *locked_current_info = Some(format!("getting store locations (offset: {offset})"));
+    let Some(info_sender) = info_sender else {
+        log::error!("info_sender is None");
+        return;
+    };
+    let Some(error_sender) = error_sender else {
+        log::error!("error_sender is None");
+        return;
+    };
+    let Some(loading_sender) = loading_sender else {
+        log::error!("loading_sender is None");
+        return;
+    };
 
-    let current_error_clone = Arc::clone(current_error);
+    loading_sender.send(&true).ok();
+    info_sender
+        .send(&format!("getting store locations (offset: {offset})"))
+        .ok();
 
     ehttp::fetch(request, move |mayerr_response| {
-        let mut locked_current_error = current_error_clone.lock().unwrap_or_else(|e| {
-            log::error!("{e}");
-            e.into_inner()
-        });
-
         match mayerr_response {
             Ok(response) => {
                 // Acquire lock on current store locations.
-                let mut current_store_locations = match shared_store_locations.lock() {
-                    Ok(locked) => locked,
-                    Err(e) => {
-                        log::error!("{e}");
-                        *locked_current_error = Some(e.to_string());
-                        return;
-                    }
-                };
+                let mut maybe_current_store_locations_and_count =
+                    match shared_maybe_store_locations_and_count.lock() {
+                        Ok(locked) => locked,
+                        Err(e) => {
+                            log::error!("{e}");
+                            error_sender.send(&e.to_string()).ok();
+                            return;
+                        }
+                    };
 
                 match get_store_locations_from_response(&response) {
-                    Ok(maybe_store_locations) => {
-                        if let Some(store_locations) = maybe_store_locations {
-                            *current_store_locations = Some(store_locations);
+                    Ok(maybe_response_store_locations_and_count) => {
+                        if let Some(mut response_store_locations_and_count) =
+                            maybe_response_store_locations_and_count
+                        {
+                            if append {
+                                if let Some(current_store_locations_and_count) =
+                                    maybe_current_store_locations_and_count.as_mut()
+                                {
+                                    current_store_locations_and_count
+                                        .0
+                                        .append(&mut response_store_locations_and_count.0);
+                                } else {
+                                    *maybe_current_store_locations_and_count =
+                                        Some(response_store_locations_and_count);
+                                }
+                            } else {
+                                *maybe_current_store_locations_and_count =
+                                    Some(response_store_locations_and_count);
+                            }
                         }
                     }
                     Err(e) => {
                         log::error!("{e}");
-                        *locked_current_error = Some(e);
+                        error_sender.send(&e.to_string()).ok();
                     }
                 }
             }
             Err(e) => {
                 log::error!("{e}");
-                *locked_current_error = Some(e);
+                error_sender.send(&e.to_string()).ok();
             }
         }
+
+        loading_sender.send(&false).ok();
+        info_sender.send(&format!("done")).ok();
     });
 }
 

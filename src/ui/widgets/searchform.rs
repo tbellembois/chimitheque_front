@@ -2,8 +2,11 @@ use rust_i18n::t;
 
 use crate::ui::{
     app::{App, ProductType},
-    widgets::buttonwithiconandtext::button_with_icon_and_text,
-    widgets::clickablelabelwithiconandtext::clickable_label_with_icon_and_text,
+    state::{Action, Page},
+    widgets::{
+        buttonwithiconandtext::button_with_icon_and_text,
+        clickablelabelwithiconandtext::clickable_label_with_icon_and_text,
+    },
 };
 
 pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
@@ -183,6 +186,9 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                         .clicked()
                         {
                             app.search_form_expanded = false;
+
+                            app.state.action = Action::GetProducts;
+                            app.state.active_page = Page::ProductList;
                         }
 
                         if button_with_icon_and_text(

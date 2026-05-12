@@ -8,6 +8,14 @@ pub enum Page {
     StorelocationList,
 }
 
+#[derive(Debug, Default)]
+pub enum Action {
+    #[default]
+    None,
+    GetProducts,
+    GetStorelocations,
+}
+
 /// Application state.
 #[derive(Debug)]
 pub struct ApplicationState {
@@ -21,6 +29,8 @@ pub struct ApplicationState {
     pub advanced_search_rect: Rect,
     // Whether the scroll area was near the bottom.
     pub scrollarea_was_near_bottom: bool,
+    // The current action.
+    pub action: Action,
 }
 
 impl Default for ApplicationState {
@@ -37,6 +47,7 @@ impl Default for ApplicationState {
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
             scrollarea_was_near_bottom: false,
+            action: Action::None,
         }
     }
 }
@@ -56,6 +67,7 @@ impl ApplicationState {
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
             scrollarea_was_near_bottom: false,
+            action: Action::None,
         }
     }
 }

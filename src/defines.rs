@@ -8,3 +8,5 @@ pub const VISUALS_WIDGETS_NONINTERACTIVE_CORNER_RADIUS: CornerRadius = CornerRad
 pub const VISUALS_WIDGETS_OPEN_CORNER_RADIUS: CornerRadius = CornerRadius::same(5);
 
 pub const GLOBAL_FONT_SIZE: f32 = 18.0;
+
+pub const SEARCH_LIMIT: u64 = 10;

@@ -1,19 +1,18 @@
-use crate::{
-    api::{product::retrieve_products, storelocation::retrieve_store_locations},
-    ui::{
-        app::App,
-        pages::{product, storelocation},
-        state::Page,
-        widgets::searchform::render_search_form,
-    },
+use crate::ui::{
+    app::App,
+    pages::{product, storelocation},
+    state::{Action, Page},
+    widgets::searchform::render_search_form,
 };
-use chimitheque_types::requestfilter::RequestFilter;
 use egui::Color32;
 use egui::{Margin, RichText};
 use rust_i18n::t;
 use std::sync::Arc;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
+    let visuals = ui.visuals();
+    let bg_color = visuals.window_fill;
+
     egui::Panel::top("menu_panel")
         .frame(
             egui::Frame::NONE
@@ -23,35 +22,38 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     left: 50,
                     right: 50,
                 })
-                .fill(Color32::WHITE),
+                .fill(bg_color),
         )
         .show_separator_line(false)
         .show_inside(ui, |ui| {
             ui.horizontal(|ui| {
                 // Info and error messages.
-                ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                    // Display possible error.
-                    if let Some(error) = &app.current_error.lock().unwrap().as_ref() {
-                        ui.label(RichText::new(format!(
-                            "{} {error}",
-                            egui_phosphor::fill::WARNING,
-                        )));
-                    }
+                ui.with_layout(
+                    egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
+                    |ui| {
+                        // Display possible error.
+                        if let Some(error) = &app.current_error {
+                            ui.label(RichText::new(format!(
+                                "{} {error}",
+                                egui_phosphor::fill::WARNING,
+                            )));
+                        }
 
-                    // Display possible message.
-                    if let Some(info) = &app.current_info.lock().unwrap().as_ref() {
-                        ui.label(RichText::new(format!(
-                            "{} {info}",
-                            egui_phosphor::fill::INFO,
-                        )));
-                    }
-                });
+                        // Display possible message.
+                        if let Some(info) = &app.current_info {
+                            ui.label(RichText::new(format!(
+                                "{} {info}",
+                                egui_phosphor::fill::INFO,
+                            )));
+                        }
+                    },
+                );
 
                 // Switch locale, theme and user info.
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     // Switch locale.
-                    let fr_locale_icon = egui::include_image!("../../media/fr.svg");
-                    let en_locale_icon = egui::include_image!("../../media/gb.svg");
+                    let fr_locale_icon = egui::include_image!("../../../assets/fr.svg");
+                    let en_locale_icon = egui::include_image!("../../../assets/gb.svg");
                     if ui
                         .add(egui::Button::image_and_text(en_locale_icon, "En"))
                         .clicked()
@@ -86,7 +88,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 ui.add_sized(
                     [50., 50.],
                     egui::Image::new(egui::include_image!(
-                        "../../media/chimitheque_logo_simple.svg"
+                        "../../../assets/chimitheque_logo_simple.svg"
                     )),
                 );
 
@@ -113,18 +115,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                         )),
                         |ui| {
                             if ui.button(t!("list")).clicked() {
-                                retrieve_products(
-                                    &RequestFilter {
-                                        limit: Some(10),
-                                        ..Default::default()
-                                    },
-                                    Arc::clone(&app.products),
-                                    false,
-                                    // Arc::clone(&app.loading_state),
-                                    &Arc::clone(&app.current_info),
-                                    &Arc::clone(&app.current_error),
-                                );
-
+                                app.state.action = Action::GetProducts;
                                 app.state.active_page = Page::ProductList;
                             }
                         },
@@ -138,16 +129,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                         )),
                         |ui| {
                             if ui.button(t!("list")).clicked() {
-                                retrieve_store_locations(
-                                    &RequestFilter {
-                                        limit: Some(10),
-                                        ..Default::default()
-                                    },
-                                    Arc::clone(&app.storelocations),
-                                    &Arc::clone(&app.current_info),
-                                    &Arc::clone(&app.current_error),
-                                );
-
+                                app.state.action = Action::GetStorelocations;
                                 app.state.active_page = Page::StorelocationList;
                             }
                         },
@@ -178,7 +160,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     left: 50,
                     right: 50,
                 })
-                .fill(Color32::WHITE),
+                .fill(bg_color),
         )
         .show_inside(ui, |ui| match app.state.active_page {
             Page::ProductList => {
@@ -188,6 +170,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
                 product::list::update(app, ui, frame);
             }
-            Page::StorelocationList => storelocation::list::update(app, ui, frame),
+            Page::StorelocationList => {
+                storelocation::list::update(app, ui, frame);
+            }
         });
 }

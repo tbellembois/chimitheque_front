@@ -47,10 +47,7 @@ pub fn render_product_label(
             .column(Column::exact(cols_width))
             .column(Column::exact(cols_width))
             .column(Column::exact(PRODUCT_LABEL_MENU_WIDTH))
-            .id_salt(format!(
-                "{}_product_label",
-                product.product_id.unwrap_or_default()
-            ))
+            // .id_salt(format!("{}_product_label", product.name.name_label))
             .body(|mut body| {
                 body.row(50.0, |mut row| {
                     row.col(
@@ -115,9 +112,7 @@ pub fn render_product_label(
                             if let Some(symbols) = product.symbols {
                                 for symbol in symbols {
                                     if symbol.symbol_label == "GHS02".to_string() {
-                                        ui.add(egui::Image::new(egui::include_image!(
-                                            "../media/GHS02.svg"
-                                        )));
+                                        ui.add(egui::Image::new("file://assets/GHS02.svg"));
                                     }
                                 }
                             };

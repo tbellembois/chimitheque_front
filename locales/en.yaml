@@ -39,6 +39,7 @@ select2_loading: "loading..."
 select2_no_results: "no results"
 select2_add: "add"
 select2_clear_all: "clear all"
+select2_load_more: "load more results"
 select2_hint: "search"
 
 select2_hint_store_location: "store location"

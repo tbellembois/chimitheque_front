@@ -12,9 +12,9 @@ use crate::{
     error::apperror::AppError,
     keycloak::get_token,
     types::{SharedProductAndCountList, SharedString},
-    ui::app::LoadingState,
 };
 use chimitheque_types::{product::Product, requestfilter::RequestFilter};
+use wasm_rs_shared_channel::spsc::Sender;
 
 fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
     ehttp::Request::get(format!(
@@ -45,26 +45,32 @@ pub fn retrieve_products(
     request_filter: &RequestFilter,
     shared_maybe_products_and_count: SharedProductAndCountList,
     append: bool,
-    current_info: &SharedString,
-    current_error: &SharedString,
+    info_sender: Option<Sender<String>>,
+    error_sender: Option<Sender<String>>,
+    loading_sender: Option<Sender<bool>>,
 ) {
     let offset = request_filter.offset.unwrap_or_default();
     let request = build_request(request_filter);
 
-    let mut locked_current_info = current_info.lock().unwrap_or_else(|e| {
-        log::error!("{e}");
-        e.into_inner()
-    });
-    *locked_current_info = Some(format!("getting products (offset: {offset})"));
+    let Some(info_sender) = info_sender else {
+        log::error!("info_sender is None");
+        return;
+    };
+    let Some(error_sender) = error_sender else {
+        log::error!("error_sender is None");
+        return;
+    };
+    let Some(loading_sender) = loading_sender else {
+        log::error!("loading_sender is None");
+        return;
+    };
 
-    let current_error_clone = Arc::clone(current_error);
+    loading_sender.send(&true).ok();
+    info_sender
+        .send(&format!("getting products (offset: {offset})"))
+        .ok();
 
     ehttp::fetch(request, move |mayerr_response| {
-        let mut locked_current_error = current_error_clone.lock().unwrap_or_else(|e| {
-            log::error!("{e}");
-            e.into_inner()
-        });
-
         match mayerr_response {
             Ok(response) => {
                 // Acquire lock on current products.
@@ -73,7 +79,7 @@ pub fn retrieve_products(
                         Ok(locked) => locked,
                         Err(e) => {
                             log::error!("{e}");
-                            *locked_current_error = Some(e.to_string());
+                            error_sender.send(&e.to_string()).ok();
                             return;
                         }
                     };
@@ -102,15 +108,18 @@ pub fn retrieve_products(
                     }
                     Err(e) => {
                         log::error!("{e}");
-                        *locked_current_error = Some(e);
+                        error_sender.send(&e.to_string()).ok();
                     }
                 }
             }
             Err(e) => {
                 log::error!("{e}");
-                *locked_current_error = Some(e);
+                error_sender.send(&e.to_string()).ok();
             }
         }
+
+        loading_sender.send(&false).ok();
+        info_sender.send(&format!("done")).ok();
     });
 }
 
