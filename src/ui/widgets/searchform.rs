@@ -10,7 +10,7 @@ use crate::ui::{
 };
 
 pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-    const MENU_HEIGHT: f32 = 90.0; // TODO: We could make this dynamic based on the menu's actual height.
+    const MENU_HEIGHT: f32 = 120.0; // TODO: We could make this dynamic based on the menu's actual height.
     const SEARCH_FORM_SIDE_MARGIN: f32 = 450.0;
     const SEARCH_FORM_HEIGHT: f32 = 10.0; // Random value, only used space will be allocated.
     const SEARCH_FORM_INNER_MARGIN: egui::Margin = egui::Margin::symmetric(20, 20);
@@ -186,7 +186,7 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                         .clicked()
                         {
                             app.search_form_expanded = false;
-
+                            app.current_search_offset = 0;
                             app.state.action = Action::GetProducts;
                             app.state.active_page = Page::ProductList;
                         }
@@ -198,6 +198,8 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                         )
                         .clicked()
                         {
+                            app.current_search_offset = 0;
+
                             app.search_product_type = ProductType::default();
                             app.search_part_of_name = String::new();
                             app.search_name_widget.clear_selected_items();
@@ -217,7 +219,15 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                             app.search_product_cmr = false;
                         }
 
-                        // ui.end_row();
+                        if button_with_icon_and_text(
+                            ui,
+                            t!("search_form_shrink").to_string(),
+                            egui_phosphor::fill::MAGNIFYING_GLASS,
+                        )
+                        .clicked()
+                        {
+                            app.search_form_expanded = false;
+                        }
                     });
                     // });
                 });

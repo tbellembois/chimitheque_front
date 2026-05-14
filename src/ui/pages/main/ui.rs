@@ -4,7 +4,6 @@ use crate::ui::{
     state::{Action, Page},
     widgets::searchform::render_search_form,
 };
-use egui::Color32;
 use egui::{Margin, RichText};
 use rust_i18n::t;
 use std::sync::Arc;
@@ -52,19 +51,33 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 // Switch locale, theme and user info.
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     // Switch locale.
-                    let fr_locale_icon = egui::include_image!("../../../assets/fr.svg");
-                    let en_locale_icon = egui::include_image!("../../../assets/gb.svg");
-                    if ui
-                        .add(egui::Button::image_and_text(en_locale_icon, "En"))
-                        .clicked()
-                    {
-                        rust_i18n::set_locale("en-GB");
+                    if let Some(fr_locale_icon) = app.textures.get("flag_fr") {
+                        if ui
+                            .add(egui::Button::image_and_text(fr_locale_icon, "Fr"))
+                            .clicked()
+                        {
+                            rust_i18n::set_locale("fr-FR");
+                        }
                     }
+                    if let Some(en_locale_icon) = app.textures.get("flag_gb") {
+                        if ui
+                            .add(egui::Button::image_and_text(en_locale_icon, "En"))
+                            .clicked()
+                        {
+                            rust_i18n::set_locale("en-GB");
+                        }
+                    }
+
+                    // Theme switch.
                     if ui
-                        .add(egui::Button::image_and_text(fr_locale_icon, "Fr"))
-                        .clicked()
+                        .checkbox(&mut app.state.darkmode, t!("darkmode"))
+                        .changed()
                     {
-                        rust_i18n::set_locale("fr-FR");
+                        if app.state.darkmode {
+                            ui.ctx().set_visuals(egui::Visuals::dark());
+                        } else {
+                            ui.ctx().set_visuals(egui::Visuals::light());
+                        }
                     }
 
                     // User info.
@@ -85,12 +98,11 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             // Render logo and menu.
             ui.horizontal(|ui| {
                 // Logo.
-                ui.add_sized(
-                    [50., 50.],
-                    egui::Image::new(egui::include_image!(
-                        "../../../assets/chimitheque_logo_simple.svg"
-                    )),
-                );
+                if let Some(chimitheque_logo) = app.textures.get("chimitheque_logo") {
+                    ui.image(chimitheque_logo);
+                }
+
+                ui.add_space(20.0);
 
                 // Menu.
                 egui::MenuBar::new().ui(ui, |ui| {

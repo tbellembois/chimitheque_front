@@ -31,6 +31,8 @@ pub struct ApplicationState {
     pub scrollarea_was_near_bottom: bool,
     // The current action.
     pub action: Action,
+    // Whether dark mode is enabled.
+    pub darkmode: bool,
 }
 
 impl Default for ApplicationState {
@@ -48,6 +50,7 @@ impl Default for ApplicationState {
             },
             scrollarea_was_near_bottom: false,
             action: Action::None,
+            darkmode: false,
         }
     }
 }
@@ -68,6 +71,7 @@ impl ApplicationState {
             },
             scrollarea_was_near_bottom: false,
             action: Action::None,
+            darkmode: false,
         }
     }
 }

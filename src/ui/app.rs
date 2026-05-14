@@ -3,15 +3,17 @@ use crate::api::connecteduser::retrieve_connected_user;
 use crate::api::product::retrieve_products;
 use crate::api::storelocation::retrieve_store_locations;
 use crate::defines::SEARCH_LIMIT;
-use crate::types::{SharedProductAndCountList, SharedStoreLocationAndCountList, SharedString};
+use crate::types::{SharedProductAndCountList, SharedStoreLocationAndCountList};
 use crate::ui::pages::main;
 use crate::ui::state::Action;
 use chimitheque_types::person::Person;
+use chimitheque_types::product::Product;
 use chimitheque_types::requestfilter::RequestFilter;
 use eframe::CreationContext;
-use egui::{Style, Theme};
+use egui::{Style, TextureHandle, Theme};
 use egui_select2::select2::EguiSelect2;
 use rust_i18n::t;
+use std::collections::HashMap;
 use std::sync::Once;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -43,11 +45,32 @@ pub struct App {
     pub loading_sender: Option<Sender<bool>>,
     pub loading_receiver: Option<Receiver<bool>>,
 
+    // Image textures.
+    pub textures: HashMap<String, TextureHandle>,
+    // texture_chimitheque_logo: Option<egui::ImageSource>,
+    // texture_fr_flag: Option<egui::ImageSource>,
+    // texture_en_flag: Option<egui::ImageSource>,
+    // texture_wrong: Option<egui::ImageSource>,
+    // texture_ghs01: Option<egui::ImageSource>,
+    // texture_ghs02: Option<egui::ImageSource>,
+    // texture_ghs03: Option<egui::ImageSource>,
+    // texture_ghs04: Option<egui::ImageSource>,
+    // texture_ghs05: Option<egui::ImageSource>,
+    // texture_ghs06: Option<egui::ImageSource>,
+    // texture_ghs07: Option<egui::ImageSource>,
+    // texture_ghs08: Option<egui::ImageSource>,
+    // texture_ghs09: Option<egui::ImageSource>,
+
     // Does not work in wasm.
     // Channels for communication beetween
     // application (GUI) and worker.
     // pub sender: Option<Sender<ToWorker>>,
     // receiver: Option<Receiver<ToApp>>,
+
+    // Product ids of cards shown in the product list.
+    pub product_cards_shown: Vec<u64>,
+
+    // Is the search form expanded?
     pub search_form_expanded: bool,
 
     // Widgets/variables for search form.
@@ -212,6 +235,61 @@ impl App {
         search_category.translations = egui_select2_translations.clone();
         search_category.translations.hint = t!("select2_hint_category").to_string();
 
+        // Initialize textures.
+        let mut textures = HashMap::new();
+        textures.insert(
+            "chimitheque_logo".to_string(),
+            load_svg_texture(
+                &cc.egui_ctx,
+                "chimitheque_logo",
+                include_bytes!("../assets/chimitheque_logo.svg"),
+            ),
+        );
+        textures.insert(
+            "flag_fr".to_string(),
+            load_svg_texture(&cc.egui_ctx, "flag_fr", include_bytes!("../assets/fr.svg")),
+        );
+        textures.insert(
+            "flag_gb".to_string(),
+            load_svg_texture(&cc.egui_ctx, "flag_gb", include_bytes!("../assets/gb.svg")),
+        );
+        textures.insert(
+            "ghs01".to_string(),
+            load_svg_texture(&cc.egui_ctx, "ghs01", include_bytes!("../assets/GHS01.svg")),
+        );
+        textures.insert(
+            "ghs02".to_string(),
+            load_svg_texture(&cc.egui_ctx, "ghs02", include_bytes!("../assets/GHS02.svg")),
+        );
+        textures.insert(
+            "ghs03".to_string(),
+            load_svg_texture(&cc.egui_ctx, "ghs03", include_bytes!("../assets/GHS03.svg")),
+        );
+        textures.insert(
+            "ghs04".to_string(),
+            load_svg_texture(&cc.egui_ctx, "ghs04", include_bytes!("../assets/GHS04.svg")),
+        );
+        textures.insert(
+            "ghs05".to_string(),
+            load_svg_texture(&cc.egui_ctx, "ghs05", include_bytes!("../assets/GHS05.svg")),
+        );
+        textures.insert(
+            "ghs06".to_string(),
+            load_svg_texture(&cc.egui_ctx, "ghs06", include_bytes!("../assets/GHS06.svg")),
+        );
+        textures.insert(
+            "ghs07".to_string(),
+            load_svg_texture(&cc.egui_ctx, "ghs07", include_bytes!("../assets/GHS07.svg")),
+        );
+        textures.insert(
+            "ghs08".to_string(),
+            load_svg_texture(&cc.egui_ctx, "ghs08", include_bytes!("../assets/GHS08.svg")),
+        );
+        textures.insert(
+            "ghs09".to_string(),
+            load_svg_texture(&cc.egui_ctx, "ghs09", include_bytes!("../assets/GHS09.svg")),
+        );
+
         // Create application.
         Self {
             state,
@@ -236,6 +314,7 @@ impl App {
             error_receiver: Some(error_receiver),
             loading_sender: Some(loading_sender),
             loading_receiver: Some(loading_receiver),
+            textures,
             ..Default::default()
         }
     }
@@ -341,6 +420,26 @@ impl App {
         filter.offset = Some(self.current_search_offset as u64);
 
         filter
+    }
+
+    pub fn GetProductsAndCount(&self) -> Result<Option<(Vec<Product>, u64)>, String> {
+        let Some(error_sender) = self.error_sender.clone() else {
+            log::error!("error_sender is None");
+            return Err("error_sender is None".to_string());
+        };
+
+        let products_lock = match self.products.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                log::error!("{e}");
+                error_sender.send(&e.to_string()).ok();
+                return Err(e.to_string());
+            }
+        };
+
+        let result: Option<(Vec<Product>, u64)> = (*products_lock).clone();
+
+        Ok(result)
     }
 }
 
@@ -465,6 +564,33 @@ impl eframe::App for App {
             egui::Panel::top("wait_user_info").show_inside(ui, |ui| ui.label(t!("wait_user_info")));
         }
     }
+}
+
+fn load_svg_texture(ctx: &egui::Context, name: &str, svg_bytes: &[u8]) -> egui::TextureHandle {
+    use resvg::tiny_skia;
+    use usvg;
+
+    let tree = usvg::Tree::from_data(svg_bytes, &usvg::Options::default()).unwrap();
+    let size = tree.size().to_int_size();
+    let mut pixmap = tiny_skia::Pixmap::new(size.width(), size.height()).unwrap();
+
+    resvg::render(&tree, tiny_skia::Transform::default(), &mut pixmap.as_mut());
+
+    let image = egui::ColorImage::from_rgba_unmultiplied(
+        [size.width() as usize, size.height() as usize],
+        pixmap.data(),
+    );
+
+    ctx.load_texture(name, image, egui::TextureOptions::LINEAR)
+}
+
+fn load_texture(ctx: &egui::Context, name: &str, bytes: &[u8]) -> egui::TextureHandle {
+    let image = image::load_from_memory(bytes).unwrap().to_rgba8();
+    let size = [image.width() as usize, image.height() as usize];
+    let pixels = image.into_raw();
+    let color_image = egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
+
+    ctx.load_texture(name.to_string(), color_image, egui::TextureOptions::LINEAR)
 }
 
 fn use_custom_accent(style: &mut Style) {

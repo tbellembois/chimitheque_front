@@ -17,7 +17,7 @@ rust-version = "1.94.1"
 [dependencies]
 eframe = "0.34.2"
 egui = "0.34.2"
-egui_extras = { version = "0.34.2", features = ["all_loaders", "svg"]}
+egui_extras = { version = "0.34.2", features = ["svg"]}
 egui-phosphor =  { version = "0.12", features = ["regular", "fill"]}
 ehttp = "0.7.1"
 log = "0.4.29"
@@ -32,6 +32,9 @@ egui_select2 = { path = "../egui_select2" }
 web-sys = { version = "0.3.94", features = ["Document", "Window", "Element", "HtmlInputElement"]}
 wasm-bindgen = "0.2.117"
 js-sys = "0.3.94"
+image = "0.25"
+usvg = "0.47.0"
+resvg = "0.47.0"
 
 # chimitheque_types = { git = "https://github.com/tbellembois/chimitheque_types.git", branch = "main" }
 
