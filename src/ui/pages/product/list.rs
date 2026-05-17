@@ -2,16 +2,16 @@ use rust_i18n::t;
 use std::sync::Arc;
 
 use crate::{
-    api::product::retrieve_products,
+    api::product::get_products,
     defines::SEARCH_LIMIT,
     ui::{app::App, widgets::productlabel::render_product_label},
 };
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
-    if let Ok(may_err_products_and_count) = app.GetProductsAndCount()
-        && let Some((products, count)) = may_err_products_and_count
+    if let Ok(maybe_products_and_count) = app.get_products_and_count()
+        && let Some((products, count)) = maybe_products_and_count
     {
-        let showing_products = SEARCH_LIMIT + (app.current_search_offset as u64);
+        let showing_products = SEARCH_LIMIT + app.current_search_offset;
         let total_products = count;
 
         ui.label(t!(
@@ -26,12 +26,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             .id_salt("products_scrollarea")
             .show(ui, |ui| {
                 for product in products {
-                    // let ui_id =
-                    //     egui::Id::new(("product", product.product_id, &product.name.name_label));
-
-                    // ui.push_id(ui_id, |ui| {
                     render_product_label(app, ui, frame, product.clone());
-                    // });
                 }
             });
 
@@ -40,15 +35,13 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         let near_bottom = offset >= max_offset - 50.0;
 
         if near_bottom && !app.state.scrollarea_was_near_bottom && count > 0 {
-            app.current_search_offset += SEARCH_LIMIT as usize;
+            app.current_search_offset += SEARCH_LIMIT;
 
-            retrieve_products(
-                &app.GetRequestFilter(),
+            get_products(
+                &app.get_request_filter(),
                 Arc::clone(&app.products),
                 true,
-                app.info_sender.clone(),
-                app.error_sender.clone(),
-                app.loading_sender.clone(),
+                app.channel_sender.clone(),
             );
         }
 

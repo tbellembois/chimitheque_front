@@ -9,6 +9,8 @@ pub(crate) mod name;
 pub(crate) mod precautionarystatement;
 pub(crate) mod producerref;
 pub(crate) mod product;
+pub(crate) mod pubchemproduct;
+pub(crate) mod pubchemsearch;
 pub(crate) mod signalword;
 pub(crate) mod storelocation;
 pub(crate) mod symbol;

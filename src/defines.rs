@@ -9,4 +9,4 @@ pub const VISUALS_WIDGETS_OPEN_CORNER_RADIUS: CornerRadius = CornerRadius::same(
 
 pub const GLOBAL_FONT_SIZE: f32 = 18.0;
 
-pub const SEARCH_LIMIT: u64 = 10;
+pub const SEARCH_LIMIT: usize = 10;

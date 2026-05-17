@@ -4,7 +4,9 @@ use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
     ui.vertical(|ui| {
-        if let Some((storelocations, count)) = app.storelocations.lock().unwrap().as_ref() {
+        if let Ok(maybe_store_locations_and_count) = app.get_store_locations_and_count()
+            && let Some((store_locations, count)) = maybe_store_locations_and_count
+        {
             ui.label(t!("total", total = count));
 
             let available_height = ui.available_height();
@@ -40,32 +42,32 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                     });
                 })
                 .body(|mut body| {
-                    for storelocation in storelocations {
+                    for store_location in store_locations {
                         body.row(30.0, |mut row| {
                             row.col(|ui| {
-                                ui.label(storelocation.store_location_name.clone());
+                                ui.label(store_location.store_location_name.clone());
                             });
 
                             row.col(|ui| {
-                                if let Some(entity) = &storelocation.entity {
+                                if let Some(entity) = &store_location.entity {
                                     ui.label(entity.entity_name.clone());
                                 }
                             });
 
                             row.col(|ui| {
-                                if let Some(color) = &storelocation.store_location_color {
+                                if let Some(color) = &store_location.store_location_color {
                                     ui.label(color.clone());
                                 }
                             });
 
                             row.col(|ui| {
-                                if storelocation.store_location_can_store {
+                                if store_location.store_location_can_store {
                                     ui.label("ok");
                                 }
                             });
 
                             row.col(|ui| {
-                                if let Some(parent) = &storelocation.store_location {
+                                if let Some(parent) = &store_location.store_location {
                                     ui.label(parent.store_location_name.clone());
                                 }
                             });

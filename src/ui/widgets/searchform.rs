@@ -1,5 +1,4 @@
-use rust_i18n::t;
-
+use crate::ui::widgets::size::Size;
 use crate::ui::{
     app::{App, ProductType},
     state::{Action, Page},
@@ -8,6 +7,8 @@ use crate::ui::{
         clickablelabelwithiconandtext::clickable_label_with_icon_and_text,
     },
 };
+use egui::TextBuffer;
+use rust_i18n::t;
 
 pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
     const MENU_HEIGHT: f32 = 120.0; // TODO: We could make this dynamic based on the menu's actual height.
@@ -15,7 +16,7 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
     const SEARCH_FORM_HEIGHT: f32 = 10.0; // Random value, only used space will be allocated.
     const SEARCH_FORM_INNER_MARGIN: egui::Margin = egui::Margin::symmetric(20, 20);
     const SEARCH_FORM_CORNER_RADIUS: f32 = 8.0;
-    const WIDGETS_PER_ROW: f32 = 3.0;
+    const WIDGETS_PER_ROW: usize = 3;
     const WIDGET_HORIZONTAL_SPACING: f32 = 10.0;
     const WIDGET_VERTICAL_SPACING: f32 = 20.0;
 
@@ -31,7 +32,7 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
     let search_form_rec = egui::Rect::from_two_pos(search_form_top_left, search_form_bottom_right);
 
     ui.vertical(|ui| {
-        ui.allocate_ui_at_rect(search_form_rec, |ui| {
+        ui.scope_builder(egui::UiBuilder::new().max_rect(search_form_rec), |ui| {
             // FIXME
             ui.add_space(20.0);
 
@@ -43,20 +44,6 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
 
             if app.search_form_expanded {
                 custom_group_frame.show(ui, |ui| {
-                    // if app.search_form_expanded {
-                    // if ui
-                    //     .button(format!(
-                    //         "{} {}",
-                    //         egui_phosphor::fill::ARROWS_IN,
-                    //         t!("search_form_shrink")
-                    //     ))
-                    //     .clicked()
-                    // {
-                    //     app.search_form_expanded = false;
-                    // }
-
-                    // ui.add_space(WIDGET_VERTICAL_SPACING);
-
                     egui::Grid::new("search_form_product_type_grid")
                         .min_col_width(search_form_width / 4.0)
                         .num_columns(4)
@@ -106,8 +93,8 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                     ui.add_space(WIDGET_VERTICAL_SPACING);
 
                     egui::Grid::new("search_form_grid")
-                        .min_col_width(search_form_width / WIDGETS_PER_ROW)
-                        .num_columns(WIDGETS_PER_ROW as usize)
+                        .min_col_width(search_form_width / WIDGETS_PER_ROW as f32)
+                        .num_columns(WIDGETS_PER_ROW)
                         .spacing([WIDGET_HORIZONTAL_SPACING, WIDGET_VERTICAL_SPACING])
                         .striped(false)
                         .show(ui, |ui| {
@@ -139,8 +126,8 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                             app.state.advanced_search_rect.width();
 
                         egui::Grid::new("advanced_search_form_grid")
-                            .min_col_width(advanced_search_form_width / WIDGETS_PER_ROW)
-                            .num_columns(WIDGETS_PER_ROW as usize)
+                            .min_col_width(advanced_search_form_width / WIDGETS_PER_ROW as f32)
+                            .num_columns(WIDGETS_PER_ROW)
                             .spacing([WIDGET_HORIZONTAL_SPACING, WIDGET_VERTICAL_SPACING])
                             .striped(false)
                             .show(ui, |ui| {
@@ -182,6 +169,7 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                             ui,
                             t!("search_form_action_search").to_string(),
                             egui_phosphor::fill::LIST_MAGNIFYING_GLASS,
+                            &Size::Medium,
                         )
                         .clicked()
                         {
@@ -195,6 +183,7 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                             ui,
                             t!("search_form_action_reset_filter").to_string(),
                             egui_phosphor::fill::ERASER,
+                            &Size::Medium,
                         )
                         .clicked()
                         {
@@ -223,6 +212,7 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                             ui,
                             t!("search_form_shrink").to_string(),
                             egui_phosphor::fill::MAGNIFYING_GLASS,
+                            &Size::Medium,
                         )
                         .clicked()
                         {
@@ -231,16 +221,15 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                     });
                     // });
                 });
-            } else {
-                if clickable_label_with_icon_and_text(
-                    ui,
-                    t!("search_form_expand").to_string(),
-                    egui_phosphor::regular::MAGNIFYING_GLASS,
-                )
-                .clicked()
-                {
-                    app.search_form_expanded = true;
-                }
+            } else if clickable_label_with_icon_and_text(
+                ui,
+                t!("search_form_expand").as_str(),
+                egui_phosphor::regular::MAGNIFYING_GLASS,
+                &Size::Medium,
+            )
+            .clicked()
+            {
+                app.search_form_expanded = true;
             }
         });
     });

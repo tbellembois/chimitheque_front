@@ -1,12 +1,11 @@
 use crate::ui::{
     app::App,
-    pages::{product, storelocation},
+    pages::{product, pubchem, storelocation},
     state::{Action, Page},
     widgets::searchform::render_search_form,
 };
 use egui::{Margin, RichText};
 use rust_i18n::t;
-use std::sync::Arc;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     let visuals = ui.visuals();
@@ -51,21 +50,19 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 // Switch locale, theme and user info.
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     // Switch locale.
-                    if let Some(fr_locale_icon) = app.textures.get("flag_fr") {
-                        if ui
+                    if let Some(fr_locale_icon) = app.textures.get("flag_fr")
+                        && ui
                             .add(egui::Button::image_and_text(fr_locale_icon, "Fr"))
                             .clicked()
-                        {
-                            rust_i18n::set_locale("fr-FR");
-                        }
+                    {
+                        rust_i18n::set_locale("fr-FR");
                     }
-                    if let Some(en_locale_icon) = app.textures.get("flag_gb") {
-                        if ui
+                    if let Some(en_locale_icon) = app.textures.get("flag_gb")
+                        && ui
                             .add(egui::Button::image_and_text(en_locale_icon, "En"))
                             .clicked()
-                        {
-                            rust_i18n::set_locale("en-GB");
-                        }
+                    {
+                        rust_i18n::set_locale("en-GB");
                     }
 
                     // Theme switch.
@@ -81,17 +78,15 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     }
 
                     // User info.
-                    let connected_user = Arc::clone(&app.connected_user);
-                    let connected_user_locked = connected_user.lock().unwrap();
-                    let email = connected_user_locked
-                        .as_ref()
-                        .map(|u| u.person_email.clone())
-                        .unwrap_or_default();
-                    ui.label(egui::RichText::new(format!(
-                        "{} {}",
-                        egui_phosphor::regular::USER,
-                        email
-                    )));
+                    if let Ok(maybe_connected_user) = app.get_connected_user()
+                        && let Some(connected_user) = maybe_connected_user
+                    {
+                        ui.label(egui::RichText::new(format!(
+                            "{} {}",
+                            egui_phosphor::regular::USER,
+                            connected_user.person_email
+                        )));
+                    }
                 });
             });
 
@@ -129,6 +124,20 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                             if ui.button(t!("list")).clicked() {
                                 app.state.action = Action::GetProducts;
                                 app.state.active_page = Page::ProductList;
+                            }
+                        },
+                    );
+
+                    ui.menu_button(
+                        egui::RichText::new(format!(
+                            "{} {}",
+                            egui_phosphor::fill::LETTER_CIRCLE_P,
+                            t!("menu_pubchem")
+                        )),
+                        |ui| {
+                            if ui.button(t!("search")).clicked() {
+                                // app.state.action = Action::GetProducts;
+                                app.state.active_page = Page::Pubchem;
                             }
                         },
                     );
@@ -184,6 +193,9 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             }
             Page::StorelocationList => {
                 storelocation::list::update(app, ui, frame);
+            }
+            Page::Pubchem => {
+                pubchem::search::update(app, ui, frame);
             }
         });
 }

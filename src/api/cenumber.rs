@@ -35,8 +35,8 @@ pub fn load_suggestions(
 ) {
     let request = build_request(&RequestFilter {
         search: Some(query),
-        limit: Some(limit as u64),
-        offset: Some(offset as u64),
+        limit: Some(limit),
+        offset: Some(offset),
         ..Default::default()
     });
 
@@ -63,7 +63,13 @@ pub fn load_suggestions(
                         label: ce_number.ce_number_label,
                     })
                     .collect();
-                let total = ce_numbers.1 as usize;
+                let total = match usize::try_from(ce_numbers.1) {
+                    Ok(total) => total,
+                    Err(e) => {
+                        log::error!("{e}");
+                        return;
+                    }
+                };
 
                 *current_suggestions = Some(SelectItems { items, total });
             }
@@ -83,7 +89,7 @@ fn parse_retrieve_ce_numbers_response(
                 match serde_json::from_str(text_response) {
                     Ok(json_response) => Ok(json_response),
                     Err(e) => {
-                        log::error!("parse_retrieve_ce_numbers_response: InternalError: {e}",);
+                        log::error!("parse_retrieve_ce_numbers_response: InternalError: {e}");
                         Err(AppError::InternalError(e.to_string()))
                     }
                 }

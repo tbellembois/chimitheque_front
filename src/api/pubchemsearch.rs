@@ -1,13 +1,13 @@
 use crate::{
-    error::apperror::AppError, keycloak::get_token, types::SharedProductAndCountList,
+    error::apperror::AppError, keycloak::get_token, types::SharedPubchemAutocomplete,
     ui::app::ChannelMessage,
 };
-use chimitheque_types::{product::Product, requestfilter::RequestFilter};
+use chimitheque_types::pubchem::Autocomplete;
 use wasm_rs_shared_channel::spsc::Sender;
 
-fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
+fn build_request(name: &String) -> ehttp::Request {
     ehttp::Request::get(format!(
-        "https://localhost:8443/back/products{request_filter}",
+        "https://localhost:8443/back/products/pubchemautocomplete/{name}",
     ))
     .with_headers(ehttp::Headers::new(&[
         (
@@ -18,14 +18,12 @@ fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
     ]))
 }
 
-pub fn get_products(
-    request_filter: &RequestFilter,
-    shared_maybe_products_and_count: SharedProductAndCountList,
-    append: bool,
+pub fn get_pubchem_autocomplete(
+    name: &String,
+    shared_maybe_pubchem_autocomplete: SharedPubchemAutocomplete,
     channel_sender: Option<Sender<ChannelMessage>>,
 ) {
-    let offset = request_filter.offset.unwrap_or_default();
-    let request = build_request(request_filter);
+    let request = build_request(name);
 
     let Some(channel_sender) = channel_sender else {
         log::error!("channel_sender is None");
@@ -34,15 +32,15 @@ pub fn get_products(
 
     let _ = channel_sender.send(&ChannelMessage::Loading(true));
     let _ = channel_sender.send(&ChannelMessage::Info(format!(
-        "getting products (offset: {offset})"
+        "getting pubchem autocomplete for {name}"
     )));
 
     ehttp::fetch(request, move |mayerr_response| {
         match mayerr_response {
             Ok(response) => {
-                // Acquire lock on current products.
-                let mut maybe_current_products_and_count =
-                    match shared_maybe_products_and_count.lock() {
+                // Acquire lock on current autocomplete.
+                let mut maybe_current_pubchem_autocomplete =
+                    match shared_maybe_pubchem_autocomplete.lock() {
                         Ok(locked) => locked,
                         Err(e) => {
                             log::error!("{e}");
@@ -52,21 +50,8 @@ pub fn get_products(
                     };
 
                 match parse_response(&response) {
-                    Ok(mut response_products_and_count) => {
-                        if append {
-                            if let Some(current_products_and_count) =
-                                maybe_current_products_and_count.as_mut()
-                            {
-                                current_products_and_count
-                                    .0
-                                    .append(&mut response_products_and_count.0);
-                            } else {
-                                *maybe_current_products_and_count =
-                                    Some(response_products_and_count);
-                            }
-                        } else {
-                            *maybe_current_products_and_count = Some(response_products_and_count);
-                        }
+                    Ok(response_pubchem_autocomplete) => {
+                        *maybe_current_pubchem_autocomplete = Some(response_pubchem_autocomplete);
                     }
                     Err(e) => {
                         log::error!("{e}");
@@ -85,7 +70,7 @@ pub fn get_products(
     });
 }
 
-fn parse_response(response: &ehttp::Response) -> Result<(Vec<Product>, u64), AppError> {
+fn parse_response(response: &ehttp::Response) -> Result<Autocomplete, AppError> {
     match response.status {
         200 => {
             if let Some(text_response) = response.text() {

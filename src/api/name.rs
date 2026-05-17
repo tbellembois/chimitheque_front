@@ -33,8 +33,8 @@ pub fn load_suggestions(
 ) {
     let request = build_request(&RequestFilter {
         search: Some(query),
-        limit: Some(limit as u64),
-        offset: Some(offset as u64),
+        limit: Some(limit),
+        offset: Some(offset),
         ..Default::default()
     });
 
@@ -61,7 +61,13 @@ pub fn load_suggestions(
                         label: name.name_label,
                     })
                     .collect();
-                let total = names.1 as usize;
+                let total = match usize::try_from(names.1) {
+                    Ok(total) => total,
+                    Err(e) => {
+                        log::error!("{e}");
+                        return;
+                    }
+                };
 
                 *current_suggestions = Some(SelectItems { items, total });
             }
@@ -79,7 +85,7 @@ fn parse_retrieve_names_response(response: &ehttp::Response) -> Result<(Vec<Name
                 match serde_json::from_str(text_response) {
                     Ok(json_response) => Ok(json_response),
                     Err(e) => {
-                        log::error!("parse_retrieve_names_response: InternalError: {e}",);
+                        log::error!("parse_retrieve_names_response: InternalError: {e}");
                         Err(AppError::InternalError(e.to_string()))
                     }
                 }
@@ -90,7 +96,7 @@ fn parse_retrieve_names_response(response: &ehttp::Response) -> Result<(Vec<Name
         }
         _ => {
             if let Some(text_response) = response.text() {
-                log::error!("parse_retrieve_names_response: NotOkHTTPResponse: {text_response}",);
+                log::error!("parse_retrieve_names_response: NotOkHTTPResponse: {text_response}");
                 Err(AppError::NotOkHTTPResponse(text_response.to_string()))
             } else {
                 log::error!(

@@ -96,7 +96,7 @@ pub fn render_product_label(
                                 .empirical_formula
                                 .clone()
                                 .unwrap_or(EmpiricalFormula {
-                                    empirical_formula_label: "".to_string(),
+                                    empirical_formula_label: String::new(),
                                     ..Default::default()
                                 })
                                 .empirical_formula_label,
@@ -109,7 +109,7 @@ pub fn render_product_label(
                                 .cas_number
                                 .clone()
                                 .unwrap_or(CasNumber {
-                                    cas_number_label: "".to_string(),
+                                    cas_number_label: String::new(),
                                     ..Default::default()
                                 })
                                 .cas_number_label,
@@ -128,15 +128,15 @@ pub fn render_product_label(
                         ui.horizontal(|ui| {
                             if let Some(hs_cmr) = product.product_hs_cmr {
                                 ui.label(hs_cmr);
-                            };
+                            }
 
                             if let Some(symbols) = product.symbols {
                                 for symbol in symbols {
-                                    if symbol.symbol_label == "GHS02".to_string() {
+                                    if symbol.symbol_label == "GHS02" {
                                         ui.add(egui::Image::new("file://assets/GHS02.svg"));
                                     }
                                 }
-                            };
+                            }
                         });
                     });
 
@@ -176,7 +176,7 @@ pub fn render_product_label(
                 }
                 if let Some(specificity) = product.product_specificity {
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new(t!("product_card_specificity")).italics());
+                        ui.label(RichText::new(t!("product_card_product_specificity")).italics());
                         ui.label(specificity);
                     });
                 }

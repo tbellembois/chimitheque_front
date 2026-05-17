@@ -813,6 +813,7 @@ dependencies = [
 name = "chimitheque_front"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "chimitheque_types",
  "eframe",
  "egui",

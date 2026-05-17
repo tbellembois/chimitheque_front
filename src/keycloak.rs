@@ -5,9 +5,9 @@ pub fn get_token() -> Option<String> {
     let window = window()?;
     let keycloak = window.get("keycloak")?;
 
-    // Access the token property
-    let token: JsValue = js_sys::Reflect::get(&keycloak, &JsValue::from_str("token"))
-        .expect("keycloak token not found");
+    // Access the token property.
+    let token: JsValue =
+        js_sys::Reflect::get(&keycloak, &JsValue::from_str("token")).unwrap_or_default();
 
     token.as_string()
 }

@@ -6,6 +6,7 @@ pub enum Page {
     #[default]
     ProductList,
     StorelocationList,
+    Pubchem,
 }
 
 #[derive(Debug, Default)]
@@ -14,6 +15,8 @@ pub enum Action {
     None,
     GetProducts,
     GetStorelocations,
+    GetPubchemAutocomplete,
+    GetPubchemProduct,
 }
 
 /// Application state.

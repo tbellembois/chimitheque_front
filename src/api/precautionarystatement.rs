@@ -37,8 +37,8 @@ pub fn load_suggestions(
 ) {
     let request = build_request(&RequestFilter {
         search: Some(query),
-        limit: Some(limit as u64),
-        offset: Some(offset as u64),
+        limit: Some(limit),
+        offset: Some(offset),
         ..Default::default()
     });
 
@@ -70,7 +70,13 @@ pub fn load_suggestions(
                         ),
                     })
                     .collect();
-                let total = precautionary_statements.1 as usize;
+                let total = match usize::try_from(precautionary_statements.1) {
+                    Ok(total) => total,
+                    Err(e) => {
+                        log::error!("{e}");
+                        return;
+                    }
+                };
 
                 *current_suggestions = Some(SelectItems { items, total });
             }

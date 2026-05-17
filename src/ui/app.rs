@@ -1,19 +1,29 @@
 use super::state::ApplicationState;
-use crate::api::connecteduser::retrieve_connected_user;
-use crate::api::product::retrieve_products;
+use crate::api::connecteduser::get_connected_user;
+use crate::api::product::get_products;
+use crate::api::pubchemproduct::get_pubchem_product;
+use crate::api::pubchemsearch::get_pubchem_autocomplete;
 use crate::api::storelocation::retrieve_store_locations;
 use crate::defines::SEARCH_LIMIT;
-use crate::types::{SharedProductAndCountList, SharedStoreLocationAndCountList};
+use crate::types::{
+    SharedProductAndCountList, SharedPubchemAutocomplete, SharedPubchemProduct,
+    SharedStoreLocationAndCountList,
+};
 use crate::ui::pages::main;
 use crate::ui::state::Action;
 use chimitheque_types::person::Person;
 use chimitheque_types::product::Product;
+use chimitheque_types::pubchem::Autocomplete;
+use chimitheque_types::pubchemproduct::PubchemProduct;
 use chimitheque_types::requestfilter::RequestFilter;
+use chimitheque_types::storelocation::StoreLocation;
 use eframe::CreationContext;
 use egui::{Style, TextureHandle, Theme};
 use egui_select2::select2::EguiSelect2;
 use rust_i18n::t;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::error::Error;
 use std::sync::Once;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -30,36 +40,24 @@ pub enum ProductType {
     All,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub enum ChannelMessage {
+    Info(String),
+    Error(String),
+    Loading(bool),
+}
+
 #[derive(Default)]
 pub struct App {
     // Application state.
     pub state: ApplicationState,
 
-    // Channels for info and error messages.
-    pub info_sender: Option<Sender<String>>,
-    pub error_sender: Option<Sender<String>>,
-    pub info_receiver: Option<Receiver<String>>,
-    pub error_receiver: Option<Receiver<String>>,
-
-    // Channels for loading state.
-    pub loading_sender: Option<Sender<bool>>,
-    pub loading_receiver: Option<Receiver<bool>>,
+    // Channel for communication between application and functions.
+    pub channel_sender: Option<Sender<ChannelMessage>>,
+    pub channel_receiver: Option<Receiver<ChannelMessage>>,
 
     // Image textures.
     pub textures: HashMap<String, TextureHandle>,
-    // texture_chimitheque_logo: Option<egui::ImageSource>,
-    // texture_fr_flag: Option<egui::ImageSource>,
-    // texture_en_flag: Option<egui::ImageSource>,
-    // texture_wrong: Option<egui::ImageSource>,
-    // texture_ghs01: Option<egui::ImageSource>,
-    // texture_ghs02: Option<egui::ImageSource>,
-    // texture_ghs03: Option<egui::ImageSource>,
-    // texture_ghs04: Option<egui::ImageSource>,
-    // texture_ghs05: Option<egui::ImageSource>,
-    // texture_ghs06: Option<egui::ImageSource>,
-    // texture_ghs07: Option<egui::ImageSource>,
-    // texture_ghs08: Option<egui::ImageSource>,
-    // texture_ghs09: Option<egui::ImageSource>,
 
     // Does not work in wasm.
     // Channels for communication beetween
@@ -67,11 +65,13 @@ pub struct App {
     // pub sender: Option<Sender<ToWorker>>,
     // receiver: Option<Receiver<ToApp>>,
 
-    // Product ids of cards shown in the product list.
+    // Product ids of cards shown (ie. expanded) in the product list.
     pub product_cards_shown: Vec<u64>,
 
     // Is the search form expanded?
     pub search_form_expanded: bool,
+    // Is the pubchem search results expanded?
+    pub pubchem_results_expanded: bool,
 
     // Widgets/variables for search form.
     pub search_part_of_name: String,
@@ -95,6 +95,10 @@ pub struct App {
     pub search_product_borrowed: bool,
     pub search_product_type: ProductType,
 
+    // Widgets/variables for pubchem.
+    pub pubchem_search: String,
+    pub pubchem_search_name_clicked: String,
+
     // Error messages.
     pub current_error: Option<String>,
     pub current_info: Option<String>,
@@ -102,9 +106,13 @@ pub struct App {
     // User information.
     pub connected_user: Arc<Mutex<Option<Person>>>,
     // Store locations.
-    pub storelocations: SharedStoreLocationAndCountList,
+    pub store_locations: SharedStoreLocationAndCountList,
     // Products.
     pub products: SharedProductAndCountList,
+    // Pubchem autocomplete.
+    pub pubchem_autocomplete: SharedPubchemAutocomplete,
+    // Pubchem product selected.
+    pub pubchem_product: SharedPubchemProduct,
 
     // Current search offset.
     pub current_search_offset: usize,
@@ -114,6 +122,10 @@ pub struct App {
 }
 
 impl App {
+    /// # Panics
+    ///
+    /// Will panic if svg pictures cannot be loaded, or if custom fonts cannot be set.
+    #[allow(clippy::unwrap_used)]
     pub fn new(cc: &CreationContext) -> Self {
         // Does not work in wasm.
         // // Create channels.
@@ -132,21 +144,15 @@ impl App {
 
         log::set_max_level(log::LevelFilter::Debug);
 
-        // Create info, error and loading state channels.
-        let info_channel = channel::<String>(2048);
-        let error_channel = channel::<String>(2048);
-
-        let (info_sender, info_receiver) = info_channel.split();
-        let (error_sender, error_receiver) = error_channel.split();
-
-        let loading_channel = channel::<bool>(1024);
-        let (loading_sender, loading_receiver) = loading_channel.split();
+        // Create application channel.
+        let channel_channel = channel::<ChannelMessage>(1024);
+        let (channel_sender, channel_receiver) = channel_channel.split();
 
         // Create application state.
         let state = ApplicationState::new(&rust_i18n::locale());
 
         // Initialize the custom theme/styles for egui.
-        setup_custom_fonts(&cc.egui_ctx);
+        setup_custom_fonts(&cc.egui_ctx).unwrap();
         setup_custom_style(&cc.egui_ctx);
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
@@ -243,51 +249,52 @@ impl App {
                 &cc.egui_ctx,
                 "chimitheque_logo",
                 include_bytes!("../assets/chimitheque_logo.svg"),
-            ),
+            )
+            .unwrap(),
         );
         textures.insert(
             "flag_fr".to_string(),
-            load_svg_texture(&cc.egui_ctx, "flag_fr", include_bytes!("../assets/fr.svg")),
+            load_svg_texture(&cc.egui_ctx, "flag_fr", include_bytes!("../assets/fr.svg")).unwrap(),
         );
         textures.insert(
             "flag_gb".to_string(),
-            load_svg_texture(&cc.egui_ctx, "flag_gb", include_bytes!("../assets/gb.svg")),
+            load_svg_texture(&cc.egui_ctx, "flag_gb", include_bytes!("../assets/gb.svg")).unwrap(),
         );
         textures.insert(
             "ghs01".to_string(),
-            load_svg_texture(&cc.egui_ctx, "ghs01", include_bytes!("../assets/GHS01.svg")),
+            load_svg_texture(&cc.egui_ctx, "ghs01", include_bytes!("../assets/GHS01.svg")).unwrap(),
         );
         textures.insert(
             "ghs02".to_string(),
-            load_svg_texture(&cc.egui_ctx, "ghs02", include_bytes!("../assets/GHS02.svg")),
+            load_svg_texture(&cc.egui_ctx, "ghs02", include_bytes!("../assets/GHS02.svg")).unwrap(),
         );
         textures.insert(
             "ghs03".to_string(),
-            load_svg_texture(&cc.egui_ctx, "ghs03", include_bytes!("../assets/GHS03.svg")),
+            load_svg_texture(&cc.egui_ctx, "ghs03", include_bytes!("../assets/GHS03.svg")).unwrap(),
         );
         textures.insert(
             "ghs04".to_string(),
-            load_svg_texture(&cc.egui_ctx, "ghs04", include_bytes!("../assets/GHS04.svg")),
+            load_svg_texture(&cc.egui_ctx, "ghs04", include_bytes!("../assets/GHS04.svg")).unwrap(),
         );
         textures.insert(
             "ghs05".to_string(),
-            load_svg_texture(&cc.egui_ctx, "ghs05", include_bytes!("../assets/GHS05.svg")),
+            load_svg_texture(&cc.egui_ctx, "ghs05", include_bytes!("../assets/GHS05.svg")).unwrap(),
         );
         textures.insert(
             "ghs06".to_string(),
-            load_svg_texture(&cc.egui_ctx, "ghs06", include_bytes!("../assets/GHS06.svg")),
+            load_svg_texture(&cc.egui_ctx, "ghs06", include_bytes!("../assets/GHS06.svg")).unwrap(),
         );
         textures.insert(
             "ghs07".to_string(),
-            load_svg_texture(&cc.egui_ctx, "ghs07", include_bytes!("../assets/GHS07.svg")),
+            load_svg_texture(&cc.egui_ctx, "ghs07", include_bytes!("../assets/GHS07.svg")).unwrap(),
         );
         textures.insert(
             "ghs08".to_string(),
-            load_svg_texture(&cc.egui_ctx, "ghs08", include_bytes!("../assets/GHS08.svg")),
+            load_svg_texture(&cc.egui_ctx, "ghs08", include_bytes!("../assets/GHS08.svg")).unwrap(),
         );
         textures.insert(
             "ghs09".to_string(),
-            load_svg_texture(&cc.egui_ctx, "ghs09", include_bytes!("../assets/GHS09.svg")),
+            load_svg_texture(&cc.egui_ctx, "ghs09", include_bytes!("../assets/GHS09.svg")).unwrap(),
         );
 
         // Create application.
@@ -308,69 +315,21 @@ impl App {
             search_precautionary_statement_widget: search_precautionary_statement,
             search_symbol_widget: search_symbol,
             search_form_expanded: true,
-            info_sender: Some(info_sender),
-            error_sender: Some(error_sender),
-            info_receiver: Some(info_receiver),
-            error_receiver: Some(error_receiver),
-            loading_sender: Some(loading_sender),
-            loading_receiver: Some(loading_receiver),
+            channel_sender: Some(channel_sender),
+            channel_receiver: Some(channel_receiver),
             textures,
             ..Default::default()
         }
     }
 
-    pub fn GetRequestFilter(&self) -> RequestFilter {
-        let mut filter = RequestFilter::default();
-
-        filter.custom_name_part_of =
-            (!self.search_part_of_name.is_empty()).then(|| self.search_part_of_name.clone());
-        filter.storage_barecode =
-            (!self.search_barecode.is_empty()).then(|| self.search_barecode.clone());
-        filter.store_location = self
-            .search_store_location_widget
-            .selected
-            .first()
-            .and_then(|s| s.id);
-        filter.name = self.search_name_widget.selected.first().and_then(|s| s.id);
-        filter.entity = self
-            .search_entity_widget
-            .selected
-            .first()
-            .and_then(|s| s.id);
-        filter.producer_ref = self
-            .search_producer_ref_widget
-            .selected
-            .first()
-            .and_then(|s| s.id);
-        filter.signal_word = self
-            .search_signal_word_widget
-            .selected
-            .first()
-            .and_then(|s| s.id);
-        filter.category = self
-            .search_category_widget
-            .selected
-            .first()
-            .and_then(|s| s.id);
-        filter.cas_number = self
-            .search_cas_number_widget
-            .selected
-            .first()
-            .and_then(|s| s.id);
-        filter.empirical_formula = self
-            .search_empirical_formula_widget
-            .selected
-            .first()
-            .and_then(|s| s.id);
-
+    #[must_use]
+    pub fn get_request_filter(&self) -> RequestFilter {
         let hazard_statements: Vec<_> = self
             .search_hazard_statement_widget
             .selected
             .iter()
             .filter_map(|s| s.id)
             .collect();
-
-        filter.hazard_statements = (!hazard_statements.is_empty()).then_some(hazard_statements);
 
         let precautionary_statements: Vec<_> = self
             .search_precautionary_statement_widget
@@ -379,17 +338,12 @@ impl App {
             .filter_map(|s| s.id)
             .collect();
 
-        filter.precautionary_statements =
-            (!precautionary_statements.is_empty()).then_some(precautionary_statements);
-
         let symbols: Vec<_> = self
             .search_symbol_widget
             .selected
             .iter()
             .filter_map(|s| s.id)
             .collect();
-
-        filter.symbols = (!symbols.is_empty()).then_some(symbols);
 
         let tags: Vec<_> = self
             .search_tag_widget
@@ -398,11 +352,60 @@ impl App {
             .filter_map(|s| s.id)
             .collect();
 
-        filter.tags = (!tags.is_empty()).then_some(tags);
+        let mut filter = RequestFilter {
+            offset: Some(self.current_search_offset),
+            limit: Some(SEARCH_LIMIT),
+            borrowing: self.search_product_borrowed,
+            cas_number: self
+                .search_cas_number_widget
+                .selected
+                .first()
+                .and_then(|s| s.id),
+            is_cmr: self.search_product_cmr,
+            category: self
+                .search_category_widget
+                .selected
+                .first()
+                .and_then(|s| s.id),
+            custom_name_part_of: (!self.search_part_of_name.is_empty())
+                .then(|| self.search_part_of_name.clone()),
+            empirical_formula: self
+                .search_empirical_formula_widget
+                .selected
+                .first()
+                .and_then(|s| s.id),
+            entity: self
+                .search_entity_widget
+                .selected
+                .first()
+                .and_then(|s| s.id),
+            hazard_statements: (!hazard_statements.is_empty()).then_some(hazard_statements),
+            name: self.search_name_widget.selected.first().and_then(|s| s.id),
+            precautionary_statements: (!precautionary_statements.is_empty())
+                .then_some(precautionary_statements),
+            producer_ref: self
+                .search_producer_ref_widget
+                .selected
+                .first()
+                .and_then(|s| s.id),
+            signal_word: self
+                .search_signal_word_widget
+                .selected
+                .first()
+                .and_then(|s| s.id),
+            storage_barecode: (!self.search_barecode.is_empty())
+                .then(|| self.search_barecode.clone()),
+            storage_to_destroy: self.search_product_to_destroy,
+            store_location: self
+                .search_store_location_widget
+                .selected
+                .first()
+                .and_then(|s| s.id),
+            symbols: (!symbols.is_empty()).then_some(symbols),
+            tags: (!tags.is_empty()).then_some(tags),
+            ..Default::default()
+        };
 
-        filter.is_cmr = self.search_product_cmr;
-        filter.storage_to_destroy = self.search_product_to_destroy;
-        filter.borrowing = self.search_product_borrowed;
         match self.search_product_type {
             ProductType::Chemical => {
                 filter.show_chem = true;
@@ -416,28 +419,107 @@ impl App {
             ProductType::All => (),
         }
 
-        filter.limit = Some(SEARCH_LIMIT);
-        filter.offset = Some(self.current_search_offset as u64);
-
         filter
     }
 
-    pub fn GetProductsAndCount(&self) -> Result<Option<(Vec<Product>, u64)>, String> {
-        let Some(error_sender) = self.error_sender.clone() else {
-            log::error!("error_sender is None");
+    pub fn get_connected_user(&self) -> Result<Option<Person>, String> {
+        let Some(channel_sender) = self.channel_sender.clone() else {
+            log::error!("channel_sender is None");
             return Err("error_sender is None".to_string());
         };
 
-        let products_lock = match self.products.lock() {
+        let connected_user_lock = match self.connected_user.lock() {
             Ok(locked) => locked,
             Err(e) => {
                 log::error!("{e}");
-                error_sender.send(&e.to_string()).ok();
+                let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
                 return Err(e.to_string());
             }
         };
 
-        let result: Option<(Vec<Product>, u64)> = (*products_lock).clone();
+        let result: Option<Person> = (*connected_user_lock).clone();
+
+        Ok(result)
+    }
+
+    pub fn get_pubchem_product(&self) -> Result<Option<PubchemProduct>, String> {
+        let Some(channel_sender) = self.channel_sender.clone() else {
+            log::error!("channel_sender is None");
+            return Err("error_sender is None".to_string());
+        };
+
+        let pubchem_product_lock = match self.pubchem_product.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                log::error!("{e}");
+                let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                return Err(e.to_string());
+            }
+        };
+
+        let result: Option<PubchemProduct> = (*pubchem_product_lock).clone();
+
+        Ok(result)
+    }
+
+    pub fn get_pubchem_autocomplete(&self) -> Result<Option<Autocomplete>, String> {
+        let Some(channel_sender) = self.channel_sender.clone() else {
+            log::error!("channel_sender is None");
+            return Err("error_sender is None".to_string());
+        };
+
+        let pubchem_autocomplete_lock = match self.pubchem_autocomplete.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                log::error!("{e}");
+                let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                return Err(e.to_string());
+            }
+        };
+
+        let result: Option<Autocomplete> = (*pubchem_autocomplete_lock).clone();
+
+        Ok(result)
+    }
+
+    pub fn get_store_locations_and_count(
+        &self,
+    ) -> Result<Option<(Vec<StoreLocation>, u64)>, String> {
+        let Some(channel_sender) = self.channel_sender.clone() else {
+            log::error!("channel_sender is None");
+            return Err("error_sender is None".to_string());
+        };
+
+        let store_locations_and_count_lock = match self.store_locations.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                log::error!("{e}");
+                let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                return Err(e.to_string());
+            }
+        };
+
+        let result: Option<(Vec<StoreLocation>, u64)> = (*store_locations_and_count_lock).clone();
+
+        Ok(result)
+    }
+
+    pub fn get_products_and_count(&self) -> Result<Option<(Vec<Product>, u64)>, String> {
+        let Some(channel_sender) = self.channel_sender.clone() else {
+            log::error!("channel_sender is None");
+            return Err("error_sender is None".to_string());
+        };
+
+        let products_and_count_lock = match self.products.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                log::error!("{e}");
+                let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                return Err(e.to_string());
+            }
+        };
+
+        let result: Option<(Vec<Product>, u64)> = (*products_and_count_lock).clone();
 
         Ok(result)
     }
@@ -463,38 +545,32 @@ impl eframe::App for App {
         // Do one time startup job.
         START.call_once(|| {
             // Get connected user.
-            if let Err(e) = retrieve_connected_user(Arc::clone(&self.connected_user)) {
-                log::error!("retrieve_connected_user error: {e}");
-            }
+            get_connected_user(
+                Arc::clone(&self.connected_user),
+                self.channel_sender.clone(),
+            );
         });
 
-        // Check channels messages.
-        if let Some(info_receiver) = self.info_receiver.as_ref() {
-            if let Ok(info) = info_receiver.recv(Some(Duration::ZERO)) {
-                self.current_info = info.into();
-            }
-        }
-        if let Some(error_receiver) = self.error_receiver.as_ref() {
-            if let Ok(error) = error_receiver.recv(Some(Duration::ZERO)) {
-                self.current_error = error.into();
-            }
-        }
-        if let Some(loading_receiver) = self.loading_receiver.as_ref() {
-            if let Ok(loading) = loading_receiver.recv(Some(Duration::ZERO)) {
-                self.is_loading = loading.unwrap_or_default();
+        // Check channel messages.
+        if let Some(channel_receiver) = self.channel_receiver.as_ref()
+            && let Ok(maybe_message) = channel_receiver.recv(Some(Duration::ZERO))
+            && let Some(message) = maybe_message
+        {
+            match message {
+                ChannelMessage::Info(info) => self.current_info = Some(info),
+                ChannelMessage::Error(error) => self.current_error = Some(error),
+                ChannelMessage::Loading(loading) => self.is_loading = loading,
             }
         }
 
         // Handle action.
         match self.state.action {
             Action::GetProducts => {
-                retrieve_products(
-                    &self.GetRequestFilter(),
+                get_products(
+                    &self.get_request_filter(),
                     Arc::clone(&self.products),
                     false,
-                    self.info_sender.clone(),
-                    self.error_sender.clone(),
-                    self.loading_sender.clone(),
+                    self.channel_sender.clone(),
                 );
 
                 self.state.action = Action::None;
@@ -505,16 +581,32 @@ impl eframe::App for App {
                         limit: Some(SEARCH_LIMIT),
                         ..Default::default()
                     },
-                    Arc::clone(&self.storelocations),
+                    Arc::clone(&self.store_locations),
                     false,
-                    self.info_sender.clone(),
-                    self.error_sender.clone(),
-                    self.loading_sender.clone(),
+                    self.channel_sender.clone(),
                 );
 
                 self.state.action = Action::None;
             }
             Action::None => {}
+            Action::GetPubchemAutocomplete => {
+                get_pubchem_autocomplete(
+                    &self.pubchem_search,
+                    Arc::clone(&self.pubchem_autocomplete),
+                    self.channel_sender.clone(),
+                );
+
+                self.state.action = Action::None;
+            }
+            Action::GetPubchemProduct => {
+                get_pubchem_product(
+                    &self.pubchem_search_name_clicked,
+                    Arc::clone(&self.pubchem_product),
+                    self.channel_sender.clone(),
+                );
+
+                self.state.action = Action::None;
+            }
         }
 
         // Update window size.
@@ -544,7 +636,7 @@ impl eframe::App for App {
 
         // Foreground loading overlay.
         if self.is_loading {
-            let screen_rect = ctx.screen_rect();
+            let screen_rect = ctx.viewport_rect();
 
             // keep repainting so spinner animates
             ctx.request_repaint_after(std::time::Duration::from_millis(16));
@@ -558,21 +650,32 @@ impl eframe::App for App {
                 });
         }
 
-        if self.connected_user.lock().unwrap().is_some() {
-            main::ui::update(self, ui, frame);
-        } else {
-            egui::Panel::top("wait_user_info").show_inside(ui, |ui| ui.label(t!("wait_user_info")));
+        match self.get_connected_user() {
+            Ok(connected_user) => {
+                if connected_user.is_some() {
+                    main::ui::update(self, ui, frame);
+                } else {
+                    egui::Panel::top("wait_user_info")
+                        .show_inside(ui, |ui| ui.label(t!("wait_user_info")));
+                }
+            }
+            Err(e) => log::error!("{e}"),
         }
     }
 }
 
-fn load_svg_texture(ctx: &egui::Context, name: &str, svg_bytes: &[u8]) -> egui::TextureHandle {
+fn load_svg_texture(
+    ctx: &egui::Context,
+    name: &str,
+    svg_bytes: &[u8],
+) -> Result<egui::TextureHandle, Box<dyn Error>> {
     use resvg::tiny_skia;
     use usvg;
 
-    let tree = usvg::Tree::from_data(svg_bytes, &usvg::Options::default()).unwrap();
+    let tree = usvg::Tree::from_data(svg_bytes, &usvg::Options::default())?;
     let size = tree.size().to_int_size();
-    let mut pixmap = tiny_skia::Pixmap::new(size.width(), size.height()).unwrap();
+    let mut pixmap =
+        tiny_skia::Pixmap::new(size.width(), size.height()).ok_or("failed to create pixmap")?;
 
     resvg::render(&tree, tiny_skia::Transform::default(), &mut pixmap.as_mut());
 
@@ -581,17 +684,17 @@ fn load_svg_texture(ctx: &egui::Context, name: &str, svg_bytes: &[u8]) -> egui::
         pixmap.data(),
     );
 
-    ctx.load_texture(name, image, egui::TextureOptions::LINEAR)
+    Ok(ctx.load_texture(name, image, egui::TextureOptions::LINEAR))
 }
 
-fn load_texture(ctx: &egui::Context, name: &str, bytes: &[u8]) -> egui::TextureHandle {
-    let image = image::load_from_memory(bytes).unwrap().to_rgba8();
-    let size = [image.width() as usize, image.height() as usize];
-    let pixels = image.into_raw();
-    let color_image = egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
+// fn load_texture(ctx: &egui::Context, name: &str, bytes: &[u8]) -> egui::TextureHandle {
+//     let image = image::load_from_memory(bytes).unwrap().to_rgba8();
+//     let size = [image.width() as usize, image.height() as usize];
+//     let pixels = image.into_raw();
+//     let color_image = egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
 
-    ctx.load_texture(name.to_string(), color_image, egui::TextureOptions::LINEAR)
-}
+//     ctx.load_texture(name.to_string(), color_image, egui::TextureOptions::LINEAR)
+// }
 
 fn use_custom_accent(style: &mut Style) {
     style.visuals.widgets.active.corner_radius =
@@ -613,7 +716,7 @@ fn setup_custom_style(ctx: &egui::Context) {
     ctx.style_mut_of(Theme::Light, use_custom_accent);
 }
 
-fn setup_custom_fonts(ctx: &egui::Context) {
+fn setup_custom_fonts(ctx: &egui::Context) -> Result<(), Box<dyn Error>> {
     let mut fonts = egui::FontDefinitions::default();
 
     // Font data.
@@ -638,7 +741,7 @@ fn setup_custom_fonts(ctx: &egui::Context) {
     let proportional = fonts
         .families
         .get_mut(&egui::FontFamily::Proportional)
-        .unwrap();
+        .ok_or("can not get font families")?;
 
     // proportional.insert(0, "B612".into());
     proportional.push("phosphor-fill".into());
@@ -654,4 +757,6 @@ fn setup_custom_fonts(ctx: &egui::Context) {
     );
 
     ctx.set_fonts(fonts);
+
+    Ok(())
 }

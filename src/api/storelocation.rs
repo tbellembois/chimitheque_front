@@ -1,9 +1,6 @@
-use std::sync::Arc;
-
 use crate::{
-    error::apperror::AppError,
-    keycloak::get_token,
-    types::{SharedStoreLocationAndCountList, SharedString},
+    error::apperror::AppError, keycloak::get_token, types::SharedStoreLocationAndCountList,
+    ui::app::ChannelMessage,
 };
 use chimitheque_types::{requestfilter::RequestFilter, storelocation::StoreLocation};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
@@ -38,30 +35,20 @@ pub fn retrieve_store_locations(
     request_filter: &RequestFilter,
     shared_maybe_store_locations_and_count: SharedStoreLocationAndCountList,
     append: bool,
-    info_sender: Option<Sender<String>>,
-    error_sender: Option<Sender<String>>,
-    loading_sender: Option<Sender<bool>>,
+    channel_sender: Option<Sender<ChannelMessage>>,
 ) {
     let offset = request_filter.offset.unwrap_or_default();
     let request = build_request(request_filter);
 
-    let Some(info_sender) = info_sender else {
-        log::error!("info_sender is None");
-        return;
-    };
-    let Some(error_sender) = error_sender else {
-        log::error!("error_sender is None");
-        return;
-    };
-    let Some(loading_sender) = loading_sender else {
-        log::error!("loading_sender is None");
+    let Some(channel_sender) = channel_sender else {
+        log::error!("channel_sender is None");
         return;
     };
 
-    loading_sender.send(&true).ok();
-    info_sender
-        .send(&format!("getting store locations (offset: {offset})"))
-        .ok();
+    let _ = channel_sender.send(&ChannelMessage::Loading(true));
+    let _ = channel_sender.send(&ChannelMessage::Info(format!(
+        "getting store locations (offset: {offset})"
+    )));
 
     ehttp::fetch(request, move |mayerr_response| {
         match mayerr_response {
@@ -72,7 +59,7 @@ pub fn retrieve_store_locations(
                         Ok(locked) => locked,
                         Err(e) => {
                             log::error!("{e}");
-                            error_sender.send(&e.to_string()).ok();
+                            let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
                             return;
                         }
                     };
@@ -101,18 +88,18 @@ pub fn retrieve_store_locations(
                     }
                     Err(e) => {
                         log::error!("{e}");
-                        error_sender.send(&e.to_string()).ok();
+                        let _ = channel_sender.send(&ChannelMessage::Error(e));
                     }
                 }
             }
             Err(e) => {
                 log::error!("{e}");
-                error_sender.send(&e.to_string()).ok();
+                let _ = channel_sender.send(&ChannelMessage::Error(e));
             }
         }
 
-        loading_sender.send(&false).ok();
-        info_sender.send(&format!("done")).ok();
+        let _ = channel_sender.send(&ChannelMessage::Loading(false));
+        let _ = channel_sender.send(&ChannelMessage::Info("done".to_string()));
     });
 }
 
@@ -124,8 +111,8 @@ pub fn load_suggestions(
 ) {
     let request = build_request(&RequestFilter {
         search: Some(query),
-        limit: Some(limit as u64),
-        offset: Some(offset as u64),
+        limit: Some(limit),
+        offset: Some(offset),
         ..Default::default()
     });
 
@@ -152,7 +139,13 @@ pub fn load_suggestions(
                         label: store_location.store_location_name,
                     })
                     .collect();
-                let total = store_locations.1 as usize;
+                let total = match usize::try_from(store_locations.1) {
+                    Ok(total) => total,
+                    Err(e) => {
+                        log::error!("{e}");
+                        return;
+                    }
+                };
 
                 *current_suggestions = Some(SelectItems { items, total });
             }
@@ -172,7 +165,7 @@ fn parse_retrieve_store_locations_response(
                 match serde_json::from_str(text_response) {
                     Ok(json_response) => Ok(json_response),
                     Err(e) => {
-                        log::error!("parse_retrieve_store_locations_response: InternalError: {e}",);
+                        log::error!("parse_retrieve_store_locations_response: InternalError: {e}");
                         Err(AppError::InternalError(e.to_string()))
                     }
                 }
