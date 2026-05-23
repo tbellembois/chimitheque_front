@@ -1,4 +1,4 @@
-use crate::{error::apperror::AppError, keycloak::get_token};
+use crate::{elog, error::apperror::AppError, keycloak::get_token};
 use chimitheque_types::{casnumber::CasNumber, requestfilter::RequestFilter};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
 
@@ -13,18 +13,6 @@ fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
         ),
         ("Content-Type", "application/json; charset=UTF-8;"),
     ]))
-}
-
-fn get_cas_numbers_from_response(
-    response: &ehttp::Response,
-) -> Result<Option<(Vec<CasNumber>, u64)>, String> {
-    match parse_retrieve_cas_numbers_response(response) {
-        Ok(response) => Ok(Some(response)),
-        Err(e) => {
-            log::error!("{e}");
-            Err(e.to_string())
-        }
-    }
 }
 
 pub fn load_suggestions(
@@ -43,7 +31,7 @@ pub fn load_suggestions(
     ehttp::fetch(request, move |mayerr_response| match mayerr_response {
         Ok(response) => {
             // Acquire lock on current suggestions.
-            let mut current_suggestions = match shared_suggestions.lock() {
+            let mut maybe_current_suggestions = match shared_suggestions.lock() {
                 Ok(locked) => locked,
                 Err(e) => {
                     log::error!("{e}");
@@ -51,27 +39,28 @@ pub fn load_suggestions(
                 }
             };
 
-            // We don't need to log the errors here as they are already logged in `get_cas_numbers_from_response`.
-            if let Ok(maybe_cas_numbers) = get_cas_numbers_from_response(&response)
-                && let Some(cas_numbers) = maybe_cas_numbers
-            {
-                let items: Vec<SelectItem> = cas_numbers
-                    .0
-                    .into_iter()
-                    .map(|cas_number| SelectItem {
-                        id: cas_number.cas_number_id,
-                        label: cas_number.cas_number_label,
-                    })
-                    .collect();
-                let total = match usize::try_from(cas_numbers.1) {
-                    Ok(total) => total,
-                    Err(e) => {
-                        log::error!("{e}");
-                        return;
-                    }
-                };
-
-                *current_suggestions = Some(SelectItems { items, total });
+            match parse_response(&response) {
+                Ok(response_cas_numbers_and_count) => {
+                    let items: Vec<SelectItem> = response_cas_numbers_and_count
+                        .0
+                        .into_iter()
+                        .map(|cas_number| SelectItem {
+                            id: cas_number.cas_number_id,
+                            label: cas_number.cas_number_label,
+                        })
+                        .collect();
+                    let total = match usize::try_from(response_cas_numbers_and_count.1) {
+                        Ok(total) => total,
+                        Err(e) => {
+                            elog!(error, format!("{e}"));
+                            return;
+                        }
+                    };
+                    *maybe_current_suggestions = Some(SelectItems { items, total });
+                }
+                Err(e) => {
+                    elog!(error, format!("{e}"));
+                }
             }
         }
         Err(e) => {
@@ -80,35 +69,22 @@ pub fn load_suggestions(
     });
 }
 
-fn parse_retrieve_cas_numbers_response(
-    response: &ehttp::Response,
-) -> Result<(Vec<CasNumber>, u64), AppError> {
+fn parse_response(response: &ehttp::Response) -> Result<(Vec<CasNumber>, u64), AppError> {
     match response.status {
         200 => {
             if let Some(text_response) = response.text() {
                 match serde_json::from_str(text_response) {
                     Ok(json_response) => Ok(json_response),
-                    Err(e) => {
-                        log::error!("parse_retrieve_cas_numbers_response: InternalError: {e}");
-                        Err(AppError::InternalError(e.to_string()))
-                    }
+                    Err(e) => Err(AppError::InternalError(e.to_string())),
                 }
             } else {
-                log::error!("parse_retrieve_cas_numbers_response: UnexpectedEmptyResponse");
                 Err(AppError::UnexpectedEmptyResponse)
             }
         }
         _ => {
             if let Some(text_response) = response.text() {
-                log::error!(
-                    "parse_retrieve_cas_numbers_response: NotOkHTTPResponse: {text_response}",
-                );
                 Err(AppError::NotOkHTTPResponse(text_response.to_string()))
             } else {
-                log::error!(
-                    "parse_retrieve_cas_numbers_response: NotOkHTTPResponse: {}",
-                    response.status
-                );
                 Err(AppError::NotOkHTTPResponse(response.status.to_string()))
             }
         }

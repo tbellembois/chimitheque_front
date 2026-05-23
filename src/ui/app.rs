@@ -569,11 +569,7 @@ impl eframe::App for App {
             && let Ok(maybe_message) = channel_receiver.recv(Some(Duration::ZERO))
             && let Some(message) = maybe_message
         {
-            if message {
-                self.is_loading = true
-            } else {
-                self.is_loading = false;
-            }
+            self.is_loading = message;
             // match message {
             //     ChannelMessage::Info(info) => self.current_info = Some(info),
             //     ChannelMessage::Error(error) => self.current_error = Some(error),

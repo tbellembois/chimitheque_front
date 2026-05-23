@@ -5,6 +5,7 @@ pub(crate) mod connecteduser;
 pub(crate) mod empiricalformula;
 pub(crate) mod entity;
 pub(crate) mod hazardstatement;
+pub(crate) mod linearformula;
 pub(crate) mod name;
 pub(crate) mod precautionarystatement;
 pub(crate) mod producerref;

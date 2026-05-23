@@ -1,11 +1,11 @@
-use crate::{error::apperror::AppError, keycloak::get_token};
+use crate::{elog, error::apperror::AppError, keycloak::get_token};
 use chimitheque_types::{requestfilter::RequestFilter, symbol::Symbol};
 use egui::{Response, Ui, Vec2};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
 
 fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
     ehttp::Request::get(format!(
-        "https://localhost:8443/back/products/symbols{request_filter}",
+        "https://localhost:8443/back/products/casnumbers{request_filter}",
     ))
     .with_headers(ehttp::Headers::new(&[
         (
@@ -14,18 +14,6 @@ fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
         ),
         ("Content-Type", "application/json; charset=UTF-8;"),
     ]))
-}
-
-fn get_symbols_from_response(
-    response: &ehttp::Response,
-) -> Result<Option<(Vec<Symbol>, u64)>, String> {
-    match parse_retrieve_symbols_response(response) {
-        Ok(response) => Ok(Some(response)),
-        Err(e) => {
-            log::error!("{e}");
-            Err(e.to_string())
-        }
-    }
 }
 
 pub fn format_suggestion(ui: &mut Ui, selected: bool, select_item: &SelectItem) -> Response {
@@ -63,7 +51,7 @@ pub fn load_suggestions(
     ehttp::fetch(request, move |mayerr_response| match mayerr_response {
         Ok(response) => {
             // Acquire lock on current suggestions.
-            let mut current_suggestions = match shared_suggestions.lock() {
+            let mut maybe_current_suggestions = match shared_suggestions.lock() {
                 Ok(locked) => locked,
                 Err(e) => {
                     log::error!("{e}");
@@ -71,27 +59,28 @@ pub fn load_suggestions(
                 }
             };
 
-            // We don't need to log the errors here as they are already logged in `get_symbols_from_response`.
-            if let Ok(maybe_symbols) = get_symbols_from_response(&response)
-                && let Some(symbols) = maybe_symbols
-            {
-                let items: Vec<SelectItem> = symbols
-                    .0
-                    .into_iter()
-                    .map(|symbol| SelectItem {
-                        id: symbol.symbol_id,
-                        label: symbol.symbol_label,
-                    })
-                    .collect();
-                let total = match usize::try_from(symbols.1) {
-                    Ok(total) => total,
-                    Err(e) => {
-                        log::error!("{e}");
-                        return;
-                    }
-                };
-
-                *current_suggestions = Some(SelectItems { items, total });
+            match parse_response(&response) {
+                Ok(response_symbolss_and_count) => {
+                    let items: Vec<SelectItem> = response_symbolss_and_count
+                        .0
+                        .into_iter()
+                        .map(|symbol| SelectItem {
+                            id: symbol.symbol_id,
+                            label: symbol.symbol_label,
+                        })
+                        .collect();
+                    let total = match usize::try_from(response_symbolss_and_count.1) {
+                        Ok(total) => total,
+                        Err(e) => {
+                            elog!(error, format!("{e}"));
+                            return;
+                        }
+                    };
+                    *maybe_current_suggestions = Some(SelectItems { items, total });
+                }
+                Err(e) => {
+                    elog!(error, format!("{e}"));
+                }
             }
         }
         Err(e) => {
@@ -100,33 +89,22 @@ pub fn load_suggestions(
     });
 }
 
-fn parse_retrieve_symbols_response(
-    response: &ehttp::Response,
-) -> Result<(Vec<Symbol>, u64), AppError> {
+fn parse_response(response: &ehttp::Response) -> Result<(Vec<Symbol>, u64), AppError> {
     match response.status {
         200 => {
             if let Some(text_response) = response.text() {
                 match serde_json::from_str(text_response) {
                     Ok(json_response) => Ok(json_response),
-                    Err(e) => {
-                        log::error!("parse_retrieve_symbols_response: InternalError: {e}");
-                        Err(AppError::InternalError(e.to_string()))
-                    }
+                    Err(e) => Err(AppError::InternalError(e.to_string())),
                 }
             } else {
-                log::error!("parse_retrieve_symbols_response: UnexpectedEmptyResponse");
                 Err(AppError::UnexpectedEmptyResponse)
             }
         }
         _ => {
             if let Some(text_response) = response.text() {
-                log::error!("parse_retrieve_symbols_response: NotOkHTTPResponse: {text_response}");
                 Err(AppError::NotOkHTTPResponse(text_response.to_string()))
             } else {
-                log::error!(
-                    "parse_retrieve_symbols_response: NotOkHTTPResponse: {}",
-                    response.status
-                );
                 Err(AppError::NotOkHTTPResponse(response.status.to_string()))
             }
         }

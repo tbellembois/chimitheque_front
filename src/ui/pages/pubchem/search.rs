@@ -1,3 +1,4 @@
+use crate::elog;
 use crate::ui::app::App;
 use crate::ui::state::Action;
 use crate::ui::widgets::size::Size;
@@ -95,12 +96,17 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
 
                             if let Some(twodpicture) = pubchem_product.twodpicture {
                                 let ctx = ui.ctx();
-                                let texture = base64_to_egui_texture(
+                                let mayerr_texture = base64_to_egui_texture(
                                     ctx,
                                     twodpicture.as_str(),
                                     "twodpicture",
                                 );
-                                ui.image(&texture.unwrap());
+
+                                if let Ok(texture) = mayerr_texture {
+                                    ui.image(&texture);
+                                } else {
+                                    elog!(error, "texture error");
+                                }
                             }
 
                             if let Some(name) = pubchem_product.name {

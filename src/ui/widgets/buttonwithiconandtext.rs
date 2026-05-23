@@ -1,5 +1,5 @@
 use crate::ui::widgets::size::Size;
-use egui::{Color32, FontFamily, FontId, RichText, Sense};
+use egui::{FontFamily, FontId, RichText, Sense};
 
 const CORNER_RADIUS: f32 = 5.0;
 

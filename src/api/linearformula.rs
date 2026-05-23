@@ -1,5 +1,5 @@
 use crate::{elog, error::apperror::AppError, keycloak::get_token};
-use chimitheque_types::{requestfilter::RequestFilter, tag::Tag};
+use chimitheque_types::{linearformula::LinearFormula, requestfilter::RequestFilter};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
 
 fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
@@ -40,16 +40,16 @@ pub fn load_suggestions(
             };
 
             match parse_response(&response) {
-                Ok(response_tags_and_count) => {
-                    let items: Vec<SelectItem> = response_tags_and_count
+                Ok(response_linear_formulas_and_count) => {
+                    let items: Vec<SelectItem> = response_linear_formulas_and_count
                         .0
                         .into_iter()
-                        .map(|tag| SelectItem {
-                            id: tag.tag_id,
-                            label: tag.tag_label,
+                        .map(|linear_formula| SelectItem {
+                            id: linear_formula.linear_formula_id,
+                            label: linear_formula.linear_formula_label,
                         })
                         .collect();
-                    let total = match usize::try_from(response_tags_and_count.1) {
+                    let total = match usize::try_from(response_linear_formulas_and_count.1) {
                         Ok(total) => total,
                         Err(e) => {
                             elog!(error, format!("{e}"));
@@ -69,7 +69,7 @@ pub fn load_suggestions(
     });
 }
 
-fn parse_response(response: &ehttp::Response) -> Result<(Vec<Tag>, u64), AppError> {
+fn parse_response(response: &ehttp::Response) -> Result<(Vec<LinearFormula>, u64), AppError> {
     match response.status {
         200 => {
             if let Some(text_response) = response.text() {

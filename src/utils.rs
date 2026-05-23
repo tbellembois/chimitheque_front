@@ -13,8 +13,7 @@ pub fn base64_to_egui_texture(
     let data = STANDARD.decode(base64_str)?;
 
     // 2. Load image from memory (specify format, e.g., PNG)
-    let img =
-        image::load_from_memory_with_format(&data, ImageFormat::Png).expect("Failed to load image");
+    let img = image::load_from_memory_with_format(&data, ImageFormat::Png)?;
 
     // 3. Convert to RGBA format and get raw bytes
     let rgba = img.to_rgba8();
@@ -27,6 +26,7 @@ pub fn base64_to_egui_texture(
     Ok(ctx.load_texture(image_name, color_image, TextureOptions::default()))
 }
 
+#[must_use]
 pub fn html_color_to_egui(hex: &str) -> Option<Color32> {
     // Ensure the string starts with '#'
     let hex = hex.trim_start_matches('#');
