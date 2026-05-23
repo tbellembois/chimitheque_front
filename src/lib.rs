@@ -15,6 +15,7 @@ mod api;
 mod defines;
 mod error;
 mod keycloak;
+pub mod logger;
 mod types;
 pub mod ui;
 pub mod utils;

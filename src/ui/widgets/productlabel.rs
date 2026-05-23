@@ -44,6 +44,11 @@ pub fn render_product_label(
         .product_cards_shown
         .contains(&product.product_id.unwrap_or_default());
 
+    let hint_color = ui.visuals().weak_text_color.unwrap_or_else(|| {
+        let text_color = ui.visuals().text_color();
+        text_color.gamma_multiply(ui.visuals().weak_text_alpha)
+    });
+
     custom_group_frame.show(ui, |ui| {
         TableBuilder::new(ui)
             .column(Column::exact(PRODUCT_LABEL_PLUS_WIDTH))
@@ -82,10 +87,13 @@ pub fn render_product_label(
                             }
 
                             if let Some(product_sc) = product.product_sc {
-                                ui.label(format!(
-                                    "[ {}: {product_sc} ]",
-                                    t!("product_label_storages")
-                                ));
+                                ui.label(
+                                    RichText::new(format!(
+                                        "[ {}: {product_sc} ]",
+                                        t!("product_label_storages")
+                                    ))
+                                    .color(hint_color),
+                                );
                             }
                         });
                     });

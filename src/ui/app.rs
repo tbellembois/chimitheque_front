@@ -3,8 +3,9 @@ use crate::api::connecteduser::get_connected_user;
 use crate::api::product::get_products;
 use crate::api::pubchemproduct::get_pubchem_product;
 use crate::api::pubchemsearch::get_pubchem_autocomplete;
-use crate::api::storelocation::retrieve_store_locations;
+use crate::api::storelocation::get_store_locations;
 use crate::defines::SEARCH_LIMIT;
+use crate::elog;
 use crate::types::{
     SharedProductAndCountList, SharedPubchemAutocomplete, SharedPubchemProduct,
     SharedStoreLocationAndCountList,
@@ -24,6 +25,7 @@ use rust_i18n::t;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
+use std::fmt::Display;
 use std::sync::Once;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -40,11 +42,38 @@ pub enum ProductType {
     All,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-pub enum ChannelMessage {
-    Info(String),
-    Error(String),
-    Loading(bool),
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub enum StoreLocationsOrderBy {
+    #[default]
+    Name,
+    Entity,
+    Parent,
+}
+
+impl Display for StoreLocationsOrderBy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            StoreLocationsOrderBy::Name => write!(f, "store_location_name"),
+            StoreLocationsOrderBy::Entity => write!(f, "entity.entity_name"),
+            StoreLocationsOrderBy::Parent => write!(f, "store_location.store_location_name"),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub enum StoreLocationsOrder {
+    #[default]
+    Asc,
+    Desc,
+}
+
+impl Display for StoreLocationsOrder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            StoreLocationsOrder::Asc => write!(f, "asc"),
+            StoreLocationsOrder::Desc => write!(f, "desc"),
+        }
+    }
 }
 
 #[derive(Default)]
@@ -53,8 +82,8 @@ pub struct App {
     pub state: ApplicationState,
 
     // Channel for communication between application and functions.
-    pub channel_sender: Option<Sender<ChannelMessage>>,
-    pub channel_receiver: Option<Receiver<ChannelMessage>>,
+    pub channel_sender: Option<Sender<bool>>,
+    pub channel_receiver: Option<Receiver<bool>>,
 
     // Image textures.
     pub textures: HashMap<String, TextureHandle>,
@@ -73,7 +102,7 @@ pub struct App {
     // Is the pubchem search results expanded?
     pub pubchem_results_expanded: bool,
 
-    // Widgets/variables for search form.
+    // Widgets/variables for principal search form.
     pub search_part_of_name: String,
     pub search_barecode: String,
 
@@ -95,13 +124,14 @@ pub struct App {
     pub search_product_borrowed: bool,
     pub search_product_type: ProductType,
 
+    // Widgets/variables for the store location page.
+    pub search_store_location: String,
+    pub search_store_location_last_edit: f64,
+    pub search_store_location_action_triggered: bool,
+
     // Widgets/variables for pubchem.
     pub pubchem_search: String,
     pub pubchem_search_name_clicked: String,
-
-    // Error messages.
-    pub current_error: Option<String>,
-    pub current_info: Option<String>,
 
     // User information.
     pub connected_user: Arc<Mutex<Option<Person>>>,
@@ -113,6 +143,10 @@ pub struct App {
     pub pubchem_autocomplete: SharedPubchemAutocomplete,
     // Pubchem product selected.
     pub pubchem_product: SharedPubchemProduct,
+
+    // Sorting for store locations.
+    pub store_locations_order_by: StoreLocationsOrderBy,
+    pub store_locations_order: StoreLocationsOrder,
 
     // Current search offset.
     pub current_search_offset: usize,
@@ -145,7 +179,7 @@ impl App {
         log::set_max_level(log::LevelFilter::Debug);
 
         // Create application channel.
-        let channel_channel = channel::<ChannelMessage>(1024);
+        let channel_channel = channel::<bool>(1024);
         let (channel_sender, channel_receiver) = channel_channel.split();
 
         // Create application state.
@@ -244,11 +278,20 @@ impl App {
         // Initialize textures.
         let mut textures = HashMap::new();
         textures.insert(
-            "chimitheque_logo".to_string(),
+            "chimitheque_logo_light".to_string(),
             load_svg_texture(
                 &cc.egui_ctx,
-                "chimitheque_logo",
-                include_bytes!("../assets/chimitheque_logo.svg"),
+                "chimitheque_logo_light",
+                include_bytes!("../assets/chimitheque_logo_light.svg"),
+            )
+            .unwrap(),
+        );
+        textures.insert(
+            "chimitheque_logo_dark".to_string(),
+            load_svg_texture(
+                &cc.egui_ctx,
+                "chimitheque_logo_dark",
+                include_bytes!("../assets/chimitheque_logo_dark.svg"),
             )
             .unwrap(),
         );
@@ -423,16 +466,10 @@ impl App {
     }
 
     pub fn get_connected_user(&self) -> Result<Option<Person>, String> {
-        let Some(channel_sender) = self.channel_sender.clone() else {
-            log::error!("channel_sender is None");
-            return Err("error_sender is None".to_string());
-        };
-
         let connected_user_lock = match self.connected_user.lock() {
             Ok(locked) => locked,
             Err(e) => {
-                log::error!("{e}");
-                let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                elog!(error, e.to_string());
                 return Err(e.to_string());
             }
         };
@@ -443,16 +480,10 @@ impl App {
     }
 
     pub fn get_pubchem_product(&self) -> Result<Option<PubchemProduct>, String> {
-        let Some(channel_sender) = self.channel_sender.clone() else {
-            log::error!("channel_sender is None");
-            return Err("error_sender is None".to_string());
-        };
-
         let pubchem_product_lock = match self.pubchem_product.lock() {
             Ok(locked) => locked,
             Err(e) => {
-                log::error!("{e}");
-                let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                elog!(error, e.to_string());
                 return Err(e.to_string());
             }
         };
@@ -463,16 +494,10 @@ impl App {
     }
 
     pub fn get_pubchem_autocomplete(&self) -> Result<Option<Autocomplete>, String> {
-        let Some(channel_sender) = self.channel_sender.clone() else {
-            log::error!("channel_sender is None");
-            return Err("error_sender is None".to_string());
-        };
-
         let pubchem_autocomplete_lock = match self.pubchem_autocomplete.lock() {
             Ok(locked) => locked,
             Err(e) => {
-                log::error!("{e}");
-                let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                elog!(error, e.to_string());
                 return Err(e.to_string());
             }
         };
@@ -485,16 +510,10 @@ impl App {
     pub fn get_store_locations_and_count(
         &self,
     ) -> Result<Option<(Vec<StoreLocation>, u64)>, String> {
-        let Some(channel_sender) = self.channel_sender.clone() else {
-            log::error!("channel_sender is None");
-            return Err("error_sender is None".to_string());
-        };
-
         let store_locations_and_count_lock = match self.store_locations.lock() {
             Ok(locked) => locked,
             Err(e) => {
-                log::error!("{e}");
-                let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                elog!(error, e.to_string());
                 return Err(e.to_string());
             }
         };
@@ -505,16 +524,10 @@ impl App {
     }
 
     pub fn get_products_and_count(&self) -> Result<Option<(Vec<Product>, u64)>, String> {
-        let Some(channel_sender) = self.channel_sender.clone() else {
-            log::error!("channel_sender is None");
-            return Err("error_sender is None".to_string());
-        };
-
         let products_and_count_lock = match self.products.lock() {
             Ok(locked) => locked,
             Err(e) => {
-                log::error!("{e}");
-                let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                elog!(error, e.to_string());
                 return Err(e.to_string());
             }
         };
@@ -556,11 +569,16 @@ impl eframe::App for App {
             && let Ok(maybe_message) = channel_receiver.recv(Some(Duration::ZERO))
             && let Some(message) = maybe_message
         {
-            match message {
-                ChannelMessage::Info(info) => self.current_info = Some(info),
-                ChannelMessage::Error(error) => self.current_error = Some(error),
-                ChannelMessage::Loading(loading) => self.is_loading = loading,
+            if message {
+                self.is_loading = true
+            } else {
+                self.is_loading = false;
             }
+            // match message {
+            //     ChannelMessage::Info(info) => self.current_info = Some(info),
+            //     ChannelMessage::Error(error) => self.current_error = Some(error),
+            //     ChannelMessage::Loading(loading) => self.is_loading = loading,
+            // }
         }
 
         // Handle action.
@@ -576,9 +594,12 @@ impl eframe::App for App {
                 self.state.action = Action::None;
             }
             Action::GetStorelocations => {
-                retrieve_store_locations(
+                get_store_locations(
                     &RequestFilter {
-                        limit: Some(SEARCH_LIMIT),
+                        // limit: Some(SEARCH_LIMIT),
+                        search: Some(self.search_store_location.clone()),
+                        order: self.store_locations_order.to_string(),
+                        order_by: Some(self.store_locations_order_by.to_string()),
                         ..Default::default()
                     },
                     Arc::clone(&self.store_locations),

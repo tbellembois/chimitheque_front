@@ -1,12 +1,10 @@
-use crate::{
-    error::apperror::AppError, keycloak::get_token, types::SharedPerson, ui::app::ChannelMessage,
-};
+use crate::{elog, error::apperror::AppError, keycloak::get_token, types::SharedPerson};
 use chimitheque_types::person::Person;
 use wasm_rs_shared_channel::spsc::Sender;
 
 pub fn get_connected_user(
     shared_maybe_person: SharedPerson,
-    channel_sender: Option<Sender<ChannelMessage>>,
+    is_loading_channel_sender: Option<Sender<bool>>,
 ) {
     let request = ehttp::Request::get("https://localhost:8443/back/connecteduser").with_headers(
         ehttp::Headers::new(&[
@@ -18,13 +16,14 @@ pub fn get_connected_user(
         ]),
     );
 
-    let Some(channel_sender) = channel_sender else {
-        log::error!("channel_sender is None");
+    let Some(channel_sender) = is_loading_channel_sender else {
+        elog!(error, "is_loading_channel_sender is None");
         return;
     };
 
-    let _ = channel_sender.send(&ChannelMessage::Loading(true));
-    let _ = channel_sender.send(&ChannelMessage::Info("getting connected user".to_string()));
+    let _ = channel_sender.send(&true);
+
+    elog!(info, "getting connected user");
 
     ehttp::fetch(request, move |mayerr_response| {
         match mayerr_response {
@@ -33,8 +32,7 @@ pub fn get_connected_user(
                 let mut maybe_current_person = match shared_maybe_person.lock() {
                     Ok(locked) => locked,
                     Err(e) => {
-                        log::error!("{e}");
-                        let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                        elog!(error, format!("{e}"));
                         return;
                     }
                 };
@@ -44,19 +42,24 @@ pub fn get_connected_user(
                         *maybe_current_person = Some(response_person);
                     }
                     Err(e) => {
-                        log::error!("{e}");
-                        let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                        elog!(error, format!("{e}"));
                     }
                 }
             }
             Err(e) => {
-                log::error!("{e}");
-                let _ = channel_sender.send(&ChannelMessage::Error(e));
+                elog!(error, format!("{e}"));
             }
         }
 
-        let _ = channel_sender.send(&ChannelMessage::Loading(false));
-        let _ = channel_sender.send(&ChannelMessage::Info("done".to_string()));
+        let _ = channel_sender.send(&false);
+
+        elog!(
+            info,
+            format!(
+                "getting connected user {} done",
+                egui_phosphor::fill::ARROW_RIGHT
+            )
+        );
     });
 }
 
@@ -66,27 +69,16 @@ fn parse_response(response: &ehttp::Response) -> Result<Person, AppError> {
             if let Some(text_response) = response.text() {
                 match serde_json::from_str(text_response) {
                     Ok(json_response) => Ok(json_response),
-                    Err(e) => {
-                        log::error!("parse_retrieve_connected_user_response: InternalError: {e}");
-                        Err(AppError::InternalError(e.to_string()))
-                    }
+                    Err(e) => Err(AppError::InternalError(e.to_string())),
                 }
             } else {
-                log::error!("parse_retrieve_connected_user_response: UnexpectedEmptyResponse");
                 Err(AppError::UnexpectedEmptyResponse)
             }
         }
         _ => {
             if let Some(text_response) = response.text() {
-                log::error!(
-                    "parse_retrieve_connected_user_response: NotOkHTTPResponse: {text_response}"
-                );
                 Err(AppError::NotOkHTTPResponse(text_response.to_string()))
             } else {
-                log::error!(
-                    "parse_retrieve_connected_user_response: NotOkHTTPResponse: {}",
-                    response.status
-                );
                 Err(AppError::NotOkHTTPResponse(response.status.to_string()))
             }
         }

@@ -32,6 +32,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
             );
 
             if response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                app.pubchem_results_expanded = true;
                 app.state.action = Action::GetPubchemAutocomplete;
             }
 
@@ -110,7 +111,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                             }
 
                             if let Some(iupac_name) = pubchem_product.iupac_name {
-                                ui.horizontal(|ui| {
+                                ui.horizontal_wrapped(|ui| {
                                     ui.label(
                                         RichText::new(t!("product_card_iupac_name")).italics(),
                                     );
@@ -145,7 +146,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                             }
 
                             if let Some(synonyms) = pubchem_product.synonyms {
-                                ui.horizontal(|ui| {
+                                ui.horizontal_wrapped(|ui| {
                                     ui.label(RichText::new(t!("product_card_synonyms")).italics());
                                     ui.vertical(|ui| {
                                         for synonym in synonyms {

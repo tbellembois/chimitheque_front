@@ -1,8 +1,11 @@
-use crate::ui::{
-    app::App,
-    pages::{product, pubchem, storelocation},
-    state::{Action, Page},
-    widgets::searchform::render_search_form,
+use crate::{
+    logger::{LOGS, LogMessage},
+    ui::{
+        app::App,
+        pages::{product, pubchem, storelocation},
+        state::{Action, Page},
+        widgets::searchform::render_search_form,
+    },
 };
 use egui::{Margin, RichText};
 use rust_i18n::t;
@@ -29,20 +32,26 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 ui.with_layout(
                     egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
                     |ui| {
-                        // Display possible error.
-                        if let Some(error) = &app.current_error {
-                            ui.label(RichText::new(format!(
-                                "{} {error}",
-                                egui_phosphor::fill::WARNING,
-                            )));
-                        }
+                        let logs = LOGS
+                            .lock()
+                            .unwrap_or_else(std::sync::PoisonError::into_inner);
 
-                        // Display possible message.
-                        if let Some(info) = &app.current_info {
-                            ui.label(RichText::new(format!(
-                                "{} {info}",
-                                egui_phosphor::fill::INFO,
-                            )));
+                        if let Some(msg) = logs.back() {
+                            match msg {
+                                LogMessage::Info(text) => {
+                                    ui.label(
+                                        RichText::new(text)
+                                            .color(egui::Color32::from_rgb(60, 180, 95)),
+                                    );
+                                }
+                                LogMessage::Error(text) => {
+                                    ui.label(
+                                        RichText::new(text)
+                                            .color(egui::Color32::from_rgb(220, 70, 70)),
+                                    );
+                                }
+                                LogMessage::Debug(_) => (),
+                            }
                         }
                     },
                 );
@@ -93,7 +102,11 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             // Render logo and menu.
             ui.horizontal(|ui| {
                 // Logo.
-                if let Some(chimitheque_logo) = app.textures.get("chimitheque_logo") {
+                if app.state.darkmode {
+                    if let Some(chimitheque_logo) = app.textures.get("chimitheque_logo_dark") {
+                        ui.image(chimitheque_logo);
+                    }
+                } else if let Some(chimitheque_logo) = app.textures.get("chimitheque_logo_light") {
                     ui.image(chimitheque_logo);
                 }
 

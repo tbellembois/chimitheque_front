@@ -1,6 +1,5 @@
 use crate::{
-    error::apperror::AppError, keycloak::get_token, types::SharedStoreLocationAndCountList,
-    ui::app::ChannelMessage,
+    elog, error::apperror::AppError, keycloak::get_token, types::SharedStoreLocationAndCountList,
 };
 use chimitheque_types::{requestfilter::RequestFilter, storelocation::StoreLocation};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
@@ -19,87 +18,76 @@ fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
     ]))
 }
 
-fn get_store_locations_from_response(
-    response: &ehttp::Response,
-) -> Result<Option<(Vec<StoreLocation>, u64)>, String> {
-    match parse_retrieve_store_locations_response(response) {
-        Ok(response) => Ok(Some(response)),
-        Err(e) => {
-            log::error!("{e}");
-            Err(e.to_string())
-        }
-    }
-}
-
-pub fn retrieve_store_locations(
+pub fn get_store_locations(
     request_filter: &RequestFilter,
     shared_maybe_store_locations_and_count: SharedStoreLocationAndCountList,
     append: bool,
-    channel_sender: Option<Sender<ChannelMessage>>,
+    is_loading_channel_sender: Option<Sender<bool>>,
 ) {
     let offset = request_filter.offset.unwrap_or_default();
     let request = build_request(request_filter);
 
-    let Some(channel_sender) = channel_sender else {
-        log::error!("channel_sender is None");
+    let Some(channel_sender) = is_loading_channel_sender else {
+        elog!(error, "is_loading_channel_sender is None");
         return;
     };
 
-    let _ = channel_sender.send(&ChannelMessage::Loading(true));
-    let _ = channel_sender.send(&ChannelMessage::Info(format!(
-        "getting store locations (offset: {offset})"
-    )));
+    let _ = channel_sender.send(&true);
+
+    elog!(info, format!("getting store_locations (offset: {offset})"));
 
     ehttp::fetch(request, move |mayerr_response| {
         match mayerr_response {
             Ok(response) => {
-                // Acquire lock on current store locations.
+                // Acquire lock on current store_locations.
                 let mut maybe_current_store_locations_and_count =
                     match shared_maybe_store_locations_and_count.lock() {
                         Ok(locked) => locked,
                         Err(e) => {
-                            log::error!("{e}");
-                            let _ = channel_sender.send(&ChannelMessage::Error(e.to_string()));
+                            elog!(error, format!("{e}"));
                             return;
                         }
                     };
 
-                match get_store_locations_from_response(&response) {
-                    Ok(maybe_response_store_locations_and_count) => {
-                        if let Some(mut response_store_locations_and_count) =
-                            maybe_response_store_locations_and_count
-                        {
-                            if append {
-                                if let Some(current_store_locations_and_count) =
-                                    maybe_current_store_locations_and_count.as_mut()
-                                {
-                                    current_store_locations_and_count
-                                        .0
-                                        .append(&mut response_store_locations_and_count.0);
-                                } else {
-                                    *maybe_current_store_locations_and_count =
-                                        Some(response_store_locations_and_count);
-                                }
+                match parse_response(&response) {
+                    Ok(mut response_store_locations_and_count) => {
+                        if append {
+                            if let Some(current_store_locations_and_count) =
+                                maybe_current_store_locations_and_count.as_mut()
+                            {
+                                current_store_locations_and_count
+                                    .0
+                                    .append(&mut response_store_locations_and_count.0);
                             } else {
                                 *maybe_current_store_locations_and_count =
                                     Some(response_store_locations_and_count);
                             }
+                        } else {
+                            *maybe_current_store_locations_and_count =
+                                Some(response_store_locations_and_count);
                         }
                     }
                     Err(e) => {
-                        log::error!("{e}");
-                        let _ = channel_sender.send(&ChannelMessage::Error(e));
+                        elog!(error, format!("{e}"));
+                        return;
                     }
                 }
             }
             Err(e) => {
-                log::error!("{e}");
-                let _ = channel_sender.send(&ChannelMessage::Error(e));
+                elog!(error, format!("{e}"));
+                return;
             }
         }
 
-        let _ = channel_sender.send(&ChannelMessage::Loading(false));
-        let _ = channel_sender.send(&ChannelMessage::Info("done".to_string()));
+        let _ = channel_sender.send(&false);
+
+        elog!(
+            info,
+            format!(
+                "getting store locations (offset: {offset}) {} done",
+                egui_phosphor::fill::ARROW_RIGHT
+            )
+        );
     });
 }
 
@@ -119,72 +107,60 @@ pub fn load_suggestions(
     ehttp::fetch(request, move |mayerr_response| match mayerr_response {
         Ok(response) => {
             // Acquire lock on current suggestions.
-            let mut current_suggestions = match shared_suggestions.lock() {
+            let mut maybe_current_suggestions = match shared_suggestions.lock() {
                 Ok(locked) => locked,
                 Err(e) => {
-                    log::error!("{e}");
+                    elog!(error, format!("{e}"));
                     return;
                 }
             };
 
-            // We don't need to log the errors here as they are already logged in `get_store_locations_from_response`.
-            if let Ok(maybe_store_locations) = get_store_locations_from_response(&response)
-                && let Some(store_locations) = maybe_store_locations
-            {
-                let items: Vec<SelectItem> = store_locations
-                    .0
-                    .into_iter()
-                    .map(|store_location| SelectItem {
-                        id: store_location.store_location_id,
-                        label: store_location.store_location_name,
-                    })
-                    .collect();
-                let total = match usize::try_from(store_locations.1) {
-                    Ok(total) => total,
-                    Err(e) => {
-                        log::error!("{e}");
-                        return;
-                    }
-                };
-
-                *current_suggestions = Some(SelectItems { items, total });
+            match parse_response(&response) {
+                Ok(response_store_locations_and_count) => {
+                    let items: Vec<SelectItem> = response_store_locations_and_count
+                        .0
+                        .into_iter()
+                        .map(|store_location| SelectItem {
+                            id: store_location.store_location_id,
+                            label: store_location.store_location_name,
+                        })
+                        .collect();
+                    let total = match usize::try_from(response_store_locations_and_count.1) {
+                        Ok(total) => total,
+                        Err(e) => {
+                            elog!(error, format!("{e}"));
+                            return;
+                        }
+                    };
+                    *maybe_current_suggestions = Some(SelectItems { items, total });
+                }
+                Err(e) => {
+                    elog!(error, format!("{e}"));
+                }
             }
         }
         Err(e) => {
-            log::error!("{e}");
+            elog!(error, format!("{e}"));
         }
     });
 }
 
-fn parse_retrieve_store_locations_response(
-    response: &ehttp::Response,
-) -> Result<(Vec<StoreLocation>, u64), AppError> {
+fn parse_response(response: &ehttp::Response) -> Result<(Vec<StoreLocation>, u64), AppError> {
     match response.status {
         200 => {
             if let Some(text_response) = response.text() {
                 match serde_json::from_str(text_response) {
                     Ok(json_response) => Ok(json_response),
-                    Err(e) => {
-                        log::error!("parse_retrieve_store_locations_response: InternalError: {e}");
-                        Err(AppError::InternalError(e.to_string()))
-                    }
+                    Err(e) => Err(AppError::InternalError(e.to_string())),
                 }
             } else {
-                log::error!("parse_retrieve_store_locations_response: UnexpectedEmptyResponse");
                 Err(AppError::UnexpectedEmptyResponse)
             }
         }
         _ => {
             if let Some(text_response) = response.text() {
-                log::error!(
-                    "parse_retrieve_store_locations_response: NotOkHTTPResponse: {text_response}",
-                );
                 Err(AppError::NotOkHTTPResponse(text_response.to_string()))
             } else {
-                log::error!(
-                    "parse_retrieve_store_locations_response: NotOkHTTPResponse: {}",
-                    response.status
-                );
                 Err(AppError::NotOkHTTPResponse(response.status.to_string()))
             }
         }

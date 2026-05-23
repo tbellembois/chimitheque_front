@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use base64::{Engine as _, engine::general_purpose::STANDARD};
-use egui::{ColorImage, TextureHandle, TextureOptions};
+use egui::{Color32, ColorImage, TextureHandle, TextureOptions};
 use image::ImageFormat;
 
 pub fn base64_to_egui_texture(
@@ -25,4 +25,19 @@ pub fn base64_to_egui_texture(
 
     // 5. Load texture into egui context
     Ok(ctx.load_texture(image_name, color_image, TextureOptions::default()))
+}
+
+pub fn html_color_to_egui(hex: &str) -> Option<Color32> {
+    // Ensure the string starts with '#'
+    let hex = hex.trim_start_matches('#');
+
+    // Parse the hex string into RGB values
+    // hex::decode returns a Vec<u8>, we expect 3 bytes for RGB
+    let bytes = hex::decode(hex).ok()?;
+
+    if bytes.len() == 3 {
+        Some(Color32::from_rgb(bytes[0], bytes[1], bytes[2]))
+    } else {
+        None // Handle invalid length (e.g., RGBA or short hex)
+    }
 }

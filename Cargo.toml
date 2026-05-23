@@ -37,6 +37,8 @@ image  = { version = "0.25" }
 usvg = "0.47.0"
 resvg = "0.47.0"
 base64 = "0.22.1"
+hex = "0.4.3"
+once_cell = "1.21.4"
 
 # chimitheque_types = { git = "https://github.com/tbellembois/chimitheque_types.git", branch = "main" }
 
