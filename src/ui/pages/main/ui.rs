@@ -2,19 +2,20 @@ use crate::{
     logger::{LOGS, LogMessage},
     ui::{
         app::App,
-        pages::{product, pubchem, storelocation},
+        components::searchform::render_search_form,
+        pages::{entity, product, pubchem, storelocation},
         state::{Action, Page},
-        widgets::searchform::render_search_form,
+        widgets::{clickablelabelwithiconandtext::clickable_label_with_icon_and_text, size::Size},
     },
 };
-use egui::{Margin, RichText};
+use egui::{Margin, RichText, TextBuffer};
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     let visuals = ui.visuals();
     let bg_color = visuals.window_fill;
 
-    egui::Panel::top("menu_panel")
+    let panel_response = egui::Panel::top("top_panel")
         .frame(
             egui::Frame::NONE
                 .inner_margin(Margin {
@@ -113,64 +114,125 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 ui.add_space(20.0);
 
                 // Menu.
-                egui::MenuBar::new().ui(ui, |ui| {
-                    ui.menu_button(
-                        egui::RichText::new(format!(
-                            "{} {}",
-                            egui_phosphor::fill::BOOKMARK,
-                            t!("menu_bookmarks")
-                        )),
-                        |ui| {
-                            if ui.button(t!("list")).clicked() {
-                                //functionality
-                            }
-                        },
-                    );
+                if clickable_label_with_icon_and_text(
+                    ui,
+                    t!("menu_bookmarks").as_str(),
+                    egui_phosphor::regular::BOOKMARK,
+                    &Size::Medium,
+                )
+                .clicked()
+                {
+                    //functionality
+                }
 
-                    ui.menu_button(
-                        egui::RichText::new(format!(
-                            "{} {}",
-                            egui_phosphor::fill::TAG,
-                            t!("menu_products")
-                        )),
-                        |ui| {
-                            if ui.button(t!("list")).clicked() {
-                                app.state.action = Action::GetProducts;
-                                app.state.active_page = Page::ProductList;
-                            }
-                        },
-                    );
+                if clickable_label_with_icon_and_text(
+                    ui,
+                    t!("menu_products").as_str(),
+                    egui_phosphor::regular::TAG,
+                    &Size::Medium,
+                )
+                .clicked()
+                {
+                    app.state.action = Action::GetProducts;
+                    app.state.active_page = Page::ProductList;
+                }
 
-                    ui.menu_button(
-                        egui::RichText::new(format!(
-                            "{} {}",
-                            egui_phosphor::fill::LETTER_CIRCLE_P,
-                            t!("menu_pubchem")
-                        )),
-                        |ui| {
-                            if ui.button(t!("search")).clicked() {
-                                // app.state.action = Action::GetProducts;
-                                app.state.active_page = Page::Pubchem;
-                            }
-                        },
-                    );
+                if clickable_label_with_icon_and_text(
+                    ui,
+                    t!("menu_pubchem").as_str(),
+                    egui_phosphor::regular::LETTER_CIRCLE_P,
+                    &Size::Medium,
+                )
+                .clicked()
+                {
+                    app.state.active_page = Page::Pubchem;
+                }
 
-                    ui.menu_button(
-                        egui::RichText::new(format!(
-                            "{} {}",
-                            egui_phosphor::fill::WAREHOUSE,
-                            t!("menu_storelocations")
-                        )),
-                        |ui| {
-                            if ui.button(t!("list")).clicked() {
-                                app.state.action = Action::GetStorelocations;
-                                app.state.active_page = Page::StorelocationList;
-                            }
-                        },
-                    );
-                });
+                if clickable_label_with_icon_and_text(
+                    ui,
+                    t!("menu_storelocations").as_str(),
+                    egui_phosphor::regular::DRESSER,
+                    &Size::Medium,
+                )
+                .clicked()
+                {
+                    app.state.action = Action::GetStorelocations;
+                    app.state.active_page = Page::StorelocationList;
+                }
+
+                if clickable_label_with_icon_and_text(
+                    ui,
+                    t!("menu_entities").as_str(),
+                    egui_phosphor::regular::WAREHOUSE,
+                    &Size::Medium,
+                )
+                .clicked()
+                {
+                    app.state.action = Action::GetEntities;
+                    app.state.active_page = Page::EntityList;
+                }
+
+                // egui::MenuBar::new().ui(ui, |ui| {
+                //     ui.menu_button(
+                //         egui::RichText::new(format!(
+                //             "{} {}",
+                //             egui_phosphor::fill::BOOKMARK,
+                //             t!("menu_bookmarks")
+                //         )),
+                //         |ui| {
+                //             if ui.button(t!("list")).clicked() {
+                //                 //functionality
+                //             }
+                //         },
+                //     );
+
+                //     ui.menu_button(
+                //         egui::RichText::new(format!(
+                //             "{} {}",
+                //             egui_phosphor::fill::TAG,
+                //             t!("menu_products")
+                //         )),
+                //         |ui| {
+                //             if ui.button(t!("list")).clicked() {
+                //                 app.state.action = Action::GetProducts;
+                //                 app.state.active_page = Page::ProductList;
+                //             }
+                //         },
+                //     );
+
+                //     ui.menu_button(
+                //         egui::RichText::new(format!(
+                //             "{} {}",
+                //             egui_phosphor::fill::LETTER_CIRCLE_P,
+                //             t!("menu_pubchem")
+                //         )),
+                //         |ui| {
+                //             if ui.button(t!("search")).clicked() {
+                //                 // app.state.action = Action::GetProducts;
+                //                 app.state.active_page = Page::Pubchem;
+                //             }
+                //         },
+                //     );
+
+                //     ui.menu_button(
+                //         egui::RichText::new(format!(
+                //             "{} {}",
+                //             egui_phosphor::fill::WAREHOUSE,
+                //             t!("menu_storelocations")
+                //         )),
+                //         |ui| {
+                //             if ui.button(t!("list")).clicked() {
+                //                 app.state.action = Action::GetStorelocations;
+                //                 app.state.active_page = Page::StorelocationList;
+                //             }
+                //         },
+                //     );
+                // });
             });
         });
+
+    // Update top panel rect.
+    app.state.top_panel_rect = panel_response.response.rect;
 
     //
     // Footer bar
@@ -206,6 +268,9 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             }
             Page::StorelocationList => {
                 storelocation::list::update(app, ui, frame);
+            }
+            Page::EntityList => {
+                entity::list::update(app, ui, frame);
             }
             Page::Pubchem => {
                 pubchem::search::update(app, ui, frame);

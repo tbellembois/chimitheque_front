@@ -6,6 +6,7 @@ pub enum Page {
     #[default]
     ProductList,
     StorelocationList,
+    EntityList,
     Pubchem,
 }
 
@@ -15,6 +16,7 @@ pub enum Action {
     None,
     GetProducts,
     GetStorelocations,
+    GetEntities,
     GetPubchemAutocomplete,
     GetPubchemProduct,
 }
@@ -30,6 +32,8 @@ pub struct ApplicationState {
     pub window_rect: Rect,
     // Advanced search size and position.
     pub advanced_search_rect: Rect,
+    // Top panel size and position.
+    pub top_panel_rect: Rect,
     // Whether the scroll area was near the bottom.
     pub scrollarea_was_near_bottom: bool,
     // The current action.
@@ -51,6 +55,10 @@ impl Default for ApplicationState {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
+            top_panel_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
             scrollarea_was_near_bottom: false,
             action: Action::None,
             darkmode: false,
@@ -69,6 +77,10 @@ impl ApplicationState {
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
             advanced_search_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
+            top_panel_rect: Rect {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },

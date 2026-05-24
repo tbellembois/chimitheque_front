@@ -1,5 +1,6 @@
 use super::state::ApplicationState;
 use crate::api::connecteduser::get_connected_user;
+use crate::api::entity::get_entities;
 use crate::api::product::get_products;
 use crate::api::pubchemproduct::get_pubchem_product;
 use crate::api::pubchemsearch::get_pubchem_autocomplete;
@@ -7,11 +8,12 @@ use crate::api::storelocation::get_store_locations;
 use crate::defines::SEARCH_LIMIT;
 use crate::elog;
 use crate::types::{
-    SharedProductAndCountList, SharedPubchemAutocomplete, SharedPubchemProduct,
-    SharedStoreLocationAndCountList,
+    SharedEntityAndCountList, SharedProductAndCountList, SharedPubchemAutocomplete,
+    SharedPubchemProduct, SharedStoreLocationAndCountList,
 };
 use crate::ui::pages::main;
 use crate::ui::state::Action;
+use chimitheque_types::entity::Entity;
 use chimitheque_types::person::Person;
 use chimitheque_types::product::Product;
 use chimitheque_types::pubchem::Autocomplete;
@@ -76,6 +78,22 @@ impl Display for StoreLocationsOrder {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub enum EntitiesOrder {
+    #[default]
+    Asc,
+    Desc,
+}
+
+impl Display for EntitiesOrder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EntitiesOrder::Asc => write!(f, "asc"),
+            EntitiesOrder::Desc => write!(f, "desc"),
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct App {
     // Application state.
@@ -129,6 +147,11 @@ pub struct App {
     pub search_store_location_last_edit: f64,
     pub search_store_location_action_triggered: bool,
 
+    // Widgets/variables for the entity page.
+    pub search_entity: String,
+    pub search_entity_last_edit: f64,
+    pub search_entity_action_triggered: bool,
+
     // Widgets/variables for pubchem.
     pub pubchem_search: String,
     pub pubchem_search_name_clicked: String,
@@ -137,6 +160,8 @@ pub struct App {
     pub connected_user: Arc<Mutex<Option<Person>>>,
     // Store locations.
     pub store_locations: SharedStoreLocationAndCountList,
+    // Entities.
+    pub entities: SharedEntityAndCountList,
     // Products.
     pub products: SharedProductAndCountList,
     // Pubchem autocomplete.
@@ -147,6 +172,9 @@ pub struct App {
     // Sorting for store locations.
     pub store_locations_order_by: StoreLocationsOrderBy,
     pub store_locations_order: StoreLocationsOrder,
+
+    // Sorting for entities.
+    pub entities_order: EntitiesOrder,
 
     // Current search offset.
     pub current_search_offset: usize,
@@ -523,6 +551,20 @@ impl App {
         Ok(result)
     }
 
+    pub fn get_entities_and_count(&self) -> Result<Option<(Vec<Entity>, u64)>, String> {
+        let entities_and_count_lock = match self.entities.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                elog!(error, e.to_string());
+                return Err(e.to_string());
+            }
+        };
+
+        let result: Option<(Vec<Entity>, u64)> = (*entities_and_count_lock).clone();
+
+        Ok(result)
+    }
+
     pub fn get_products_and_count(&self) -> Result<Option<(Vec<Product>, u64)>, String> {
         let products_and_count_lock = match self.products.lock() {
             Ok(locked) => locked,
@@ -599,6 +641,22 @@ impl eframe::App for App {
                         ..Default::default()
                     },
                     Arc::clone(&self.store_locations),
+                    false,
+                    self.channel_sender.clone(),
+                );
+
+                self.state.action = Action::None;
+            }
+            Action::GetEntities => {
+                get_entities(
+                    &RequestFilter {
+                        // limit: Some(SEARCH_LIMIT),
+                        search: Some(self.search_entity.clone()),
+                        order: self.entities_order.to_string(),
+                        // order_by: Some(self.store_locations_order_by.to_string()),
+                        ..Default::default()
+                    },
+                    Arc::clone(&self.entities),
                     false,
                     self.channel_sender.clone(),
                 );

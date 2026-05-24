@@ -20,13 +20,18 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         if let Ok(maybe_store_locations_and_count) = app.get_store_locations_and_count()
             && let Some((store_locations, count)) = maybe_store_locations_and_count
         {
-            const MENU_HEIGHT: f32 = 140.0; // TODO: We could make this dynamic based on the menu's actual height.
+            const SEARCH_FORM_TOP_MARGIN: f32 = 20.0;
             const SEARCH_FORM_SIDE_MARGIN: f32 = 400.0;
             const SEARCH_FORM_HEIGHT: f32 = 10.0; // Random value, only used space will be allocated.
 
+            let top_panel_height = app.state.top_panel_rect.height();
+
             // Calculate search form size and position (ie. rect).
-            let search_form_top_left =
-                app.state.window_rect.left_top() + egui::vec2(SEARCH_FORM_SIDE_MARGIN, MENU_HEIGHT);
+            let search_form_top_left = app.state.window_rect.left_top()
+                + egui::vec2(
+                    SEARCH_FORM_SIDE_MARGIN,
+                    top_panel_height + SEARCH_FORM_TOP_MARGIN,
+                );
             let search_form_bottom_right = app.state.window_rect.right_bottom()
                 - egui::vec2(SEARCH_FORM_SIDE_MARGIN, SEARCH_FORM_HEIGHT);
             let search_form_rec =
@@ -131,7 +136,10 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                             // ui.strong(t!("storelocation_color"));
                         });
                         header.col(|ui| {
-                            ui.strong(t!("storelocation_canstore"));
+                            ui.label(t!("storelocation_canstore"));
+                        });
+                        header.col(|_ui| {
+                            // actions
                         });
                     })
                     .body(|mut body| {

@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crate::{
     api::product::get_products,
     defines::SEARCH_LIMIT,
-    ui::{app::App, widgets::productlabel::render_product_label},
+    ui::{app::App, components::productlabel::render_product_label},
 };
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {

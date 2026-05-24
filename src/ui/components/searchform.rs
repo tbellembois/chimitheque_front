@@ -11,7 +11,6 @@ use egui::TextBuffer;
 use rust_i18n::t;
 
 pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-    const MENU_HEIGHT: f32 = 120.0; // TODO: We could make this dynamic based on the menu's actual height.
     const SEARCH_FORM_SIDE_MARGIN: f32 = 450.0;
     const SEARCH_FORM_HEIGHT: f32 = 10.0; // Random value, only used space will be allocated.
     const SEARCH_FORM_INNER_MARGIN: egui::Margin = egui::Margin::symmetric(20, 20);
@@ -20,13 +19,15 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
     const WIDGET_HORIZONTAL_SPACING: f32 = 10.0;
     const WIDGET_VERTICAL_SPACING: f32 = 20.0;
 
+    let top_panel_height = app.state.top_panel_rect.height();
+
     let widgets = &ui.visuals().widgets;
     let normal_stroke = widgets.noninteractive.bg_stroke;
 
     // Calculate search form size and position (ie. rect).
     let search_form_width: f32 = app.state.window_rect.width() - (SEARCH_FORM_SIDE_MARGIN * 2.0);
     let search_form_top_left =
-        app.state.window_rect.left_top() + egui::vec2(SEARCH_FORM_SIDE_MARGIN, MENU_HEIGHT);
+        app.state.window_rect.left_top() + egui::vec2(SEARCH_FORM_SIDE_MARGIN, top_panel_height);
     let search_form_bottom_right = app.state.window_rect.right_bottom()
         - egui::vec2(SEARCH_FORM_SIDE_MARGIN, SEARCH_FORM_HEIGHT);
     let search_form_rec = egui::Rect::from_two_pos(search_form_top_left, search_form_bottom_right);
