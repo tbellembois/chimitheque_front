@@ -19,6 +19,7 @@ pub enum Action {
     GetEntities,
     GetPubchemAutocomplete,
     GetPubchemProduct,
+    GetPermissions,
 }
 
 /// Application state.

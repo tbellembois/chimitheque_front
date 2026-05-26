@@ -1,7 +1,10 @@
-use crate::ui::{
-    app::{App, EntitiesOrder},
-    state::Action,
-    widgets::{buttonwithiconandtext::button_with_icon_and_text, size::Size},
+use crate::{
+    types::EntitiesOrder,
+    ui::{
+        app::App,
+        state::Action,
+        widgets::{buttonwithiconandtext::button_with_icon_and_text, size::Size},
+    },
 };
 use egui::RichText;
 use egui_extras::{Column, TableBuilder};
@@ -177,23 +180,6 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                                         };
                                     });
                                 });
-
-                                // row.col(|ui| {
-                                //     if let Some(managers) = &entity.managers {
-                                //         egui::ScrollArea::vertical()
-                                //             .id_salt(format!(
-                                //                 "products_scrollarea_{}",
-                                //                 entity.entity_name
-                                //             ))
-                                //             .show(ui, |ui| {
-                                //                 ui.vertical(|ui| {
-                                //                     for manager in managers {
-                                //                         ui.label(manager.clone().person_email);
-                                //                     }
-                                //                 });
-                                //             });
-                                //     }
-                                // });
 
                                 row.col(|ui| {
                                     ui.label("todo");

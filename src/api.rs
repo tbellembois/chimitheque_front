@@ -7,6 +7,7 @@ pub(crate) mod entity;
 pub(crate) mod hazardstatement;
 pub(crate) mod linearformula;
 pub(crate) mod name;
+pub(crate) mod permission;
 pub(crate) mod precautionarystatement;
 pub(crate) mod producerref;
 pub(crate) mod product;

@@ -12,6 +12,7 @@
     clippy::too_many_lines
 )]
 mod api;
+pub mod atomic;
 mod defines;
 mod error;
 mod keycloak;

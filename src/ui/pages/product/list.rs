@@ -4,13 +4,47 @@ use std::sync::Arc;
 use crate::{
     api::product::get_products,
     defines::SEARCH_LIMIT,
-    ui::{app::App, components::productlabel::render_product_label},
+    ui::{
+        app::App,
+        components::productlabel::render_product_label,
+        widgets::{buttonwithiconandtext::button_with_icon_and_text, size::Size},
+    },
 };
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
+    // ui.label(format!(
+    //     "{}",
+    //     app.has_permission(
+    //         &chimitheque_types::permission::PermissionItem::Products,
+    //         None,
+    //         &ehttp::Method::GET,
+    //         &app.permissions.clone(),
+    //     )
+    // ));
+
     if let Ok(maybe_products_and_count) = app.get_products_and_count()
         && let Some((products, count)) = maybe_products_and_count
     {
+        ui.allocate_ui_with_layout(
+            egui::vec2(ui.available_width(), 32.0),
+            egui::Layout::right_to_left(egui::Align::Center),
+            |ui| {
+                if app.has_permission(
+                    &chimitheque_types::permission::PermissionItem::Products,
+                    None,
+                    &ehttp::Method::POST,
+                    &app.permissions.clone(),
+                ) && button_with_icon_and_text(
+                    ui,
+                    t!("product_create").to_string(),
+                    egui_phosphor::fill::MAGIC_WAND,
+                    &Size::Medium,
+                )
+                .clicked()
+                {}
+            },
+        );
+
         let showing_products = SEARCH_LIMIT + app.current_search_offset;
         let total_products = count;
 

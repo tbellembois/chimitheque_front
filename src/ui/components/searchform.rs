@@ -1,6 +1,7 @@
+use crate::types::ProductType;
 use crate::ui::widgets::size::Size;
 use crate::ui::{
-    app::{App, ProductType},
+    app::App,
     state::{Action, Page},
     widgets::{
         buttonwithiconandtext::button_with_icon_and_text,

@@ -133,6 +133,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 )
                 .clicked()
                 {
+                    app.search_form_expanded = false;
                     app.state.action = Action::GetProducts;
                     app.state.active_page = Page::ProductList;
                 }

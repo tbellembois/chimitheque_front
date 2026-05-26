@@ -1,19 +1,23 @@
 use super::state::ApplicationState;
 use crate::api::connecteduser::get_connected_user;
 use crate::api::entity::get_entities;
+use crate::api::permission::get_permissions;
 use crate::api::product::get_products;
 use crate::api::pubchemproduct::get_pubchem_product;
 use crate::api::pubchemsearch::get_pubchem_autocomplete;
 use crate::api::storelocation::get_store_locations;
 use crate::defines::SEARCH_LIMIT;
-use crate::elog;
 use crate::types::{
-    SharedEntityAndCountList, SharedProductAndCountList, SharedPubchemAutocomplete,
-    SharedPubchemProduct, SharedStoreLocationAndCountList,
+    EntitiesOrder, Permission, PermissionStatus, ProductType, SharedEntityAndCountList,
+    SharedPermissionList, SharedProductAndCountList, SharedPubchemAutocomplete,
+    SharedPubchemProduct, SharedStoreLocationAndCountList, StoreLocationsOrder,
+    StoreLocationsOrderBy,
 };
 use crate::ui::pages::main;
 use crate::ui::state::Action;
+use crate::{atomic, elog};
 use chimitheque_types::entity::Entity;
+use chimitheque_types::permission::PermissionItem;
 use chimitheque_types::person::Person;
 use chimitheque_types::product::Product;
 use chimitheque_types::pubchem::Autocomplete;
@@ -24,75 +28,14 @@ use eframe::CreationContext;
 use egui::{Style, TextureHandle, Theme};
 use egui_select2::select2::EguiSelect2;
 use rust_i18n::t;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
-use std::fmt::Display;
 use std::sync::Once;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use wasm_rs_shared_channel::spsc::{Receiver, Sender, channel};
 
 static START: Once = Once::new();
-
-#[derive(Default, PartialEq)]
-pub enum ProductType {
-    Chemical,
-    Biological,
-    Consumable,
-    #[default]
-    All,
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub enum StoreLocationsOrderBy {
-    #[default]
-    Name,
-    Entity,
-    Parent,
-}
-
-impl Display for StoreLocationsOrderBy {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            StoreLocationsOrderBy::Name => write!(f, "store_location_name"),
-            StoreLocationsOrderBy::Entity => write!(f, "entity.entity_name"),
-            StoreLocationsOrderBy::Parent => write!(f, "store_location.store_location_name"),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub enum StoreLocationsOrder {
-    #[default]
-    Asc,
-    Desc,
-}
-
-impl Display for StoreLocationsOrder {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            StoreLocationsOrder::Asc => write!(f, "asc"),
-            StoreLocationsOrder::Desc => write!(f, "desc"),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub enum EntitiesOrder {
-    #[default]
-    Asc,
-    Desc,
-}
-
-impl Display for EntitiesOrder {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            EntitiesOrder::Asc => write!(f, "asc"),
-            EntitiesOrder::Desc => write!(f, "desc"),
-        }
-    }
-}
 
 #[derive(Default)]
 pub struct App {
@@ -168,6 +111,8 @@ pub struct App {
     pub pubchem_autocomplete: SharedPubchemAutocomplete,
     // Pubchem product selected.
     pub pubchem_product: SharedPubchemProduct,
+    // Permissions.
+    pub permissions: SharedPermissionList,
 
     // Sorting for store locations.
     pub store_locations_order_by: StoreLocationsOrderBy,
@@ -393,6 +338,64 @@ impl App {
         }
     }
 
+    fn permission_to_retrieve_count(&self) -> usize {
+        let permissions_lock = match self.permissions.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                elog!(error, e.to_string());
+                return 0;
+            }
+        };
+
+        permissions_lock
+            .iter()
+            .filter(|p| p.status == PermissionStatus::ToRetrieve)
+            .count()
+    }
+
+    pub fn has_permission(
+        &mut self,
+        permission_item: &PermissionItem,
+        permission_entity: Option<u64>,
+        http_method: &ehttp::Method,
+        shared_permissions: &SharedPermissionList,
+    ) -> bool {
+        let mut permissions_lock = match shared_permissions.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                elog!(error, e.to_string());
+                return false;
+            }
+        };
+
+        // if let Some(mut permissions) = maybe_permissions {
+        let maybe_permission = permissions_lock.iter().find(|p| {
+            p.http_method == *http_method
+                && p.item == *permission_item
+                && p.entity == permission_entity
+        });
+
+        if let Some(permission) = maybe_permission {
+            if permission.status == PermissionStatus::Done {
+                return permission.granted;
+            }
+
+            return false;
+        }
+        permissions_lock.push(Permission {
+            unique_id: atomic::get_next_id(),
+            status: PermissionStatus::ToRetrieve,
+            item: permission_item.clone(),
+            entity: permission_entity,
+            http_method: http_method.clone(),
+            granted: false,
+        });
+
+        self.state.action = Action::GetPermissions;
+
+        false
+    }
+
     #[must_use]
     pub fn get_request_filter(&self) -> RequestFilter {
         let hazard_statements: Vec<_> = self
@@ -578,6 +581,20 @@ impl App {
 
         Ok(result)
     }
+
+    // pub fn get_permissions(&self) -> Result<Option<Vec<Permission>>, String> {
+    //     let permissions_lock = match self.permissions.lock() {
+    //         Ok(locked) => locked,
+    //         Err(e) => {
+    //             elog!(error, e.to_string());
+    //             return Err(e.to_string());
+    //         }
+    //     };
+
+    //     let result: Option<Vec<Permission>> = (*permissions_lock).clone();
+
+    //     Ok(result)
+    // }
 }
 
 impl eframe::App for App {
@@ -612,11 +629,6 @@ impl eframe::App for App {
             && let Some(message) = maybe_message
         {
             self.is_loading = message;
-            // match message {
-            //     ChannelMessage::Info(info) => self.current_info = Some(info),
-            //     ChannelMessage::Error(error) => self.current_error = Some(error),
-            //     ChannelMessage::Loading(loading) => self.is_loading = loading,
-            // }
         }
 
         // Handle action.
@@ -681,6 +693,13 @@ impl eframe::App for App {
                 );
 
                 self.state.action = Action::None;
+            }
+            Action::GetPermissions => {
+                get_permissions(&Arc::clone(&self.permissions));
+
+                if self.permission_to_retrieve_count() == 0 {
+                    self.state.action = Action::None;
+                }
             }
         }
 

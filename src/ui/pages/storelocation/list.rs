@@ -1,6 +1,7 @@
 use crate::{
+    types::{StoreLocationsOrder, StoreLocationsOrderBy},
     ui::{
-        app::{App, StoreLocationsOrder, StoreLocationsOrderBy},
+        app::App,
         state::Action,
         widgets::{buttonwithiconandtext::button_with_icon_and_text, size::Size},
     },
@@ -15,6 +16,26 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let text_color = ui.visuals().text_color();
         text_color.gamma_multiply(ui.visuals().weak_text_alpha)
     });
+
+    ui.allocate_ui_with_layout(
+        egui::vec2(ui.available_width(), 32.0),
+        egui::Layout::right_to_left(egui::Align::Center),
+        |ui| {
+            if app.has_permission(
+                &chimitheque_types::permission::PermissionItem::StoreLocations,
+                None,
+                &ehttp::Method::POST,
+                &app.permissions.clone(),
+            ) && button_with_icon_and_text(
+                ui,
+                t!("storelocation_create").to_string(),
+                egui_phosphor::fill::MAGIC_WAND,
+                &Size::Medium,
+            )
+            .clicked()
+            {}
+        },
+    );
 
     ui.vertical(|ui| {
         if let Ok(maybe_store_locations_and_count) = app.get_store_locations_and_count()

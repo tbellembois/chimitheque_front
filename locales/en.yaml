@@ -19,6 +19,8 @@ storelocation_storages: "storages"
 storelocation_children: "sub store locations"
 storelocation_search_hint: "search by store location or entity"
 
+storelocation_create: "create a new store location"
+
 entity_name: "name"
 entity_description: "description"
 entity_managers: "managers"
@@ -113,6 +115,8 @@ product_card_precautionary_statements: "precautionary statements"
 product_card_supplier_refs: "supplier refs"
 product_card_tags: "tags"
 product_card_product_availability: "product availability"
+
+product_create: "create a new product"
 
 pubchem_input_search: "search by (part of) name"
 pubchem_action_search: "search"

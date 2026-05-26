@@ -19,6 +19,8 @@ storelocation_storages: "stockages"
 storelocation_children: "sous entrepôts"
 storelocation_search_hint: "rechercher par entrepôt ou entité"
 
+storelocation_create: "créer un nouvel entrepôt"
+
 entity_name: "nom"
 entity_description: "description"
 entity_managers: "gestionnaires"
@@ -113,6 +115,8 @@ product_card_precautionary_statements: "phrases de sécurité"
 product_card_supplier_refs: "référence fournisseur"
 product_card_tags: "tags"
 product_card_product_availability: "disponibilité du produit"
+
+product_create: "créer un nouveau produit"
 
 pubchem_input_search: "rechercher par (partie du) nom"
 pubchem_action_search: "rechercher"

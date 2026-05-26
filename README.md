@@ -24,7 +24,3 @@ TextStyle: Font mappings for labels, headers, etc. Global or per-Ui
 
 https://github.com/lucasmerlin/hello_egui/tree/main/crates/egui_form
 https://github.com/amPerl/egui-phosphor
-
-```
-
-```
