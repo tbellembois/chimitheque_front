@@ -88,7 +88,7 @@ fn send_request(
     );
 }
 
-fn parse_response(response: &ehttp::Response) -> Result<(bool), AppError> {
+fn parse_response(response: &ehttp::Response) -> Result<bool, AppError> {
     match response.status {
         200 => {
             if let Some(text_response) = response.text() {

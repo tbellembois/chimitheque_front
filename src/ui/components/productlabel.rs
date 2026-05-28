@@ -29,7 +29,7 @@ pub fn render_product_label(
     let product_label_outer_x_margin = if ((window_width - label_width) / 2.0) >= 127.0 {
         ((window_width - label_width) / 2.0) as i8
     } else {
-        20
+        10
     };
     let product_label_outer_y_margin = 5;
 
@@ -192,7 +192,9 @@ pub fn render_product_label(
                     &Size::Small,
                 )
                 .clicked()
-                {}
+                {
+                    todo!()
+                }
 
                 if app.has_permission(
                     &chimitheque_types::permission::PermissionItem::Storages,
@@ -206,7 +208,9 @@ pub fn render_product_label(
                     &Size::Small,
                 )
                 .clicked()
-                {}
+                {
+                    todo!()
+                }
 
                 if app.has_permission(
                     &chimitheque_types::permission::PermissionItem::Products,
@@ -220,7 +224,9 @@ pub fn render_product_label(
                     &Size::Small,
                 )
                 .clicked()
-                {}
+                {
+                    todo!()
+                }
 
                 if app.has_permission(
                     &chimitheque_types::permission::PermissionItem::Products,
@@ -234,7 +240,9 @@ pub fn render_product_label(
                     &Size::Small,
                 )
                 .clicked()
-                {}
+                {
+                    todo!()
+                }
 
                 if app.has_permission(
                     &chimitheque_types::permission::PermissionItem::Storages,
@@ -248,7 +256,9 @@ pub fn render_product_label(
                     &Size::Small,
                 )
                 .clicked()
-                {}
+                {
+                    todo!()
+                }
             });
         }
 

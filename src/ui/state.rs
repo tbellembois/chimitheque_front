@@ -7,6 +7,7 @@ use egui::{Pos2, Rect};
 pub enum Page {
     #[default]
     ProductList,
+    StorageList,
     StorelocationList,
     EntityList,
     Pubchem,
@@ -17,6 +18,7 @@ pub enum Action {
     #[default]
     None,
     GetProducts,
+    GetStorages,
     GetStorelocations,
     GetEntities,
     GetPubchemAutocomplete,

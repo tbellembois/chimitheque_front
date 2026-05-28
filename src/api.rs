@@ -14,6 +14,7 @@ pub(crate) mod product;
 pub(crate) mod pubchemproduct;
 pub(crate) mod pubchemsearch;
 pub(crate) mod signalword;
+pub(crate) mod storage;
 pub(crate) mod storelocation;
 pub(crate) mod symbol;
 pub(crate) mod tag;

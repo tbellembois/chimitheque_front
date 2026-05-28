@@ -1,4 +1,7 @@
 _version: 1
+
+date_format: "%Y-%m-%d %H:%M"
+
 list: "list"
 total: "total: %{total}"
 wait_user_info: "waiting for user authentication"
@@ -9,6 +12,9 @@ menu_products: "products"
 menu_storelocations: "store locations"
 menu_entities: "entities"
 menu_pubchem: "pubchem"
+
+switch_to_storage_view: "view storages"
+switch_to_product_view: "view products"
 
 storelocation_name: "name"
 storelocation_entity: "entity"
@@ -130,3 +136,6 @@ product_create: "create a new product"
 
 pubchem_input_search: "search by (part of) name"
 pubchem_action_search: "search"
+
+storage_label_batch_number: "batch #"
+storage_label_barecode: "barecode"

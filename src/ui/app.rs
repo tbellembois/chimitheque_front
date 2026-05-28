@@ -5,13 +5,14 @@ use crate::api::permission::get_permissions;
 use crate::api::product::get_products;
 use crate::api::pubchemproduct::get_pubchem_product;
 use crate::api::pubchemsearch::get_pubchem_autocomplete;
+use crate::api::storage::get_storages;
 use crate::api::storelocation::get_store_locations;
 use crate::defines::SEARCH_LIMIT;
 use crate::types::{
     EntitiesOrder, Permission, PermissionStatus, ProductType, SharedEntityAndCountList,
     SharedPermissionList, SharedProductAndCountList, SharedPubchemAutocomplete,
-    SharedPubchemProduct, SharedStoreLocationAndCountList, StoreLocationsOrder,
-    StoreLocationsOrderBy,
+    SharedPubchemProduct, SharedStorageAndCountList, SharedStoreLocationAndCountList,
+    StoreLocationsOrder, StoreLocationsOrderBy,
 };
 use crate::ui::pages::main;
 use crate::ui::state::Action;
@@ -23,6 +24,7 @@ use chimitheque_types::product::Product;
 use chimitheque_types::pubchem::Autocomplete;
 use chimitheque_types::pubchemproduct::PubchemProduct;
 use chimitheque_types::requestfilter::RequestFilter;
+use chimitheque_types::storage::Storage;
 use chimitheque_types::storelocation::StoreLocation;
 use eframe::CreationContext;
 use egui::{Style, TextureHandle, Theme};
@@ -58,6 +60,9 @@ pub struct App {
     // Product ids of cards shown (ie. expanded) in the product list.
     pub product_cards_shown: Vec<u64>,
     pub product_cards_actions_shown: Vec<u64>,
+    // Storage ids of cards shown (ie. expanded) in the storage list.
+    pub storage_cards_shown: Vec<u64>,
+    pub storage_cards_actions_shown: Vec<u64>,
 
     // Is the search form expanded?
     pub search_form_expanded: bool,
@@ -108,6 +113,8 @@ pub struct App {
     pub entities: SharedEntityAndCountList,
     // Products.
     pub products: SharedProductAndCountList,
+    // Storages.
+    pub storages: SharedStorageAndCountList,
     // Pubchem autocomplete.
     pub pubchem_autocomplete: SharedPubchemAutocomplete,
     // Pubchem product selected.
@@ -339,21 +346,6 @@ impl App {
         }
     }
 
-    fn permission_to_retrieve_count(&self) -> usize {
-        let permissions_lock = match self.permissions.lock() {
-            Ok(locked) => locked,
-            Err(e) => {
-                elog!(error, e.to_string());
-                return 0;
-            }
-        };
-
-        permissions_lock
-            .iter()
-            .filter(|p| p.status == PermissionStatus::ToRetrieve)
-            .count()
-    }
-
     pub fn has_permission(
         &mut self,
         permission_item: &PermissionItem,
@@ -583,6 +575,20 @@ impl App {
         Ok(result)
     }
 
+    pub fn get_storages_and_count(&self) -> Result<Option<(Vec<Storage>, u64)>, String> {
+        let storages_and_count_lock = match self.storages.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                elog!(error, e.to_string());
+                return Err(e.to_string());
+            }
+        };
+
+        let result: Option<(Vec<Storage>, u64)> = (*storages_and_count_lock).clone();
+
+        Ok(result)
+    }
+
     // pub fn get_permissions(&self) -> Result<Option<Vec<Permission>>, String> {
     //     let permissions_lock = match self.permissions.lock() {
     //         Ok(locked) => locked,
@@ -643,6 +649,12 @@ impl eframe::App for App {
                         self.channel_sender.clone(),
                     );
                 }
+                Action::GetStorages => get_storages(
+                    &self.get_request_filter(),
+                    Arc::clone(&self.storages),
+                    false,
+                    self.channel_sender.clone(),
+                ),
                 Action::GetStorelocations => {
                     get_store_locations(
                         &RequestFilter {

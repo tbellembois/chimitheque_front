@@ -3,7 +3,7 @@ use crate::{
     ui::{
         app::App,
         components::searchform::render_search_form,
-        pages::{entity, product, pubchem, storelocation},
+        pages::{entity, product, pubchem, storage, storelocation},
         state::{Action, Page},
         widgets::{clickablelabelwithiconandtext::clickable_label_with_icon_and_text, size::Size},
     },
@@ -258,8 +258,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 .inner_margin(Margin {
                     top: 10,
                     bottom: 10,
-                    left: 50,
-                    right: 50,
+                    left: 25,
+                    right: 25,
                 })
                 .fill(bg_color),
         )
@@ -270,6 +270,13 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 ui.add_space(20.0);
 
                 product::list::update(app, ui, frame);
+            }
+            Page::StorageList => {
+                render_search_form(app, ui, frame);
+
+                ui.add_space(20.0);
+
+                storage::list::update(app, ui, frame);
             }
             Page::StorelocationList => {
                 storelocation::list::update(app, ui, frame);
