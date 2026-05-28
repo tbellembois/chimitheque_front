@@ -34,7 +34,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
 
             if response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
                 app.pubchem_results_expanded = true;
-                app.state.action = Action::GetPubchemAutocomplete;
+                app.state.action.push_back(Action::GetPubchemAutocomplete);
             }
 
             ui.add_space(20.0);
@@ -48,7 +48,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
             .clicked()
             {
                 app.pubchem_results_expanded = true;
-                app.state.action = Action::GetPubchemAutocomplete;
+                app.state.action.push_back(Action::GetPubchemAutocomplete);
             }
         });
 
@@ -64,7 +64,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                         if ui.link(compound.clone()).clicked() {
                             app.pubchem_search_name_clicked = compound;
                             app.pubchem_results_expanded = false;
-                            app.state.action = Action::GetPubchemProduct;
+                            app.state.action.push_back(Action::GetPubchemProduct);
                         }
                     }
                 });

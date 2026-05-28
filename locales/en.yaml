@@ -29,6 +29,8 @@ entity_search_hint: "search by name"
 entity_people: "people"
 entity_store_locations: "store locations"
 
+entity_create: "create a new entity"
+
 search_form_shrink: "shrink search form"
 search_form_expand: "expand search form"
 search_pubchem_results_expand: "expand pubchem results"

@@ -186,7 +186,7 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                         {
                             app.search_form_expanded = false;
                             app.current_search_offset = 0;
-                            app.state.action = Action::GetProducts;
+                            app.state.action.push_back(Action::GetProducts);
                             app.state.active_page = Page::ProductList;
                         }
 

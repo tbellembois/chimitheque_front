@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use egui::{Pos2, Rect};
 
 // Applications pages.
@@ -40,7 +42,7 @@ pub struct ApplicationState {
     // Whether the scroll area was near the bottom.
     pub scrollarea_was_near_bottom: bool,
     // The current action.
-    pub action: Action,
+    pub action: VecDeque<Action>,
     // Whether dark mode is enabled.
     pub darkmode: bool,
 }
@@ -67,7 +69,7 @@ impl Default for ApplicationState {
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
             scrollarea_was_near_bottom: false,
-            action: Action::None,
+            action: VecDeque::new(),
             darkmode: false,
         }
     }
@@ -96,7 +98,7 @@ impl ApplicationState {
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
             scrollarea_was_near_bottom: false,
-            action: Action::None,
+            action: VecDeque::new(),
             darkmode: false,
         }
     }

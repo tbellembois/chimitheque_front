@@ -64,7 +64,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                     .clicked()
                     {
                         app.search_store_location = String::new();
-                        app.state.action = Action::GetStorelocations;
+                        app.state.action.push_back(Action::GetStorelocations);
                     }
 
                     let ctx = ui.ctx();
@@ -82,7 +82,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                     {
                         app.search_store_location_action_triggered = true;
 
-                        app.state.action = Action::GetStorelocations;
+                        app.state.action.push_back(Action::GetStorelocations);
                     }
 
                     ctx.request_repaint();
@@ -112,7 +112,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                                     StoreLocationsOrder::Desc => StoreLocationsOrder::Asc,
                                 };
 
-                                app.state.action = Action::GetStorelocations;
+                                app.state.action.push_back(Action::GetStorelocations);
                             }
                         });
                         header.col(|ui| {
@@ -123,7 +123,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                                     StoreLocationsOrder::Desc => StoreLocationsOrder::Asc,
                                 };
 
-                                app.state.action = Action::GetStorelocations;
+                                app.state.action.push_back(Action::GetStorelocations);
                             }
                         });
                         header.col(|ui| {
@@ -134,7 +134,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                                     StoreLocationsOrder::Desc => StoreLocationsOrder::Asc,
                                 };
 
-                                app.state.action = Action::GetStorelocations;
+                                app.state.action.push_back(Action::GetStorelocations);
                             }
                         });
 

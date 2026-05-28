@@ -392,7 +392,7 @@ impl App {
             granted: false,
         });
 
-        self.state.action = Action::GetPermissions;
+        self.state.action.push_back(Action::GetPermissions);
 
         false
     }
@@ -632,74 +632,62 @@ impl eframe::App for App {
             self.is_loading = message;
         }
 
-        // Handle action.
-        match self.state.action {
-            Action::GetProducts => {
-                get_products(
-                    &self.get_request_filter(),
-                    Arc::clone(&self.products),
-                    false,
-                    self.channel_sender.clone(),
-                );
-
-                self.state.action = Action::None;
-            }
-            Action::GetStorelocations => {
-                get_store_locations(
-                    &RequestFilter {
-                        // limit: Some(SEARCH_LIMIT),
-                        search: Some(self.search_store_location.clone()),
-                        order: self.store_locations_order.to_string(),
-                        order_by: Some(self.store_locations_order_by.to_string()),
-                        ..Default::default()
-                    },
-                    Arc::clone(&self.store_locations),
-                    false,
-                    self.channel_sender.clone(),
-                );
-
-                self.state.action = Action::None;
-            }
-            Action::GetEntities => {
-                get_entities(
-                    &RequestFilter {
-                        // limit: Some(SEARCH_LIMIT),
-                        search: Some(self.search_entity.clone()),
-                        order: self.entities_order.to_string(),
-                        // order_by: Some(self.store_locations_order_by.to_string()),
-                        ..Default::default()
-                    },
-                    Arc::clone(&self.entities),
-                    false,
-                    self.channel_sender.clone(),
-                );
-
-                self.state.action = Action::None;
-            }
-            Action::None => {}
-            Action::GetPubchemAutocomplete => {
-                get_pubchem_autocomplete(
-                    &self.pubchem_search,
-                    Arc::clone(&self.pubchem_autocomplete),
-                    self.channel_sender.clone(),
-                );
-
-                self.state.action = Action::None;
-            }
-            Action::GetPubchemProduct => {
-                get_pubchem_product(
-                    &self.pubchem_search_name_clicked,
-                    Arc::clone(&self.pubchem_product),
-                    self.channel_sender.clone(),
-                );
-
-                self.state.action = Action::None;
-            }
-            Action::GetPermissions => {
-                get_permissions(&Arc::clone(&self.permissions));
-
-                if self.permission_to_retrieve_count() == 0 {
-                    self.state.action = Action::None;
+        // Handle actions.
+        while let Some(action) = self.state.action.pop_front() {
+            match action {
+                Action::GetProducts => {
+                    get_products(
+                        &self.get_request_filter(),
+                        Arc::clone(&self.products),
+                        false,
+                        self.channel_sender.clone(),
+                    );
+                }
+                Action::GetStorelocations => {
+                    get_store_locations(
+                        &RequestFilter {
+                            // limit: Some(SEARCH_LIMIT),
+                            search: Some(self.search_store_location.clone()),
+                            order: self.store_locations_order.to_string(),
+                            order_by: Some(self.store_locations_order_by.to_string()),
+                            ..Default::default()
+                        },
+                        Arc::clone(&self.store_locations),
+                        false,
+                        self.channel_sender.clone(),
+                    );
+                }
+                Action::GetEntities => {
+                    get_entities(
+                        &RequestFilter {
+                            // limit: Some(SEARCH_LIMIT),
+                            search: Some(self.search_entity.clone()),
+                            order: self.entities_order.to_string(),
+                            // order_by: Some(self.store_locations_order_by.to_string()),
+                            ..Default::default()
+                        },
+                        Arc::clone(&self.entities),
+                        false,
+                        self.channel_sender.clone(),
+                    );
+                }
+                Action::None => {}
+                Action::GetPubchemAutocomplete => {
+                    get_pubchem_autocomplete(
+                        &self.pubchem_search,
+                        Arc::clone(&self.pubchem_autocomplete),
+                        self.channel_sender.clone(),
+                    );
+                }
+                Action::GetPubchemProduct => {
+                    get_pubchem_product(
+                        &self.pubchem_search_name_clicked,
+                        Arc::clone(&self.pubchem_product),
+                        self.channel_sender.clone(),
+                    );
+                }
+                Action::GetPermissions => {
+                    get_permissions(&Arc::clone(&self.permissions));
                 }
             }
         }

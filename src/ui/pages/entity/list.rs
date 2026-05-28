@@ -16,6 +16,26 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         text_color.gamma_multiply(ui.visuals().weak_text_alpha)
     });
 
+    ui.allocate_ui_with_layout(
+        egui::vec2(ui.available_width(), 32.0),
+        egui::Layout::right_to_left(egui::Align::Center),
+        |ui| {
+            if app.has_permission(
+                &chimitheque_types::permission::PermissionItem::Entities,
+                None,
+                &ehttp::Method::POST,
+                &app.permissions.clone(),
+            ) && button_with_icon_and_text(
+                ui,
+                t!("entity_create").to_string(),
+                egui_phosphor::fill::MAGIC_WAND,
+                &Size::Medium,
+            )
+            .clicked()
+            {}
+        },
+    );
+
     ui.vertical(|ui| {
         if let Ok(maybe_entities_and_count) = app.get_entities_and_count()
             && let Some((entities, count)) = maybe_entities_and_count
@@ -41,7 +61,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                     .clicked()
                     {
                         app.search_entity = String::new();
-                        app.state.action = Action::GetEntities;
+                        app.state.action.push_back(Action::GetEntities);
                     }
 
                     let ctx = ui.ctx();
@@ -59,7 +79,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                     {
                         app.search_entity_action_triggered = true;
 
-                        app.state.action = Action::GetEntities;
+                        app.state.action.push_back(Action::GetEntities);
                     }
 
                     ctx.request_repaint();
@@ -86,7 +106,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                                     EntitiesOrder::Desc => EntitiesOrder::Asc,
                                 };
 
-                                app.state.action = Action::GetEntities;
+                                app.state.action.push_back(Action::GetEntities);
                             }
                         });
                         // header.col(|ui| {

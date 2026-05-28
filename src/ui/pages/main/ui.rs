@@ -139,7 +139,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 .clicked()
                 {
                     app.search_form_expanded = false;
-                    app.state.action = Action::GetProducts;
+                    app.state.action.push_back(Action::GetProducts);
                     app.state.active_page = Page::ProductList;
                 }
 
@@ -162,7 +162,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 )
                 .clicked()
                 {
-                    app.state.action = Action::GetStorelocations;
+                    app.state.action.push_back(Action::GetStorelocations);
                     app.state.active_page = Page::StorelocationList;
                 }
 
@@ -174,7 +174,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 )
                 .clicked()
                 {
-                    app.state.action = Action::GetEntities;
+                    app.state.action.push_back(Action::GetEntities);
                     app.state.active_page = Page::EntityList;
                 }
 
