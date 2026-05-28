@@ -20,24 +20,9 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         if let Ok(maybe_entities_and_count) = app.get_entities_and_count()
             && let Some((entities, count)) = maybe_entities_and_count
         {
-            const SEARCH_FORM_TOP_MARGIN: f32 = 20.0;
-            const SEARCH_FORM_SIDE_MARGIN: f32 = 400.0;
-            const SEARCH_FORM_HEIGHT: f32 = 10.0; // Random value, only used space will be allocated.
+            let list_rec = app.state.search_rect;
 
-            let top_panel_height = app.state.top_panel_rect.height();
-
-            // Calculate search form size and position (ie. rect).
-            let search_form_top_left = app.state.window_rect.left_top()
-                + egui::vec2(
-                    SEARCH_FORM_SIDE_MARGIN,
-                    top_panel_height + SEARCH_FORM_TOP_MARGIN,
-                );
-            let search_form_bottom_right = app.state.window_rect.right_bottom()
-                - egui::vec2(SEARCH_FORM_SIDE_MARGIN, SEARCH_FORM_HEIGHT);
-            let search_form_rec =
-                egui::Rect::from_two_pos(search_form_top_left, search_form_bottom_right);
-
-            ui.scope_builder(egui::UiBuilder::new().max_rect(search_form_rec), |ui| {
+            ui.scope_builder(egui::UiBuilder::new().max_rect(list_rec), |ui| {
                 ui.horizontal(|ui| {
                     ui.label(t!("total", total = count));
 
@@ -87,8 +72,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                     .striped(true)
                     .resizable(false)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::remainder())
-                    .column(Column::auto())
+                    .column(Column::exact(list_rec.width() * 90.0 / 100.0))
+                    .column(Column::exact(list_rec.width() * 10.0 / 100.0))
                     .min_scrolled_height(0.0)
                     .max_scroll_height(available_height);
 

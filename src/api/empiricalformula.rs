@@ -4,7 +4,7 @@ use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
 
 fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
     ehttp::Request::get(format!(
-        "https://localhost:8443/back/products/casnumbers{request_filter}",
+        "https://localhost:8443/back/products/empiricalformulas{request_filter}",
     ))
     .with_headers(ehttp::Headers::new(&[
         (

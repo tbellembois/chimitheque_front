@@ -57,6 +57,7 @@ pub struct App {
 
     // Product ids of cards shown (ie. expanded) in the product list.
     pub product_cards_shown: Vec<u64>,
+    pub product_cards_actions_shown: Vec<u64>,
 
     // Is the search form expanded?
     pub search_form_expanded: bool,

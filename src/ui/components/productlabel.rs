@@ -7,14 +7,13 @@ use rust_i18n::t;
 
 use crate::ui::app::App;
 use crate::ui::widgets::buttonwithicon::button_with_icon;
+use crate::ui::widgets::buttonwithiconandtext::button_with_icon_and_text;
+use crate::ui::widgets::size::Size;
 
-const PRODUCT_LABEL_OUTER_MARGIN: egui::Margin = egui::Margin::symmetric(127, 5);
 const PRODUCT_LABEL_INNER_MARGIN: egui::Margin = egui::Margin::symmetric(20, 10);
-const PRODUCT_LABEL_MENU_WIDTH: f32 = 50.0;
 const PRODUCT_LABEL_PLUS_WIDTH: f32 = 50.0;
+const PRODUCT_LABEL_ACTIONS_WIDTH: f32 = 50.0;
 const PRODUCT_LABEL_CORNER_RADIUS: f32 = 8.0;
-const PAGE_RIGHT_MARGIN: f32 = 50.0;
-const PAGE_LEFT_MARGIN: f32 = 50.0;
 
 pub fn render_product_label(
     app: &mut App,
@@ -25,23 +24,34 @@ pub fn render_product_label(
     let widgets = &ui.visuals().widgets;
     let stroke = widgets.noninteractive.bg_stroke;
 
-    let label_available_width = app.state.window_rect.width()
-        - PAGE_RIGHT_MARGIN
-        - PAGE_LEFT_MARGIN
-        - (PRODUCT_LABEL_OUTER_MARGIN.leftf() * 2.0)
-        - (PRODUCT_LABEL_INNER_MARGIN.leftf() * 2.0);
-    let cols_width =
-        (label_available_width - PRODUCT_LABEL_MENU_WIDTH - PRODUCT_LABEL_PLUS_WIDTH) / 4.0;
+    let label_width = app.state.search_rect.width();
+    let window_width = app.state.window_rect.width();
+    let product_label_outer_x_margin = if ((window_width - label_width) / 2.0) >= 127.0 {
+        ((window_width - label_width) / 2.0) as i8
+    } else {
+        20
+    };
+    let product_label_outer_y_margin = 5;
+
+    let product_label_outer_margin: egui::Margin =
+        egui::Margin::symmetric(product_label_outer_x_margin, product_label_outer_y_margin);
+
+    let cols_width_percent =
+        (label_width - PRODUCT_LABEL_ACTIONS_WIDTH - PRODUCT_LABEL_PLUS_WIDTH) / 100.0;
 
     // egui's ui.group does not support margins, so we use a custom frame instead.
     let custom_group_frame = egui::Frame::new()
         .inner_margin(PRODUCT_LABEL_INNER_MARGIN)
-        .outer_margin(PRODUCT_LABEL_OUTER_MARGIN)
+        .outer_margin(product_label_outer_margin)
         .corner_radius(PRODUCT_LABEL_CORNER_RADIUS)
         .stroke(egui::Stroke::new(1.0, stroke.color));
 
-    let product_card_expanded = app
+    let product_card_shown = app
         .product_cards_shown
+        .contains(&product.product_id.unwrap_or_default());
+
+    let product_card_actions_shown = app
+        .product_cards_actions_shown
         .contains(&product.product_id.unwrap_or_default());
 
     let hint_color = ui.visuals().weak_text_color.unwrap_or_else(|| {
@@ -52,16 +62,15 @@ pub fn render_product_label(
     custom_group_frame.show(ui, |ui| {
         TableBuilder::new(ui)
             .column(Column::exact(PRODUCT_LABEL_PLUS_WIDTH))
-            .column(Column::exact(cols_width))
-            .column(Column::exact(cols_width))
-            .column(Column::exact(cols_width))
-            .column(Column::exact(cols_width))
-            .column(Column::exact(PRODUCT_LABEL_MENU_WIDTH))
+            .column(Column::exact(cols_width_percent * 60.0))
+            .column(Column::exact(cols_width_percent * 20.0))
+            .column(Column::exact(cols_width_percent * 20.0))
+            .column(Column::exact(PRODUCT_LABEL_ACTIONS_WIDTH))
             .id_salt(format!("{}_product_label", product.name.name_label))
             .body(|mut body| {
                 body.row(50.0, |mut row| {
                     row.col(|ui| {
-                        if product_card_expanded {
+                        if product_card_shown {
                             if button_with_icon(ui, egui_phosphor::regular::MINUS).clicked() {
                                 app.product_cards_shown
                                     .retain(|id| *id != product.product_id.unwrap_or_default());
@@ -122,9 +131,7 @@ pub fn render_product_label(
                                 })
                                 .cas_number_label,
                         );
-                    });
 
-                    row.col(|ui| {
                         // Show CAS number CMR category.
                         if let Some(cas_number) = product.cas_number.clone()
                             && let Some(cas_number_cmr) = cas_number.cas_number_cmr
@@ -148,18 +155,104 @@ pub fn render_product_label(
                         });
                     });
 
-                    row.col(
-                        |ui| {
-                            if button_with_icon(ui, egui_phosphor::regular::LIST).clicked() {}
-                        },
-                    );
+                    row.col(|ui| {
+                        if product_card_actions_shown {
+                            if button_with_icon(ui, egui_phosphor::regular::DOTS_THREE_CIRCLE)
+                                .clicked()
+                            {
+                                app.product_cards_actions_shown
+                                    .retain(|id| *id != product.product_id.unwrap_or_default());
+                            }
+                        } else if button_with_icon(
+                            ui,
+                            egui_phosphor::regular::DOTS_THREE_CIRCLE_VERTICAL,
+                        )
+                        .clicked()
+                        {
+                            app.product_cards_actions_shown
+                                .push(product.product_id.unwrap_or_default());
+                        }
+                    });
                 });
             });
 
-        if app
-            .product_cards_shown
-            .contains(&product.product_id.unwrap_or_default())
-        {
+        if product_card_actions_shown {
+            ui.add_space(20.0);
+
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if app.has_permission(
+                    &chimitheque_types::permission::PermissionItem::Storages,
+                    None,
+                    &ehttp::Method::GET,
+                    &app.permissions.clone(),
+                ) && button_with_icon_and_text(
+                    ui,
+                    t!("product_label_action_storages").to_string(),
+                    egui_phosphor::fill::PACKAGE,
+                    &Size::Small,
+                )
+                .clicked()
+                {}
+
+                if app.has_permission(
+                    &chimitheque_types::permission::PermissionItem::Storages,
+                    None,
+                    &ehttp::Method::POST,
+                    &app.permissions.clone(),
+                ) && button_with_icon_and_text(
+                    ui,
+                    t!("product_label_action_store").to_string(),
+                    egui_phosphor::fill::BOX_ARROW_DOWN,
+                    &Size::Small,
+                )
+                .clicked()
+                {}
+
+                if app.has_permission(
+                    &chimitheque_types::permission::PermissionItem::Products,
+                    None,
+                    &ehttp::Method::POST,
+                    &app.permissions.clone(),
+                ) && button_with_icon_and_text(
+                    ui,
+                    t!("product_label_action_edit").to_string(),
+                    egui_phosphor::fill::PENCIL,
+                    &Size::Small,
+                )
+                .clicked()
+                {}
+
+                if app.has_permission(
+                    &chimitheque_types::permission::PermissionItem::Products,
+                    None,
+                    &ehttp::Method::POST,
+                    &app.permissions.clone(),
+                ) && button_with_icon_and_text(
+                    ui,
+                    t!("product_label_action_bookmark").to_string(),
+                    egui_phosphor::fill::BOOKMARK,
+                    &Size::Small,
+                )
+                .clicked()
+                {}
+
+                if app.has_permission(
+                    &chimitheque_types::permission::PermissionItem::Storages,
+                    None,
+                    &ehttp::Method::GET,
+                    &app.permissions.clone(),
+                ) && button_with_icon_and_text(
+                    ui,
+                    t!("product_label_action_stock").to_string(),
+                    egui_phosphor::fill::STACK,
+                    &Size::Small,
+                )
+                .clicked()
+                {}
+            });
+        }
+
+        if product_card_shown {
             ui.add_space(20.0);
 
             ui.vertical(|ui| {

@@ -31,6 +31,8 @@ pub struct ApplicationState {
     pub active_locale: String,
     // Window size and position.
     pub window_rect: Rect,
+    // Search form size and position.
+    pub search_rect: Rect,
     // Advanced search size and position.
     pub advanced_search_rect: Rect,
     // Top panel size and position.
@@ -60,6 +62,10 @@ impl Default for ApplicationState {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
+            search_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
             scrollarea_was_near_bottom: false,
             action: Action::None,
             darkmode: false,
@@ -82,6 +88,10 @@ impl ApplicationState {
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
             top_panel_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
+            search_rect: Rect {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },

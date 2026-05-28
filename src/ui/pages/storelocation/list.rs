@@ -37,28 +37,15 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         },
     );
 
+    ui.add_space(20.0);
+
     ui.vertical(|ui| {
         if let Ok(maybe_store_locations_and_count) = app.get_store_locations_and_count()
             && let Some((store_locations, count)) = maybe_store_locations_and_count
         {
-            const SEARCH_FORM_TOP_MARGIN: f32 = 20.0;
-            const SEARCH_FORM_SIDE_MARGIN: f32 = 400.0;
-            const SEARCH_FORM_HEIGHT: f32 = 10.0; // Random value, only used space will be allocated.
+            let list_rec = app.state.search_rect;
 
-            let top_panel_height = app.state.top_panel_rect.height();
-
-            // Calculate search form size and position (ie. rect).
-            let search_form_top_left = app.state.window_rect.left_top()
-                + egui::vec2(
-                    SEARCH_FORM_SIDE_MARGIN,
-                    top_panel_height + SEARCH_FORM_TOP_MARGIN,
-                );
-            let search_form_bottom_right = app.state.window_rect.right_bottom()
-                - egui::vec2(SEARCH_FORM_SIDE_MARGIN, SEARCH_FORM_HEIGHT);
-            let search_form_rec =
-                egui::Rect::from_two_pos(search_form_top_left, search_form_bottom_right);
-
-            ui.scope_builder(egui::UiBuilder::new().max_rect(search_form_rec), |ui| {
+            ui.scope_builder(egui::UiBuilder::new().max_rect(list_rec), |ui| {
                 ui.horizontal(|ui| {
                     ui.label(t!("total", total = count));
 
@@ -108,12 +95,10 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                     .striped(true)
                     .resizable(false)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::auto())
-                    .column(Column::auto())
-                    .column(Column::auto())
-                    .column(Column::exact(100.0))
-                    .column(Column::exact(100.0))
-                    .column(Column::auto())
+                    .column(Column::exact(list_rec.width() * 25.0 / 100.0))
+                    .column(Column::exact(list_rec.width() * 50.0 / 100.0))
+                    .column(Column::exact(list_rec.width() * 20.0 / 100.0))
+                    .column(Column::exact(list_rec.width() * 5.0 / 100.0))
                     .min_scrolled_height(0.0)
                     .max_scroll_height(available_height);
 
@@ -154,12 +139,6 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                         });
 
                         header.col(|_ui| {
-                            // ui.strong(t!("storelocation_color"));
-                        });
-                        header.col(|ui| {
-                            ui.label(t!("storelocation_canstore"));
-                        });
-                        header.col(|_ui| {
                             // actions
                         });
                     })
@@ -175,70 +154,73 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                                 });
 
                                 row.col(|ui| {
-                                    ui.horizontal_wrapped(|ui| {
-                                        ui.label(store_location.store_location_name.clone());
+                                    ui.vertical(|ui| {
+                                        ui.horizontal(|ui| {
+                                            ui.label(store_location.store_location_name.clone());
 
-                                        if let Some(nb_storages) =
-                                            store_location.store_location_nb_storages
-                                            && nb_storages > 0
-                                        {
-                                            ui.label(
-                                                RichText::new(format!(
-                                                    "[ {}: {nb_storages} ]",
-                                                    t!("storelocation_storages")
-                                                ))
-                                                .color(hint_color),
-                                            );
-                                        }
+                                            if let Some(color) =
+                                                &store_location.store_location_color
+                                            {
+                                                let color =
+                                                    html_color_to_egui(color).unwrap_or_default();
+                                                ui.label(
+                                                    RichText::new(
+                                                        egui_phosphor::fill::PAINT_BUCKET,
+                                                    )
+                                                    .color(color),
+                                                );
+                                            }
+                                        });
 
-                                        ui.add_space(5.0);
+                                        ui.horizontal(|ui| {
+                                            if let Some(nb_storages) =
+                                                store_location.store_location_nb_storages
+                                                && nb_storages > 0
+                                            {
+                                                ui.label(
+                                                    RichText::new(format!(
+                                                        "[ {}: {nb_storages} ]",
+                                                        t!("storelocation_storages")
+                                                    ))
+                                                    .color(hint_color),
+                                                );
+                                            }
 
-                                        if let Some(nb_children) =
-                                            store_location.store_location_nb_children
-                                            && nb_children > 0
-                                        {
-                                            ui.label(
-                                                RichText::new(format!(
-                                                    "[ {}: {nb_children} ]",
-                                                    t!("storelocation_children")
-                                                ))
-                                                .color(hint_color),
-                                            );
-                                        }
+                                            ui.add_space(5.0);
+
+                                            if let Some(nb_children) =
+                                                store_location.store_location_nb_children
+                                                && nb_children > 0
+                                            {
+                                                ui.label(
+                                                    RichText::new(format!(
+                                                        "[ {}: {nb_children} ]",
+                                                        t!("storelocation_children")
+                                                    ))
+                                                    .color(hint_color),
+                                                );
+                                            }
+
+                                            if !store_location.store_location_can_store {
+                                                ui.label(
+                                                    RichText::new(format!(
+                                                        "{}{}",
+                                                        egui_phosphor::fill::X,
+                                                        t!("storelocation_cannotstore"),
+                                                    ))
+                                                    .font(FontId {
+                                                        family: FontFamily::Name("phosphor".into()),
+                                                        size: 20.0,
+                                                    }),
+                                                );
+                                            }
+                                        });
                                     });
                                 });
 
                                 row.col(|ui| {
                                     if let Some(entity) = &store_location.entity {
                                         ui.label(entity.entity_name.clone());
-                                    }
-                                });
-
-                                row.col(|ui| {
-                                    if let Some(color) = &store_location.store_location_color {
-                                        let color = html_color_to_egui(color).unwrap_or_default();
-                                        ui.label(
-                                            RichText::new(egui_phosphor::fill::PAINT_BUCKET)
-                                                .color(color),
-                                        );
-                                    }
-                                });
-
-                                row.col(|ui| {
-                                    if store_location.store_location_can_store {
-                                        ui.label(RichText::new(egui_phosphor::fill::CHECK).font(
-                                            FontId {
-                                                family: FontFamily::Name("phosphor".into()),
-                                                size: 20.0,
-                                            },
-                                        ));
-                                    } else {
-                                        ui.label(RichText::new(egui_phosphor::fill::X).font(
-                                            FontId {
-                                                family: FontFamily::Name("phosphor".into()),
-                                                size: 20.0,
-                                            },
-                                        ));
                                     }
                                 });
 

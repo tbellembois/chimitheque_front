@@ -29,6 +29,37 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         .show_separator_line(false)
         .show_inside(ui, |ui| {
             ui.horizontal(|ui| {
+                // Switch locale, theme.
+                ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                    // Switch locale.
+                    if let Some(fr_locale_icon) = app.textures.get("flag_fr")
+                        && ui
+                            .add(egui::Button::image_and_text(fr_locale_icon, "Fr"))
+                            .clicked()
+                    {
+                        rust_i18n::set_locale("fr-FR");
+                    }
+                    if let Some(en_locale_icon) = app.textures.get("flag_gb")
+                        && ui
+                            .add(egui::Button::image_and_text(en_locale_icon, "En"))
+                            .clicked()
+                    {
+                        rust_i18n::set_locale("en-GB");
+                    }
+
+                    // Theme switch.
+                    if ui
+                        .checkbox(&mut app.state.darkmode, t!("darkmode"))
+                        .changed()
+                    {
+                        if app.state.darkmode {
+                            ui.ctx().set_visuals(egui::Visuals::dark());
+                        } else {
+                            ui.ctx().set_visuals(egui::Visuals::light());
+                        }
+                    }
+                });
+
                 // Info and error messages.
                 ui.with_layout(
                     egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
@@ -57,36 +88,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     },
                 );
 
-                // Switch locale, theme and user info.
+                // User info.
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    // Switch locale.
-                    if let Some(fr_locale_icon) = app.textures.get("flag_fr")
-                        && ui
-                            .add(egui::Button::image_and_text(fr_locale_icon, "Fr"))
-                            .clicked()
-                    {
-                        rust_i18n::set_locale("fr-FR");
-                    }
-                    if let Some(en_locale_icon) = app.textures.get("flag_gb")
-                        && ui
-                            .add(egui::Button::image_and_text(en_locale_icon, "En"))
-                            .clicked()
-                    {
-                        rust_i18n::set_locale("en-GB");
-                    }
-
-                    // Theme switch.
-                    if ui
-                        .checkbox(&mut app.state.darkmode, t!("darkmode"))
-                        .changed()
-                    {
-                        if app.state.darkmode {
-                            ui.ctx().set_visuals(egui::Visuals::dark());
-                        } else {
-                            ui.ctx().set_visuals(egui::Visuals::light());
-                        }
-                    }
-
                     // User info.
                     if let Ok(maybe_connected_user) = app.get_connected_user()
                         && let Some(connected_user) = maybe_connected_user
@@ -99,6 +102,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     }
                 });
             });
+
+            ui.add_space(10.0);
 
             // Render logo and menu.
             ui.horizontal(|ui| {
@@ -247,7 +252,6 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     //
     // Render active page.
     //
-
     egui::CentralPanel::default()
         .frame(
             egui::Frame::NONE
