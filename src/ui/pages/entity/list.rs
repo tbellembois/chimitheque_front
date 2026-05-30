@@ -109,9 +109,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                                 app.state.action.push_back(Action::GetEntities);
                             }
                         });
-                        // header.col(|ui| {
-                        //     ui.label(t!("entity_managers"));
-                        // });
+
                         header.col(|_ui| {
                             // actions
                         });

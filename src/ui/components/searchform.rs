@@ -11,7 +11,7 @@ use crate::ui::{
 use egui::TextBuffer;
 use rust_i18n::t;
 
-const SEARCH_FORM_HEIGHT: f32 = 10.0; // Random value, only used space will be allocated.
+const SEARCH_FORM_DESIRED_WIDTH: f32 = 925.0;
 const SEARCH_FORM_INNER_MARGIN: egui::Margin = egui::Margin::symmetric(20, 20);
 const SEARCH_FORM_CORNER_RADIUS: f32 = 8.0;
 const WIDGET_HORIZONTAL_SPACING: f32 = 10.0;
@@ -19,18 +19,19 @@ const WIDGET_VERTICAL_SPACING: f32 = 20.0;
 
 pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
     let top_panel_height = app.state.top_panel_rect.height();
-    let window_width = app.state.window_rect.width();
-    let search_form_side_margin: f32 = window_width / 10.0;
+
+    let window_available_rect = app.state.window_available_rect;
+    let window_available_width = window_available_rect.width();
+    let search_form_outer_x_margin = (window_available_width - SEARCH_FORM_DESIRED_WIDTH) / 2.0;
 
     let widgets = &ui.visuals().widgets;
     let normal_stroke = widgets.noninteractive.bg_stroke;
 
     // Calculate search form size and position (ie. rect).
-    let search_form_width: f32 = window_width - (search_form_side_margin * 2.0);
     let search_form_top_left =
-        app.state.window_rect.left_top() + egui::vec2(search_form_side_margin, top_panel_height);
-    let search_form_bottom_right = app.state.window_rect.right_bottom()
-        - egui::vec2(search_form_side_margin, SEARCH_FORM_HEIGHT);
+        window_available_rect.left_top() + egui::vec2(search_form_outer_x_margin, top_panel_height);
+    let search_form_bottom_right =
+        window_available_rect.right_bottom() - egui::vec2(search_form_outer_x_margin, 0.0);
     let search_form_rec = egui::Rect::from_two_pos(search_form_top_left, search_form_bottom_right);
 
     app.state.search_rect = search_form_rec;
@@ -50,7 +51,10 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                 custom_group_frame.show(ui, |ui| {
                     egui::Grid::new("search_form_product_type_grid")
                         .min_col_width(
-                            (search_form_width - (5.0 * WIDGET_HORIZONTAL_SPACING)) / 4.0,
+                            (SEARCH_FORM_DESIRED_WIDTH
+                                - (2.0 * SEARCH_FORM_INNER_MARGIN.leftf())
+                                - (5.0 * WIDGET_HORIZONTAL_SPACING))
+                                / 4.0,
                         )
                         .num_columns(4)
                         .spacing([WIDGET_HORIZONTAL_SPACING, WIDGET_VERTICAL_SPACING])
@@ -100,7 +104,10 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
 
                     egui::Grid::new("search_form_grid")
                         .min_col_width(
-                            (search_form_width - (4.0 * WIDGET_HORIZONTAL_SPACING)) / 3.0,
+                            (SEARCH_FORM_DESIRED_WIDTH
+                                - (2.0 * SEARCH_FORM_INNER_MARGIN.leftf())
+                                - (5.0 * WIDGET_HORIZONTAL_SPACING))
+                                / 3.0,
                         )
                         .num_columns(3)
                         .spacing([WIDGET_HORIZONTAL_SPACING, WIDGET_VERTICAL_SPACING])
@@ -172,9 +179,6 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                         ui.add_space(WIDGET_VERTICAL_SPACING);
                     }
 
-                    // egui::Grid::new("search_form_action")
-                    //     .num_columns(2)
-                    //     .show(ui, |ui| {
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
                         if button_with_icon_and_text(
                             ui,
@@ -186,7 +190,7 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                         {
                             app.search_form_expanded = false;
                             app.current_search_offset = 0;
-                            app.state.action.push_back(Action::GetProducts);
+                            app.state.action.push_back(Action::GetProducts(false));
                             app.state.active_page = Page::ProductList;
                         }
 
@@ -230,7 +234,6 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                             app.search_form_expanded = false;
                         }
                     });
-                    // });
                 });
             } else if clickable_label_with_icon_and_text(
                 ui,

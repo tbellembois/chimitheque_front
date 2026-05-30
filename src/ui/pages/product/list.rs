@@ -1,9 +1,9 @@
+use egui::RichText;
 use rust_i18n::t;
-use std::sync::Arc;
 
 use crate::{
-    api::product::get_products,
     defines::SEARCH_LIMIT,
+    types::ProductsOrderBy,
     ui::{
         app::App,
         components::productlabel::render_product_label,
@@ -49,8 +49,19 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 )
                 .clicked()
                 {
-                    app.state.action.push_back(Action::GetStorages);
+                    app.state.action.push_back(Action::GetStorages(false));
                     app.state.active_page = Page::StorageList;
+                }
+
+                if button_with_icon_and_text(
+                    ui,
+                    t!("export").to_string(),
+                    egui_phosphor::fill::EXPORT,
+                    &Size::Medium,
+                )
+                .clicked()
+                {
+                    app.state.action.push_back(Action::ExportProducts);
                 }
             },
         );
@@ -63,6 +74,71 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             showing = showing_products,
             total = total_products,
         ));
+
+        ui.add_space(20.0);
+
+        ui.horizontal(|ui| {
+            ui.label(RichText::new(t!("order_by")).underline());
+
+            ui.add_space(20.0);
+
+            if ui
+                .selectable_value(
+                    &mut app.products_order_by,
+                    ProductsOrderBy::Name,
+                    t!("product_card_name"),
+                )
+                .clicked()
+            {
+                app.state.action.push_back(Action::GetProducts(false));
+            }
+
+            if ui
+                .selectable_value(
+                    &mut app.products_order_by,
+                    ProductsOrderBy::CasNumber,
+                    t!("product_card_cas_number"),
+                )
+                .clicked()
+            {
+                app.state.action.push_back(Action::GetProducts(false));
+            }
+
+            if ui
+                .selectable_value(
+                    &mut app.products_order_by,
+                    ProductsOrderBy::EmpiricalFormula,
+                    t!("product_card_empirical_formula"),
+                )
+                .clicked()
+            {
+                app.state.action.push_back(Action::GetProducts(false));
+            }
+
+            ui.add_space(20.0);
+
+            if ui
+                .selectable_value(
+                    &mut app.products_order,
+                    crate::types::GenericOrder::Asc,
+                    t!("order_asc"),
+                )
+                .clicked()
+            {
+                app.state.action.push_back(Action::GetProducts(false));
+            }
+
+            if ui
+                .selectable_value(
+                    &mut app.products_order,
+                    crate::types::GenericOrder::Desc,
+                    t!("order_desc"),
+                )
+                .clicked()
+            {
+                app.state.action.push_back(Action::GetProducts(false));
+            }
+        });
 
         ui.add_space(20.0);
 
@@ -81,12 +157,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         if near_bottom && !app.state.scrollarea_was_near_bottom && count > 0 {
             app.current_search_offset += SEARCH_LIMIT;
 
-            get_products(
-                &app.get_request_filter(),
-                Arc::clone(&app.products),
-                true,
-                app.channel_sender.clone(),
-            );
+            app.state.action.push_back(Action::GetProducts(true));
         }
 
         app.state.scrollarea_was_near_bottom = near_bottom;

@@ -17,13 +17,15 @@ pub enum Page {
 pub enum Action {
     #[default]
     None,
-    GetProducts,
-    GetStorages,
+    GetProducts(bool), // append?
+    GetStorages(bool), // append?
     GetStorelocations,
     GetEntities,
     GetPubchemAutocomplete,
     GetPubchemProduct,
     GetPermissions,
+    ExportProducts,
+    ExportStorages,
 }
 
 /// Application state.
@@ -35,6 +37,8 @@ pub struct ApplicationState {
     pub active_locale: String,
     // Window size and position.
     pub window_rect: Rect,
+    // Window availablesize and position (without margin and padding).
+    pub window_available_rect: Rect,
     // Search form size and position.
     pub search_rect: Rect,
     // Advanced search size and position.
@@ -55,6 +59,10 @@ impl Default for ApplicationState {
             active_page: Page::ProductList,
             active_locale: String::from("fr-FR"),
             window_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
+            window_available_rect: Rect {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
@@ -84,6 +92,10 @@ impl ApplicationState {
             active_page: Page::ProductList,
             active_locale: active_locale.to_string(),
             window_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
+            window_available_rect: Rect {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },

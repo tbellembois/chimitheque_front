@@ -5,14 +5,15 @@ use crate::api::permission::get_permissions;
 use crate::api::product::get_products;
 use crate::api::pubchemproduct::get_pubchem_product;
 use crate::api::pubchemsearch::get_pubchem_autocomplete;
-use crate::api::storage::get_storages;
+use crate::api::storage::{export_storages, get_storages};
 use crate::api::storelocation::get_store_locations;
 use crate::defines::SEARCH_LIMIT;
+use crate::download::download_csv;
 use crate::types::{
-    EntitiesOrder, Permission, PermissionStatus, ProductType, SharedEntityAndCountList,
-    SharedPermissionList, SharedProductAndCountList, SharedPubchemAutocomplete,
-    SharedPubchemProduct, SharedStorageAndCountList, SharedStoreLocationAndCountList,
-    StoreLocationsOrder, StoreLocationsOrderBy,
+    EntitiesOrder, GenericOrder, Permission, PermissionStatus, ProductType, ProductsOrderBy,
+    SharedEntityAndCountList, SharedPermissionList, SharedProductAndCountList,
+    SharedPubchemAutocomplete, SharedPubchemProduct, SharedStorageAndCountList,
+    SharedStoreLocationAndCountList, SharedString, StoragesOrderBy, StoreLocationsOrderBy,
 };
 use crate::ui::pages::main;
 use crate::ui::state::Action;
@@ -121,10 +122,21 @@ pub struct App {
     pub pubchem_product: SharedPubchemProduct,
     // Permissions.
     pub permissions: SharedPermissionList,
+    // Export storages.
+    pub export_storages: SharedString,
 
     // Sorting for store locations.
     pub store_locations_order_by: StoreLocationsOrderBy,
-    pub store_locations_order: StoreLocationsOrder,
+    pub store_locations_order: GenericOrder,
+
+    // Sorting for products.
+    pub products_order_by: ProductsOrderBy,
+    pub products_order: GenericOrder,
+
+    // Sorting for storages.
+    pub storages_order_by: StoragesOrderBy,
+    pub storages_order: GenericOrder,
+    pub storages_show_archives: bool,
 
     // Sorting for entities.
     pub entities_order: EntitiesOrder,
@@ -338,7 +350,7 @@ impl App {
             search_hazard_statement_widget: search_hazard_statement,
             search_precautionary_statement_widget: search_precautionary_statement,
             search_symbol_widget: search_symbol,
-            search_form_expanded: true,
+            search_form_expanded: false,
             channel_sender: Some(channel_sender),
             channel_receiver: Some(channel_receiver),
             textures,
@@ -589,6 +601,20 @@ impl App {
         Ok(result)
     }
 
+    pub fn get_export_storages(&self) -> Result<Option<String>, String> {
+        let export_storages_lock = match self.export_storages.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                elog!(error, e.to_string());
+                return Err(e.to_string());
+            }
+        };
+
+        let result: Option<String> = (*export_storages_lock).clone();
+
+        Ok(result)
+    }
+
     // pub fn get_permissions(&self) -> Result<Option<Vec<Permission>>, String> {
     //     let permissions_lock = match self.permissions.lock() {
     //         Ok(locked) => locked,
@@ -606,6 +632,9 @@ impl App {
 
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
+        // Update window size.
+        self.state.window_rect = ui.max_rect();
+
         // Check for user informations promise.
         // if let Some(p) = &self.promise_user_info {
         //     if let Some(try_user_info) = p.ready() {
@@ -628,6 +657,18 @@ impl eframe::App for App {
                 Arc::clone(&self.connected_user),
                 self.channel_sender.clone(),
             );
+
+            // Get products.
+            let mut request_filter = self.get_request_filter();
+            request_filter.order_by = Some(self.products_order_by.to_string());
+            request_filter.order = self.products_order.to_string();
+
+            get_products(
+                &request_filter,
+                Arc::clone(&self.products),
+                false,
+                self.channel_sender.clone(),
+            );
         });
 
         // Check channel messages.
@@ -641,20 +682,36 @@ impl eframe::App for App {
         // Handle actions.
         while let Some(action) = self.state.action.pop_front() {
             match action {
-                Action::GetProducts => {
+                Action::GetProducts(append) => {
+                    let mut request_filter = self.get_request_filter();
+                    request_filter.order_by = Some(self.products_order_by.to_string());
+                    request_filter.order = self.products_order.to_string();
+
                     get_products(
-                        &self.get_request_filter(),
+                        &request_filter,
                         Arc::clone(&self.products),
-                        false,
+                        append,
                         self.channel_sender.clone(),
                     );
                 }
-                Action::GetStorages => get_storages(
-                    &self.get_request_filter(),
-                    Arc::clone(&self.storages),
-                    false,
-                    self.channel_sender.clone(),
-                ),
+                Action::GetStorages(append) => {
+                    let mut request_filter = self.get_request_filter();
+                    request_filter.order_by = Some(self.storages_order_by.to_string());
+                    request_filter.order = self.storages_order.to_string();
+
+                    if self.storages_show_archives {
+                        request_filter.storage_archive = Some(true);
+                    } else {
+                        request_filter.storage_archive = Some(false);
+                    }
+
+                    get_storages(
+                        &request_filter,
+                        Arc::clone(&self.storages),
+                        append,
+                        self.channel_sender.clone(),
+                    );
+                }
                 Action::GetStorelocations => {
                     get_store_locations(
                         &RequestFilter {
@@ -701,11 +758,26 @@ impl eframe::App for App {
                 Action::GetPermissions => {
                     get_permissions(&Arc::clone(&self.permissions));
                 }
+                Action::ExportProducts => todo!(),
+                Action::ExportStorages => {
+                    let mut request_filter = self.get_request_filter();
+                    request_filter.order_by = Some(self.storages_order_by.to_string());
+                    request_filter.order = self.storages_order.to_string();
+
+                    if self.storages_show_archives {
+                        request_filter.storage_archive = Some(true);
+                    } else {
+                        request_filter.storage_archive = Some(false);
+                    }
+
+                    export_storages(
+                        &request_filter,
+                        Arc::clone(&self.export_storages),
+                        self.channel_sender.clone(),
+                    );
+                }
             }
         }
-
-        // Update window size.
-        self.state.window_rect = ui.max_rect();
 
         // Check loading state of select2 widgets.
         self.search_store_location_widget.check_loading();
@@ -720,6 +792,18 @@ impl eframe::App for App {
         self.search_cas_number_widget.check_loading();
         self.search_producer_ref_widget.check_loading();
         self.search_signal_word_widget.check_loading();
+
+        // Check export storages ready to download.
+        if let Ok(Some(export_storages)) = self.get_export_storages() {
+            download_csv(&export_storages, "export_storages.csv");
+
+            let mut export_storages_lock = self
+                .export_storages
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+
+            (*export_storages_lock) = None;
+        }
 
         // Check channels for messages.
         // if let Some(receiver) = &self.receiver {

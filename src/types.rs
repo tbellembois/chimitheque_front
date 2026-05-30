@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::sync::{Arc, Mutex};
 
+pub type SharedString = Arc<Mutex<Option<String>>>;
 pub type SharedStoreLocationAndCountList = Arc<Mutex<Option<(Vec<StoreLocation>, u64)>>>;
 pub type SharedEntityAndCountList = Arc<Mutex<Option<(Vec<Entity>, u64)>>>;
 pub type SharedProductAndCountList = Arc<Mutex<Option<(Vec<Product>, u64)>>>;
@@ -44,6 +45,44 @@ pub enum ProductType {
     All,
 }
 
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq)]
+pub enum StoragesOrderBy {
+    #[default]
+    Product,
+    BatchNumber,
+    StoreLocation,
+    ModificationDate,
+}
+
+impl Display for StoragesOrderBy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            StoragesOrderBy::Product => write!(f, "product"),
+            StoragesOrderBy::BatchNumber => write!(f, "batch_number"),
+            StoragesOrderBy::StoreLocation => write!(f, "store_location"),
+            StoragesOrderBy::ModificationDate => write!(f, "modification_date"),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq)]
+pub enum ProductsOrderBy {
+    #[default]
+    Name,
+    CasNumber,
+    EmpiricalFormula,
+}
+
+impl Display for ProductsOrderBy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ProductsOrderBy::Name => write!(f, "name"),
+            ProductsOrderBy::CasNumber => write!(f, "cas_number"),
+            ProductsOrderBy::EmpiricalFormula => write!(f, "empirical_formula"),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub enum StoreLocationsOrderBy {
     #[default]
@@ -62,18 +101,18 @@ impl Display for StoreLocationsOrderBy {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub enum StoreLocationsOrder {
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq)]
+pub enum GenericOrder {
     #[default]
     Asc,
     Desc,
 }
 
-impl Display for StoreLocationsOrder {
+impl Display for GenericOrder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            StoreLocationsOrder::Asc => write!(f, "asc"),
-            StoreLocationsOrder::Desc => write!(f, "desc"),
+            GenericOrder::Asc => write!(f, "asc"),
+            GenericOrder::Desc => write!(f, "desc"),
         }
     }
 }

@@ -1,4 +1,5 @@
 use crate::{
+    defines::{APP_BOTTOM_MARGIN, APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN},
     logger::{LOGS, LogMessage},
     ui::{
         app::App,
@@ -8,7 +9,7 @@ use crate::{
         widgets::{clickablelabelwithiconandtext::clickable_label_with_icon_and_text, size::Size},
     },
 };
-use egui::{Margin, RichText, TextBuffer};
+use egui::{Margin, Pos2, Rect, RichText, TextBuffer};
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
@@ -19,10 +20,10 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         .frame(
             egui::Frame::NONE
                 .inner_margin(Margin {
-                    top: 20,
-                    bottom: 10,
-                    left: 50,
-                    right: 50,
+                    top: APP_TOP_MARGIN,
+                    bottom: APP_BOTTOM_MARGIN,
+                    left: APP_LEFT_MARGIN,
+                    right: APP_RIGHT_MARGIN,
                 })
                 .fill(bg_color),
         )
@@ -139,7 +140,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 .clicked()
                 {
                     app.search_form_expanded = false;
-                    app.state.action.push_back(Action::GetProducts);
+                    app.state.action.push_back(Action::GetProducts(false));
                     app.state.active_page = Page::ProductList;
                 }
 
@@ -237,8 +238,18 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             });
         });
 
-    // Update top panel rect.
+    // Update app rects.
     app.state.top_panel_rect = panel_response.response.rect;
+    app.state.window_available_rect = Rect {
+        min: Pos2 {
+            x: app.state.top_panel_rect.min.x + APP_LEFT_MARGIN as f32,
+            y: app.state.top_panel_rect.min.y + APP_TOP_MARGIN as f32,
+        },
+        max: Pos2 {
+            x: app.state.top_panel_rect.max.x - APP_RIGHT_MARGIN as f32,
+            y: app.state.top_panel_rect.max.y - APP_BOTTOM_MARGIN as f32,
+        },
+    };
 
     //
     // Footer bar

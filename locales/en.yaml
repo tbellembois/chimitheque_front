@@ -6,6 +6,11 @@ list: "list"
 total: "total: %{total}"
 wait_user_info: "waiting for user authentication"
 darkmode: "dark mode"
+export: "export"
+
+order_by: "order by"
+order_asc: "ascending"
+order_desc: "descending"
 
 menu_bookmarks: "bookmarks"
 menu_products: "products"
@@ -15,6 +20,8 @@ menu_pubchem: "pubchem"
 
 switch_to_storage_view: "view storages"
 switch_to_product_view: "view products"
+storages_show_archives: "show archives"
+storages_hide_archives: "hide archives"
 
 storelocation_name: "name"
 storelocation_entity: "entity"
@@ -139,3 +146,11 @@ pubchem_action_search: "search"
 
 storage_label_batch_number: "batch #"
 storage_label_barecode: "barecode"
+
+storage_card_product: "product"
+storage_card_store_location: "store location"
+storage_card_batch_number: "batch number"
+storage_card_modification_date: "modification date"
+storage_card_archive: "archive"
+
+storage_create: "create a new storage"

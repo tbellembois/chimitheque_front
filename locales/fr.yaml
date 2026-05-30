@@ -5,6 +5,11 @@ list: "lister"
 total: "total : %{total}"
 wait_user_info: "en attente d'authenfication utilisateur"
 darkmode: "mode sombre"
+export: "exporter"
+
+order_by: "trier par"
+order_asc: "ascendant"
+order_desc: "descendant"
 
 menu_bookmarks: "favoris"
 menu_products: "produits"
@@ -14,6 +19,8 @@ menu_pubchem: "pubchem"
 
 switch_to_storage_view: "voir les stockages"
 switch_to_product_view: "voir les produits"
+storages_show_archives: "afficher les archives"
+storages_hide_archives: "cacher les archives"
 
 storelocation_name: "nom"
 storelocation_entity: "entité"
@@ -137,3 +144,11 @@ pubchem_action_search: "rechercher"
 
 storage_label_batch_number: "# lot"
 storage_label_barecode: "code barre"
+
+storage_card_product: "produit"
+storage_card_store_location: "entrepôt"
+storage_card_batch_number: "numéro de lot"
+storage_card_modification_date: "date de modification"
+storage_card_archive: "archive"
+
+storage_create: "créer un nouveau stockage"

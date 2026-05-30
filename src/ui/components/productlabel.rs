@@ -11,8 +11,8 @@ use crate::ui::widgets::buttonwithiconandtext::button_with_icon_and_text;
 use crate::ui::widgets::size::Size;
 
 const PRODUCT_LABEL_INNER_MARGIN: egui::Margin = egui::Margin::symmetric(20, 10);
-const PRODUCT_LABEL_PLUS_WIDTH: f32 = 50.0;
-const PRODUCT_LABEL_ACTIONS_WIDTH: f32 = 50.0;
+const PRODUCT_LABEL_PLUS_WIDTH: f32 = 40.0;
+const PRODUCT_LABEL_ACTIONS_WIDTH: f32 = 40.0;
 const PRODUCT_LABEL_CORNER_RADIUS: f32 = 8.0;
 
 pub fn render_product_label(
@@ -24,20 +24,19 @@ pub fn render_product_label(
     let widgets = &ui.visuals().widgets;
     let stroke = widgets.noninteractive.bg_stroke;
 
-    let label_width = app.state.search_rect.width();
-    let window_width = app.state.window_rect.width();
-    let product_label_outer_x_margin = if ((window_width - label_width) / 2.0) >= 127.0 {
-        ((window_width - label_width) / 2.0) as i8
+    let window_available_width = app.state.window_available_rect.width();
+
+    let product_label_outer_margin = if window_available_width > 1024.0 {
+        egui::Margin::symmetric(40, 5)
     } else {
-        10
+        egui::Margin::symmetric(5, 5)
     };
-    let product_label_outer_y_margin = 5;
 
-    let product_label_outer_margin: egui::Margin =
-        egui::Margin::symmetric(product_label_outer_x_margin, product_label_outer_y_margin);
-
-    let cols_width_percent =
-        (label_width - PRODUCT_LABEL_ACTIONS_WIDTH - PRODUCT_LABEL_PLUS_WIDTH) / 100.0;
+    let label_width = window_available_width - (2.0 * product_label_outer_margin.leftf());
+    let available_space_for_cols = label_width - (2.0 * PRODUCT_LABEL_INNER_MARGIN.leftf());
+    let available_space_for_dyn_cols =
+        available_space_for_cols - PRODUCT_LABEL_PLUS_WIDTH - PRODUCT_LABEL_ACTIONS_WIDTH;
+    let available_space_for_dyn_cols_in_percent = available_space_for_dyn_cols / 100.0;
 
     // egui's ui.group does not support margins, so we use a custom frame instead.
     let custom_group_frame = egui::Frame::new()
@@ -61,10 +60,17 @@ pub fn render_product_label(
 
     custom_group_frame.show(ui, |ui| {
         TableBuilder::new(ui)
+            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
             .column(Column::exact(PRODUCT_LABEL_PLUS_WIDTH))
-            .column(Column::exact(cols_width_percent * 60.0))
-            .column(Column::exact(cols_width_percent * 20.0))
-            .column(Column::exact(cols_width_percent * 20.0))
+            .column(Column::exact(
+                available_space_for_dyn_cols_in_percent * 60.0,
+            ))
+            .column(Column::exact(
+                available_space_for_dyn_cols_in_percent * 20.0,
+            ))
+            .column(Column::exact(
+                available_space_for_dyn_cols_in_percent * 20.0,
+            ))
             .column(Column::exact(PRODUCT_LABEL_ACTIONS_WIDTH))
             .id_salt(format!("{}_product_label", product.name.name_label))
             .body(|mut body| {
@@ -86,7 +92,7 @@ pub fn render_product_label(
 
                         ui.horizontal(|ui| {
                             if let Some(product_sl) = product.product_sl {
-                                ui.label(RichText::new(egui_phosphor::fill::WAREHOUSE).font(
+                                ui.label(RichText::new(egui_phosphor::fill::DRESSER).font(
                                     FontId {
                                         family: FontFamily::Name("phosphor".into()),
                                         size: 20.0,
@@ -316,76 +322,6 @@ pub fn render_product_label(
                     });
                 }
             });
-
-            // let card_available_width =
-            //     app.state.window_rect.width() - PAGE_RIGHT_MARGIN - PAGE_LEFT_MARGIN;
-
-            // let cols_width = (card_available_width / 6.0);
-
-            // TableBuilder::new(ui)
-            //     .column(Column::exact(cols_width))
-            //     .column(Column::exact(cols_width))
-            //     .column(Column::exact(cols_width))
-            //     .column(Column::exact(cols_width))
-            //     .column(Column::exact(cols_width))
-            //     .column(Column::exact(cols_width))
-            //     .id_salt(format!("{}_product_card", product.name.name_label))
-            //     .body(|mut body| {
-            //         body.row(50.0, |mut row| {
-            //             row.col(|ui| {
-            //                 ui.horizontal(|ui| {
-            //                     ui.label(RichText::new(t!("product_card_product_id")).italics());
-            //                     ui.label(product.product_id.unwrap_or_default().to_string());
-            //                 });
-            //             });
-            //             row.col(|ui| {
-            //                 ui.horizontal(|ui| {
-            //                     ui.label(RichText::new(t!("product_card_name")).italics());
-            //                     ui.label(product.name.name_label);
-            //                 });
-            //             });
-            //             row.col(|ui| {
-            //                 ui.horizontal_wrapped(|ui| {
-            //                     if let Some(synonyms) = product.synonyms {
-            //                         ui.label(RichText::new(t!("product_card_synonyms")).italics());
-            //                         for synonym in synonyms {
-            //                             ui.label(synonym.name_label);
-            //                         }
-            //                     }
-            //                 });
-            //             });
-
-            //             row.col(|ui| {
-            //                 ui.horizontal(|ui| {
-            //                     if let Some(empirical_formula) = product.empirical_formula {
-            //                         ui.label(
-            //                             RichText::new(t!("product_card_empirical_formula"))
-            //                                 .italics(),
-            //                         );
-            //                         ui.label(empirical_formula.empirical_formula_label);
-            //                     }
-            //                 });
-            //             });
-            //             row.col(|ui| {
-            //                 ui.horizontal(|ui| {
-            //                     if let Some(cas_number) = product.cas_number {
-            //                         ui.label(
-            //                             RichText::new(t!("product_card_cas_number")).italics(),
-            //                         );
-            //                         ui.label(cas_number.cas_number_label);
-            //                     }
-            //                 });
-            //             });
-            //             row.col(|ui| {
-            //                 ui.horizontal(|ui| {
-            //                     if let Some(ce_number) = product.ce_number {
-            //                         ui.label(RichText::new(t!("product_card_ce_number")).italics());
-            //                         ui.label(ce_number.ce_number_label);
-            //                     }
-            //                 });
-            //             });
-            //         });
-            //     });
         }
     });
 }

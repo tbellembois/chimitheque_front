@@ -1,5 +1,5 @@
 use crate::{
-    types::{StoreLocationsOrder, StoreLocationsOrderBy},
+    types::{GenericOrder, StoreLocationsOrderBy},
     ui::{
         app::App,
         state::Action,
@@ -108,8 +108,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                             if ui.link(t!("storelocation_parent")).clicked() {
                                 app.store_locations_order_by = StoreLocationsOrderBy::Parent;
                                 app.store_locations_order = match app.store_locations_order {
-                                    StoreLocationsOrder::Asc => StoreLocationsOrder::Desc,
-                                    StoreLocationsOrder::Desc => StoreLocationsOrder::Asc,
+                                    GenericOrder::Asc => GenericOrder::Desc,
+                                    GenericOrder::Desc => GenericOrder::Asc,
                                 };
 
                                 app.state.action.push_back(Action::GetStorelocations);
@@ -119,8 +119,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                             if ui.link(t!("storelocation_name")).clicked() {
                                 app.store_locations_order_by = StoreLocationsOrderBy::Name;
                                 app.store_locations_order = match app.store_locations_order {
-                                    StoreLocationsOrder::Asc => StoreLocationsOrder::Desc,
-                                    StoreLocationsOrder::Desc => StoreLocationsOrder::Asc,
+                                    GenericOrder::Asc => GenericOrder::Desc,
+                                    GenericOrder::Desc => GenericOrder::Asc,
                                 };
 
                                 app.state.action.push_back(Action::GetStorelocations);
@@ -130,8 +130,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                             if ui.link(t!("storelocation_entity")).clicked() {
                                 app.store_locations_order_by = StoreLocationsOrderBy::Entity;
                                 app.store_locations_order = match app.store_locations_order {
-                                    StoreLocationsOrder::Asc => StoreLocationsOrder::Desc,
-                                    StoreLocationsOrder::Desc => StoreLocationsOrder::Asc,
+                                    GenericOrder::Asc => GenericOrder::Desc,
+                                    GenericOrder::Desc => GenericOrder::Asc,
                                 };
 
                                 app.state.action.push_back(Action::GetStorelocations);
