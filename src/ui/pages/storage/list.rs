@@ -1,9 +1,7 @@
 use egui::RichText;
 use rust_i18n::t;
-use std::sync::Arc;
 
 use crate::{
-    api::storage::get_storages,
     defines::SEARCH_LIMIT,
     types::StoragesOrderBy,
     ui::{

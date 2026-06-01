@@ -11,6 +11,7 @@ pub enum Page {
     StorelocationList,
     EntityList,
     Pubchem,
+    PeopleList,
 }
 
 #[derive(Debug, Default)]
@@ -24,6 +25,7 @@ pub enum Action {
     GetPubchemAutocomplete,
     GetPubchemProduct,
     GetPermissions,
+    GetPeople,
     ExportProducts,
     ExportStorages,
 }

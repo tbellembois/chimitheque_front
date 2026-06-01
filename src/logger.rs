@@ -1,8 +1,7 @@
-use once_cell::sync::Lazy;
-use std::collections::VecDeque;
-use std::sync::Mutex;
+use std::{collections::VecDeque, sync::Mutex};
 
-pub static LOGS: Lazy<Mutex<VecDeque<LogMessage>>> = Lazy::new(|| Mutex::new(VecDeque::new()));
+pub static LOGS: std::sync::LazyLock<Mutex<VecDeque<LogMessage>>> =
+    std::sync::LazyLock::new(|| Mutex::new(VecDeque::new()));
 
 #[derive(Clone)]
 pub enum LogMessage {

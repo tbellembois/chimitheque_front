@@ -17,6 +17,7 @@ menu_products: "products"
 menu_storelocations: "store locations"
 menu_entities: "entities"
 menu_pubchem: "pubchem"
+menu_people: "people"
 
 switch_to_storage_view: "view storages"
 switch_to_product_view: "view products"
@@ -154,3 +155,7 @@ storage_card_modification_date: "modification date"
 storage_card_archive: "archive"
 
 storage_create: "create a new storage"
+
+person_search_hint: "search by email"
+
+person_create: "create a new person"

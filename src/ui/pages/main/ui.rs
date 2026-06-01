@@ -4,7 +4,7 @@ use crate::{
     ui::{
         app::App,
         components::searchform::render_search_form,
-        pages::{entity, product, pubchem, storage, storelocation},
+        pages::{entity, person, product, pubchem, storage, storelocation},
         state::{Action, Page},
         widgets::{clickablelabelwithiconandtext::clickable_label_with_icon_and_text, size::Size},
     },
@@ -179,6 +179,17 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     app.state.active_page = Page::EntityList;
                 }
 
+                if clickable_label_with_icon_and_text(
+                    ui,
+                    t!("menu_people").as_str(),
+                    egui_phosphor::regular::PERSON,
+                    &Size::Medium,
+                )
+                .clicked()
+                {
+                    app.state.action.push_back(Action::GetPeople);
+                    app.state.active_page = Page::PeopleList;
+                }
                 // egui::MenuBar::new().ui(ui, |ui| {
                 //     ui.menu_button(
                 //         egui::RichText::new(format!(
@@ -242,12 +253,12 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     app.state.top_panel_rect = panel_response.response.rect;
     app.state.window_available_rect = Rect {
         min: Pos2 {
-            x: app.state.top_panel_rect.min.x + APP_LEFT_MARGIN as f32,
-            y: app.state.top_panel_rect.min.y + APP_TOP_MARGIN as f32,
+            x: app.state.top_panel_rect.min.x + f32::from(APP_LEFT_MARGIN),
+            y: app.state.top_panel_rect.min.y + f32::from(APP_TOP_MARGIN),
         },
         max: Pos2 {
-            x: app.state.top_panel_rect.max.x - APP_RIGHT_MARGIN as f32,
-            y: app.state.top_panel_rect.max.y - APP_BOTTOM_MARGIN as f32,
+            x: app.state.top_panel_rect.max.x - f32::from(APP_RIGHT_MARGIN),
+            y: app.state.top_panel_rect.max.y - f32::from(APP_BOTTOM_MARGIN),
         },
     };
 
@@ -297,6 +308,9 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             }
             Page::Pubchem => {
                 pubchem::search::update(app, ui, frame);
+            }
+            Page::PeopleList => {
+                person::list::update(app, ui, frame);
             }
         });
 }

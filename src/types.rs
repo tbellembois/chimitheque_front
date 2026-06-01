@@ -17,6 +17,7 @@ pub type SharedPubchemAutocomplete = Arc<Mutex<Option<Autocomplete>>>;
 pub type SharedPubchemProduct = Arc<Mutex<Option<PubchemProduct>>>;
 pub type SharedPerson = Arc<Mutex<Option<Person>>>;
 pub type SharedPermissionList = Arc<Mutex<Vec<Permission>>>;
+pub type SharedPersonAndCountList = Arc<Mutex<Option<(Vec<Person>, u64)>>>;
 
 #[derive(Clone, PartialEq, Default)]
 pub enum PermissionStatus {
@@ -113,22 +114,6 @@ impl Display for GenericOrder {
         match self {
             GenericOrder::Asc => write!(f, "asc"),
             GenericOrder::Desc => write!(f, "desc"),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub enum EntitiesOrder {
-    #[default]
-    Asc,
-    Desc,
-}
-
-impl Display for EntitiesOrder {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            EntitiesOrder::Asc => write!(f, "asc"),
-            EntitiesOrder::Desc => write!(f, "desc"),
         }
     }
 }

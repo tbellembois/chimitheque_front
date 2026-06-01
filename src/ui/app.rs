@@ -1,6 +1,7 @@
 use super::state::ApplicationState;
 use crate::api::connecteduser::get_connected_user;
 use crate::api::entity::get_entities;
+use crate::api::people::get_people;
 use crate::api::permission::get_permissions;
 use crate::api::product::get_products;
 use crate::api::pubchemproduct::get_pubchem_product;
@@ -10,10 +11,11 @@ use crate::api::storelocation::get_store_locations;
 use crate::defines::SEARCH_LIMIT;
 use crate::download::download_csv;
 use crate::types::{
-    EntitiesOrder, GenericOrder, Permission, PermissionStatus, ProductType, ProductsOrderBy,
-    SharedEntityAndCountList, SharedPermissionList, SharedProductAndCountList,
-    SharedPubchemAutocomplete, SharedPubchemProduct, SharedStorageAndCountList,
-    SharedStoreLocationAndCountList, SharedString, StoragesOrderBy, StoreLocationsOrderBy,
+    GenericOrder, Permission, PermissionStatus, ProductType, ProductsOrderBy,
+    SharedEntityAndCountList, SharedPermissionList, SharedPersonAndCountList,
+    SharedProductAndCountList, SharedPubchemAutocomplete, SharedPubchemProduct,
+    SharedStorageAndCountList, SharedStoreLocationAndCountList, SharedString, StoragesOrderBy,
+    StoreLocationsOrderBy,
 };
 use crate::ui::pages::main;
 use crate::ui::state::Action;
@@ -102,6 +104,11 @@ pub struct App {
     pub search_entity_last_edit: f64,
     pub search_entity_action_triggered: bool,
 
+    // Widgets/variables for the person page.
+    pub search_person: String,
+    pub search_person_last_edit: f64,
+    pub search_person_action_triggered: bool,
+
     // Widgets/variables for pubchem.
     pub pubchem_search: String,
     pub pubchem_search_name_clicked: String,
@@ -112,6 +119,8 @@ pub struct App {
     pub store_locations: SharedStoreLocationAndCountList,
     // Entities.
     pub entities: SharedEntityAndCountList,
+    // People.
+    pub people: SharedPersonAndCountList,
     // Products.
     pub products: SharedProductAndCountList,
     // Storages.
@@ -139,7 +148,10 @@ pub struct App {
     pub storages_show_archives: bool,
 
     // Sorting for entities.
-    pub entities_order: EntitiesOrder,
+    pub entities_order: GenericOrder,
+
+    // Sorting for people.
+    pub people_order: GenericOrder,
 
     // Current search offset.
     pub current_search_offset: usize,
@@ -559,6 +571,20 @@ impl App {
         Ok(result)
     }
 
+    pub fn get_people_and_count(&self) -> Result<Option<(Vec<Person>, u64)>, String> {
+        let people_and_count_lock = match self.people.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                elog!(error, e.to_string());
+                return Err(e.to_string());
+            }
+        };
+
+        let result: Option<(Vec<Person>, u64)> = (*people_and_count_lock).clone();
+
+        Ok(result)
+    }
+
     pub fn get_entities_and_count(&self) -> Result<Option<(Vec<Entity>, u64)>, String> {
         let entities_and_count_lock = match self.entities.lock() {
             Ok(locked) => locked,
@@ -773,6 +799,20 @@ impl eframe::App for App {
                     export_storages(
                         &request_filter,
                         Arc::clone(&self.export_storages),
+                        self.channel_sender.clone(),
+                    );
+                }
+                Action::GetPeople => {
+                    get_people(
+                        &RequestFilter {
+                            // limit: Some(SEARCH_LIMIT),
+                            search: Some(self.search_person.clone()),
+                            order: self.people_order.to_string(),
+                            // order_by: Some(self.store_locations_order_by.to_string()),
+                            ..Default::default()
+                        },
+                        Arc::clone(&self.people),
+                        false,
                         self.channel_sender.clone(),
                     );
                 }
