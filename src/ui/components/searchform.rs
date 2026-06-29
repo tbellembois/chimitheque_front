@@ -36,6 +36,9 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
 
     app.state.search_rect = search_form_rec;
 
+    // Initialize advanced search rect to the same size as the search form for the first frame draw.
+    app.state.advanced_search_rect = search_form_rec;
+
     ui.vertical(|ui| {
         ui.scope_builder(egui::UiBuilder::new().max_rect(search_form_rec), |ui| {
             // FIXME
@@ -51,6 +54,12 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                 custom_group_frame.show(ui, |ui| {
                     egui::Grid::new("search_form_product_type_grid")
                         .min_col_width(
+                            (SEARCH_FORM_DESIRED_WIDTH
+                                - (2.0 * SEARCH_FORM_INNER_MARGIN.leftf())
+                                - (5.0 * WIDGET_HORIZONTAL_SPACING))
+                                / 4.0,
+                        )
+                        .max_col_width(
                             (SEARCH_FORM_DESIRED_WIDTH
                                 - (2.0 * SEARCH_FORM_INNER_MARGIN.leftf())
                                 - (5.0 * WIDGET_HORIZONTAL_SPACING))
@@ -109,6 +118,12 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
                                 - (5.0 * WIDGET_HORIZONTAL_SPACING))
                                 / 3.0,
                         )
+                        .max_col_width(
+                            (SEARCH_FORM_DESIRED_WIDTH
+                                - (2.0 * SEARCH_FORM_INNER_MARGIN.leftf())
+                                - (5.0 * WIDGET_HORIZONTAL_SPACING))
+                                / 3.0,
+                        )
                         .num_columns(3)
                         .spacing([WIDGET_HORIZONTAL_SPACING, WIDGET_VERTICAL_SPACING])
                         .striped(false)
@@ -140,6 +155,10 @@ pub fn render_search_form(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe:
 
                         egui::Grid::new("advanced_search_form_grid")
                             .min_col_width(
+                                (advanced_search_form_width - (4.0 * WIDGET_HORIZONTAL_SPACING))
+                                    / 3.0,
+                            )
+                            .max_col_width(
                                 (advanced_search_form_width - (4.0 * WIDGET_HORIZONTAL_SPACING))
                                     / 3.0,
                             )

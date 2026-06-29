@@ -28,8 +28,10 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 .fill(bg_color),
         )
         .show_separator_line(false)
-        .show_inside(ui, |ui| {
+        .show(ui, |ui| {
             ui.horizontal(|ui| {
+                ui.label(app.state.advanced_search_rect.width().to_string());
+
                 // Switch locale, theme.
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
                     // Switch locale.
@@ -265,7 +267,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     //
     // Footer bar
     //
-    egui::Panel::bottom("footer").show_inside(ui, |ui| {
+    egui::Panel::bottom("footer").show(ui, |ui| {
         ui.horizontal(|ui| {
             ui.label("© 2026 Chimithèque, released under the GPL-3.0 license.");
         });
@@ -285,7 +287,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 })
                 .fill(bg_color),
         )
-        .show_inside(ui, |ui| match app.state.active_page {
+        .show(ui, |ui| match app.state.active_page {
             Page::ProductList => {
                 render_search_form(app, ui, frame);
 
@@ -312,5 +314,6 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             Page::PeopleList => {
                 person::list::update(app, ui, frame);
             }
+            Page::ProductCreate => product::create::render(app, ui, frame),
         });
 }

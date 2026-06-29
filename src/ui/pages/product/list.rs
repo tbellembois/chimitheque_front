@@ -33,7 +33,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 )
                 .clicked()
                 {
-                    todo!()
+                    app.state.active_page = Page::ProductCreate;
                 }
 
                 if app.has_permission(

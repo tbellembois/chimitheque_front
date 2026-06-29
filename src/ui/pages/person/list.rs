@@ -11,10 +11,10 @@ use egui_extras::{Column, TableBuilder};
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-    let hint_color = ui.visuals().weak_text_color.unwrap_or_else(|| {
-        let text_color = ui.visuals().text_color();
-        text_color.gamma_multiply(ui.visuals().weak_text_alpha)
-    });
+    // let hint_color = ui.visuals().weak_text_color.unwrap_or_else(|| {
+    //     let text_color = ui.visuals().text_color();
+    //     text_color.gamma_multiply(ui.visuals().weak_text_alpha)
+    // });
 
     ui.allocate_ui_with_layout(
         egui::vec2(ui.available_width(), 32.0),
@@ -119,35 +119,53 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                         body.row(100.0, |mut row| {
                             row.col(|ui| {
                                 ui.vertical(|ui| {
-                                    ui.horizontal_wrapped(|ui| {
-                                        ui.label(person.person_email.clone());
+                                    ui.label(person.person_email.clone());
 
+                                    ui.horizontal_wrapped(|ui| {
                                         if let Some(entities) = person.entities
                                             && !entities.is_empty()
                                         {
-                                            for entity in entities {
+                                            ui.horizontal_wrapped(|ui| {
                                                 ui.label(
-                                                    egui::RichText::new(format!(
-                                                        "{}",
-                                                        entity.entity_name.clone()
+                                                    RichText::new(format!(
+                                                        "{}:",
+                                                        t!("person_entities")
                                                     ))
-                                                    .italics(),
+                                                    .underline(),
                                                 );
-                                            }
+                                                for entity in entities {
+                                                    ui.label(
+                                                        egui::RichText::new(
+                                                            entity.entity_name.clone(),
+                                                        )
+                                                        .italics(),
+                                                    );
+                                                }
+                                            });
                                         }
+                                    });
 
-                                        if let Some(managed_entities) = person.managed_entities
-                                            && !managed_entities.is_empty()
+                                    ui.horizontal_wrapped(|ui| {
+                                        if let Some(entities) = person.managed_entities
+                                            && !entities.is_empty()
                                         {
-                                            for entity in managed_entities {
+                                            ui.horizontal_wrapped(|ui| {
                                                 ui.label(
-                                                    egui::RichText::new(format!(
-                                                        "{}",
-                                                        entity.entity_name.clone()
+                                                    RichText::new(format!(
+                                                        "{}:",
+                                                        t!("person_managed_entities")
                                                     ))
-                                                    .italics(),
+                                                    .underline(),
                                                 );
-                                            }
+                                                for entity in entities {
+                                                    ui.label(
+                                                        egui::RichText::new(
+                                                            entity.entity_name.clone(),
+                                                        )
+                                                        .italics(),
+                                                    );
+                                                }
+                                            });
                                         }
                                     });
                                 });

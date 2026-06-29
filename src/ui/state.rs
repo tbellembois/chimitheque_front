@@ -7,6 +7,7 @@ use egui::{Pos2, Rect};
 pub enum Page {
     #[default]
     ProductList,
+    ProductCreate,
     StorageList,
     StorelocationList,
     EntityList,

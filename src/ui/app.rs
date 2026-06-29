@@ -19,6 +19,7 @@ use crate::types::{
 };
 use crate::ui::pages::main;
 use crate::ui::state::Action;
+use crate::ui::validators;
 use crate::{atomic, elog};
 use chimitheque_types::entity::Entity;
 use chimitheque_types::permission::PermissionItem;
@@ -93,6 +94,48 @@ pub struct App {
     pub search_product_to_destroy: bool,
     pub search_product_borrowed: bool,
     pub search_product_type: ProductType,
+
+    // Widgets/variables for create product form.
+    pub create_product_type: ProductType,
+    pub create_product_tag_widget: EguiSelect2,
+    pub create_product_category_widget: EguiSelect2,
+    pub create_product_name_widget: EguiSelect2,
+    pub create_product_synonym_widget: EguiSelect2,
+    pub create_product_empirical_formula_widget: EguiSelect2,
+    pub create_product_linear_formula_widget: EguiSelect2,
+    pub create_product_cas_number_widget: EguiSelect2,
+    pub create_product_ce_number_widget: EguiSelect2,
+    pub create_product_specificity: String,
+    pub create_product_inchi: String,
+    pub create_product_inchikey: String,
+    pub create_product_smiles: String,
+    pub create_product_molecular_weight: String,
+    pub create_product_unit_widget: EguiSelect2,
+    pub create_product_3d_formula: String,
+    pub create_product_molecule_picture: Vec<u8>,
+    // // Works on both native and WASM
+    // let file = rfd::AsyncFileDialog::new()
+    //     .add_filter("text", &["txt", "rs"])
+    //     .pick_file()
+    //     .await;
+
+    // if let Some(file) = file {
+    //     // On WASM, you must read the content into bytes
+    //     // On native, you can also access file.path()
+    //     let data: Vec<u8> = file.read().await;
+    // }
+    pub create_product_msds_link: String,
+    pub create_product_producer_sheet: String,
+    pub create_product_physical_state_widget: EguiSelect2,
+    pub create_product_class_of_compound_widget: EguiSelect2,
+    pub create_product_signal_word_widget: EguiSelect2,
+    pub create_product_symbol_widget: EguiSelect2,
+    pub create_product_hazard_statement_widget: EguiSelect2,
+    pub create_product_precautionary_statement_widget: EguiSelect2,
+    pub create_product_disposal_comment: String,
+    pub create_product_remark: String,
+    pub create_product_restricted: bool,
+    pub create_product_radioactive: bool,
 
     // Widgets/variables for the store location page.
     pub search_store_location: String,
@@ -205,6 +248,7 @@ impl App {
             hint: t!("select2_hint").to_string(),
         };
 
+        // .. for search form
         let mut search_store_location = EguiSelect2::default();
         search_store_location.load_suggestions =
             Arc::new(crate::api::storelocation::load_suggestions);
@@ -279,6 +323,57 @@ impl App {
         search_category.load_suggestions = Arc::new(crate::api::category::load_suggestions);
         search_category.translations = egui_select2_translations.clone();
         search_category.translations.hint = t!("select2_hint_category").to_string();
+
+        // .. for create product form
+        let mut create_product_tag = EguiSelect2::default();
+        create_product_tag.multiple = true;
+        create_product_tag.read_only = false;
+        create_product_tag.show_border = true;
+        create_product_tag.load_suggestions = Arc::new(crate::api::tag::load_suggestions);
+        create_product_tag.translations = egui_select2_translations.clone();
+        create_product_tag.translations.hint = t!("select2_hint_tag").to_string();
+
+        let mut create_product_category = EguiSelect2::default();
+        create_product_category.read_only = false;
+        create_product_category.show_border = true;
+        create_product_category.load_suggestions = Arc::new(crate::api::category::load_suggestions);
+        create_product_category.translations = egui_select2_translations.clone();
+        create_product_category.translations.hint = t!("select2_hint_category").to_string();
+
+        let mut create_product_name = EguiSelect2::default();
+        create_product_name.read_only = false;
+        create_product_name.show_border = true;
+        create_product_name.validate_new_item = Some(Arc::new(validators::name::validate));
+        create_product_name.load_suggestions = Arc::new(crate::api::name::load_suggestions);
+        create_product_name.translations = egui_select2_translations.clone();
+        create_product_name.translations.hint = t!("select2_hint_name").to_string();
+
+        let mut create_product_synonym = EguiSelect2::default();
+        create_product_synonym.read_only = false;
+        create_product_synonym.show_border = true;
+        create_product_synonym.multiple = true;
+        create_product_synonym.validate_new_item = Some(Arc::new(validators::name::validate));
+        create_product_synonym.load_suggestions = Arc::new(crate::api::name::load_suggestions);
+        create_product_synonym.translations = egui_select2_translations.clone();
+        create_product_synonym.translations.hint = t!("select2_hint_synonym").to_string();
+
+        let mut create_product_empirical_formula = EguiSelect2::default();
+        create_product_empirical_formula.read_only = false;
+        create_product_empirical_formula.show_border = true;
+        create_product_empirical_formula.load_suggestions =
+            Arc::new(crate::api::empiricalformula::load_suggestions);
+        create_product_empirical_formula.translations = egui_select2_translations.clone();
+        create_product_empirical_formula.translations.hint =
+            t!("select2_hint_empirical_formula").to_string();
+
+        let mut create_product_linear_formula = EguiSelect2::default();
+        create_product_linear_formula.read_only = false;
+        create_product_linear_formula.show_border = true;
+        create_product_linear_formula.load_suggestions =
+            Arc::new(crate::api::linearformula::load_suggestions);
+        create_product_linear_formula.translations = egui_select2_translations.clone();
+        create_product_linear_formula.translations.hint =
+            t!("select2_hint_linear_formula").to_string();
 
         // Initialize textures.
         let mut textures = HashMap::new();
@@ -363,6 +458,14 @@ impl App {
             search_precautionary_statement_widget: search_precautionary_statement,
             search_symbol_widget: search_symbol,
             search_form_expanded: false,
+
+            create_product_tag_widget: create_product_tag,
+            create_product_category_widget: create_product_category,
+            create_product_name_widget: create_product_name,
+            create_product_synonym_widget: create_product_synonym,
+            create_product_empirical_formula_widget: create_product_empirical_formula,
+            create_product_linear_formula_widget: create_product_linear_formula,
+
             channel_sender: Some(channel_sender),
             channel_receiver: Some(channel_receiver),
             textures,
@@ -833,6 +936,13 @@ impl eframe::App for App {
         self.search_producer_ref_widget.check_loading();
         self.search_signal_word_widget.check_loading();
 
+        self.create_product_tag_widget.check_loading();
+        self.create_product_category_widget.check_loading();
+        self.create_product_name_widget.check_loading();
+        self.create_product_synonym_widget.check_loading();
+        self.create_product_empirical_formula_widget.check_loading();
+        self.create_product_linear_formula_widget.check_loading();
+
         // Check export storages ready to download.
         if let Ok(Some(export_storages)) = self.get_export_storages() {
             download_csv(&export_storages, "export_storages.csv");
@@ -875,7 +985,7 @@ impl eframe::App for App {
                     main::ui::update(self, ui, frame);
                 } else {
                     egui::Panel::top("wait_user_info")
-                        .show_inside(ui, |ui| ui.label(t!("wait_user_info")));
+                        .show(ui, |ui| ui.label(t!("wait_user_info")));
                 }
             }
             Err(e) => log::error!("{e}"),
