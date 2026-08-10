@@ -18,17 +18,19 @@ fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
 }
 
 pub fn load_suggestions(
-    shared_suggestions: SharedSelect2Items,
+    shared_suggestions: &SharedSelect2Items,
     limit: usize,
     offset: usize,
-    query: String,
+    query: &str,
 ) {
     let request = build_request(&RequestFilter {
-        search: Some(query),
+        search: Some(query.to_string()),
         limit: Some(limit),
         offset: Some(offset),
         ..Default::default()
     });
+
+    let shared_suggestions = shared_suggestions.clone();
 
     ehttp::fetch(request, move |mayerr_response| match mayerr_response {
         Ok(response) => {

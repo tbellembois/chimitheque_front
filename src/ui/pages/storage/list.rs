@@ -2,7 +2,6 @@ use egui::RichText;
 use rust_i18n::t;
 
 use crate::{
-    defines::SEARCH_LIMIT,
     types::StoragesOrderBy,
     ui::{
         app::App,
@@ -92,7 +91,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             },
         );
 
-        let showing_storages = SEARCH_LIMIT + app.current_search_offset;
+        let showing_storages = app.search_limit + app.current_search_offset;
         let total_storages = count;
 
         ui.label(t!(
@@ -192,7 +191,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         let near_bottom = offset >= max_offset - 50.0;
 
         if near_bottom && !app.state.scrollarea_was_near_bottom && count > 0 {
-            app.current_search_offset += SEARCH_LIMIT;
+            app.current_search_offset += app.search_limit;
 
             app.state.action.push_back(Action::GetStorages(true));
         }

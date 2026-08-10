@@ -6,40 +6,29 @@ use rust_i18n::t;
 use crate::ui::app::App;
 use crate::ui::widgets::buttonwithicon::button_with_icon;
 
-const STORAGE_LABEL_INNER_MARGIN: egui::Margin = egui::Margin::symmetric(20, 10);
-const STORAGE_LABEL_PLUS_WIDTH: f32 = 50.0;
-const STORAGE_LABEL_ACTIONS_WIDTH: f32 = 50.0;
-const STORAGE_LABEL_CORNER_RADIUS: f32 = 8.0;
-
 pub fn render_storage_label(
     app: &mut App,
     ui: &mut egui::Ui,
     _frame: &mut eframe::Frame,
     storage: Storage,
 ) {
-    let widgets = &ui.visuals().widgets;
-    let stroke = widgets.noninteractive.bg_stroke;
-
     let window_available_width = app.state.window_available_rect.width();
 
-    let storage_label_outer_margin = if window_available_width > 1024.0 {
-        egui::Margin::symmetric(40, 5)
-    } else {
-        egui::Margin::symmetric(5, 5)
-    };
-
-    let label_width = window_available_width - (2.0 * storage_label_outer_margin.leftf());
-    let available_space_for_cols = label_width - (2.0 * STORAGE_LABEL_INNER_MARGIN.leftf());
-    let available_space_for_dyn_cols =
-        available_space_for_cols - STORAGE_LABEL_PLUS_WIDTH - STORAGE_LABEL_ACTIONS_WIDTH;
+    let label_width =
+        window_available_width - (2.0 * app.visual.storage_label_outer_margin.leftf());
+    let available_space_for_cols =
+        label_width - (2.0 * app.visual.storage_label_inner_margin.leftf());
+    let available_space_for_dyn_cols = available_space_for_cols
+        - app.visual.storage_label_plus_width
+        - app.visual.storage_label_action_width;
     let available_space_for_dyn_cols_in_percent = available_space_for_dyn_cols / 100.0;
 
     // egui's ui.group does not support margins, so we use a custom frame instead.
     let custom_group_frame = egui::Frame::new()
-        .inner_margin(STORAGE_LABEL_INNER_MARGIN)
-        .outer_margin(storage_label_outer_margin)
-        .corner_radius(STORAGE_LABEL_CORNER_RADIUS)
-        .stroke(egui::Stroke::new(1.0, stroke.color));
+        .inner_margin(app.visual.storage_label_inner_margin)
+        .outer_margin(app.visual.storage_label_outer_margin)
+        .corner_radius(app.visual.app_corner_radius)
+        .stroke(app.visual.normal_stroke);
 
     let storage_card_shown = app
         .storage_cards_shown
@@ -56,7 +45,7 @@ pub fn render_storage_label(
 
     custom_group_frame.show(ui, |ui| {
         TableBuilder::new(ui)
-            .column(Column::exact(STORAGE_LABEL_PLUS_WIDTH))
+            .column(Column::exact(app.visual.storage_label_plus_width))
             .column(Column::exact(
                 available_space_for_dyn_cols_in_percent * 40.0,
             ))
@@ -69,7 +58,7 @@ pub fn render_storage_label(
             .column(Column::exact(
                 available_space_for_dyn_cols_in_percent * 10.0,
             ))
-            .column(Column::exact(STORAGE_LABEL_ACTIONS_WIDTH))
+            .column(Column::exact(app.visual.storage_label_action_width))
             .id_salt(format!(
                 "{}_storage_label",
                 storage.storage_id.unwrap_or_default()

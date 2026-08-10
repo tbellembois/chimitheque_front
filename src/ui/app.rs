@@ -8,18 +8,19 @@ use crate::api::pubchemproduct::get_pubchem_product;
 use crate::api::pubchemsearch::get_pubchem_autocomplete;
 use crate::api::storage::{export_storages, get_storages};
 use crate::api::storelocation::get_store_locations;
-use crate::defines::SEARCH_LIMIT;
+use crate::api::versioninfo::get_version_info;
 use crate::download::download_csv;
 use crate::types::{
     GenericOrder, Permission, PermissionStatus, ProductType, ProductsOrderBy,
-    SharedEntityAndCountList, SharedPermissionList, SharedPersonAndCountList,
+    SharedEntityAndCountList, SharedPermissionList, SharedPerson, SharedPersonAndCountList,
     SharedProductAndCountList, SharedPubchemAutocomplete, SharedPubchemProduct,
-    SharedStorageAndCountList, SharedStoreLocationAndCountList, SharedString, StoragesOrderBy,
-    StoreLocationsOrderBy,
+    SharedStorageAndCountList, SharedStoreLocationAndCountList, SharedString, SharedVersionInfo,
+    StoragesOrderBy, StoreLocationsOrderBy,
 };
 use crate::ui::pages::main;
 use crate::ui::state::Action;
 use crate::ui::validators;
+use crate::ui::visual::ApplicationVisual;
 use crate::{atomic, elog};
 use chimitheque_types::entity::Entity;
 use chimitheque_types::permission::PermissionItem;
@@ -30,14 +31,15 @@ use chimitheque_types::pubchemproduct::PubchemProduct;
 use chimitheque_types::requestfilter::RequestFilter;
 use chimitheque_types::storage::Storage;
 use chimitheque_types::storelocation::StoreLocation;
+use chimitheque_types::versioninfo::VersionInfo;
 use eframe::CreationContext;
-use egui::{Style, TextureHandle, Theme};
+use egui::{CornerRadius, Stroke, TextureHandle};
 use egui_select2::select2::EguiSelect2;
 use rust_i18n::t;
 use std::collections::HashMap;
 use std::error::Error;
+use std::sync::Arc;
 use std::sync::Once;
-use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use wasm_rs_shared_channel::spsc::{Receiver, Sender, channel};
 
@@ -47,6 +49,8 @@ static START: Once = Once::new();
 pub struct App {
     // Application state.
     pub state: ApplicationState,
+    // Application visual.
+    pub visual: ApplicationVisual,
 
     // Channel for communication between application and functions.
     pub channel_sender: Option<Sender<bool>>,
@@ -60,6 +64,9 @@ pub struct App {
     // application (GUI) and worker.
     // pub sender: Option<Sender<ToWorker>>,
     // receiver: Option<Receiver<ToApp>>,
+
+    // Global search limit.
+    pub search_limit: usize,
 
     // Product ids of cards shown (ie. expanded) in the product list.
     pub product_cards_shown: Vec<u64>,
@@ -109,8 +116,9 @@ pub struct App {
     pub create_product_inchi: String,
     pub create_product_inchikey: String,
     pub create_product_smiles: String,
-    pub create_product_molecular_weight: String,
-    pub create_product_unit_widget: EguiSelect2,
+    pub create_product_molecular_weight: f64,
+    pub create_product_unit_molecular_weight_widget: EguiSelect2,
+    pub create_product_unit_temperature_widget: EguiSelect2,
     pub create_product_3d_formula: String,
     pub create_product_molecule_picture: Vec<u8>,
     // // Works on both native and WASM
@@ -156,8 +164,10 @@ pub struct App {
     pub pubchem_search: String,
     pub pubchem_search_name_clicked: String,
 
+    // Version info.
+    pub version_info: SharedVersionInfo,
     // User information.
-    pub connected_user: Arc<Mutex<Option<Person>>>,
+    pub connected_user: SharedPerson,
     // Store locations.
     pub store_locations: SharedStoreLocationAndCountList,
     // Entities.
@@ -230,12 +240,12 @@ impl App {
         let channel_channel = channel::<bool>(1024);
         let (channel_sender, channel_receiver) = channel_channel.split();
 
-        // Create application state.
+        // Create application state and visual.
         let state = ApplicationState::new(&rust_i18n::locale());
+        let visual = ApplicationVisual::default();
 
         // Initialize the custom theme/styles for egui.
         setup_custom_fonts(&cc.egui_ctx).unwrap();
-        setup_custom_style(&cc.egui_ctx);
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
         // Initialize select2 widgets.
@@ -243,6 +253,7 @@ impl App {
             loading: t!("select2_loading").to_string(),
             no_results: t!("select2_no_results").to_string(),
             add: t!("select2_add").to_string(),
+            new: t!("select2_new").to_string(),
             clear_all: t!("select2_clear_all").to_string(),
             load_more: t!("select2_load_more").to_string(),
             hint: t!("select2_hint").to_string(),
@@ -287,7 +298,7 @@ impl App {
             Arc::new(crate::api::hazardstatement::load_suggestions);
         search_hazard_statement.translations = egui_select2_translations.clone();
         search_hazard_statement.translations.hint = t!("select2_hint_hazard_statement").to_string();
-        search_hazard_statement.multiple = true;
+        search_hazard_statement.configuration.multiple = true;
 
         let mut search_precautionary_statement = EguiSelect2::default();
         search_precautionary_statement.load_suggestions =
@@ -295,14 +306,14 @@ impl App {
         search_precautionary_statement.translations = egui_select2_translations.clone();
         search_precautionary_statement.translations.hint =
             t!("select2_hint_precautionary_statement").to_string();
-        search_precautionary_statement.multiple = true;
+        search_precautionary_statement.configuration.multiple = true;
 
         let mut search_symbol = EguiSelect2::default();
         search_symbol.load_suggestions = Arc::new(crate::api::symbol::load_suggestions);
         search_symbol.format_suggestion = Box::new(crate::api::symbol::format_suggestion);
         search_symbol.translations = egui_select2_translations.clone();
         search_symbol.translations.hint = t!("select2_hint_symbol").to_string();
-        search_symbol.multiple = true;
+        search_symbol.configuration.multiple = true;
 
         let mut search_tag = EguiSelect2::default();
         search_tag.load_suggestions = Arc::new(crate::api::tag::load_suggestions);
@@ -326,40 +337,40 @@ impl App {
 
         // .. for create product form
         let mut create_product_tag = EguiSelect2::default();
-        create_product_tag.multiple = true;
-        create_product_tag.read_only = false;
-        create_product_tag.show_border = true;
+        create_product_tag.configuration.multiple = true;
+        create_product_tag.configuration.read_only = false;
+        // create_product_tag.show_border = true;
         create_product_tag.load_suggestions = Arc::new(crate::api::tag::load_suggestions);
         create_product_tag.translations = egui_select2_translations.clone();
         create_product_tag.translations.hint = t!("select2_hint_tag").to_string();
 
         let mut create_product_category = EguiSelect2::default();
-        create_product_category.read_only = false;
-        create_product_category.show_border = true;
+        create_product_category.configuration.read_only = false;
+        // create_product_category.show_border = true;
         create_product_category.load_suggestions = Arc::new(crate::api::category::load_suggestions);
         create_product_category.translations = egui_select2_translations.clone();
         create_product_category.translations.hint = t!("select2_hint_category").to_string();
 
         let mut create_product_name = EguiSelect2::default();
-        create_product_name.read_only = false;
-        create_product_name.show_border = true;
+        create_product_name.configuration.read_only = false;
+        // create_product_name.show_border = true;
         create_product_name.validate_new_item = Some(Arc::new(validators::name::validate));
         create_product_name.load_suggestions = Arc::new(crate::api::name::load_suggestions);
         create_product_name.translations = egui_select2_translations.clone();
         create_product_name.translations.hint = t!("select2_hint_name").to_string();
 
         let mut create_product_synonym = EguiSelect2::default();
-        create_product_synonym.read_only = false;
-        create_product_synonym.show_border = true;
-        create_product_synonym.multiple = true;
+        create_product_synonym.configuration.read_only = false;
+        // create_product_synonym.show_border = true;
+        create_product_synonym.configuration.multiple = true;
         create_product_synonym.validate_new_item = Some(Arc::new(validators::name::validate));
         create_product_synonym.load_suggestions = Arc::new(crate::api::name::load_suggestions);
         create_product_synonym.translations = egui_select2_translations.clone();
         create_product_synonym.translations.hint = t!("select2_hint_synonym").to_string();
 
         let mut create_product_empirical_formula = EguiSelect2::default();
-        create_product_empirical_formula.read_only = false;
-        create_product_empirical_formula.show_border = true;
+        create_product_empirical_formula.configuration.read_only = false;
+        // create_product_empirical_formula.show_border = true;
         create_product_empirical_formula.load_suggestions =
             Arc::new(crate::api::empiricalformula::load_suggestions);
         create_product_empirical_formula.translations = egui_select2_translations.clone();
@@ -367,13 +378,45 @@ impl App {
             t!("select2_hint_empirical_formula").to_string();
 
         let mut create_product_linear_formula = EguiSelect2::default();
-        create_product_linear_formula.read_only = false;
-        create_product_linear_formula.show_border = true;
+        create_product_linear_formula.configuration.read_only = false;
+        // create_product_linear_formula.show_border = true;
         create_product_linear_formula.load_suggestions =
             Arc::new(crate::api::linearformula::load_suggestions);
         create_product_linear_formula.translations = egui_select2_translations.clone();
         create_product_linear_formula.translations.hint =
             t!("select2_hint_linear_formula").to_string();
+
+        let mut create_product_cas_number = EguiSelect2::default();
+        create_product_cas_number.configuration.read_only = false;
+        create_product_cas_number.validate_new_item =
+            Some(Arc::new(validators::casnumber::validate));
+        create_product_cas_number.load_suggestions =
+            Arc::new(crate::api::casnumber::load_suggestions);
+        create_product_cas_number.translations = egui_select2_translations.clone();
+        create_product_cas_number.translations.hint = t!("select2_hint_cas_number").to_string();
+
+        let mut create_product_ce_number = EguiSelect2::default();
+        create_product_ce_number.configuration.read_only = false;
+        create_product_ce_number.load_suggestions =
+            Arc::new(crate::api::cenumber::load_suggestions);
+        create_product_ce_number.translations = egui_select2_translations.clone();
+        create_product_ce_number.translations.hint = t!("select2_hint_ce_number").to_string();
+
+        let mut create_product_unit_molecular_weight = EguiSelect2::default();
+        create_product_unit_molecular_weight.configuration.read_only = true;
+        create_product_unit_molecular_weight.load_suggestions =
+            Arc::new(crate::api::unitmolecularweight::load_suggestions);
+        create_product_unit_molecular_weight.translations = egui_select2_translations.clone();
+        create_product_unit_molecular_weight.translations.hint =
+            t!("select2_hint_unit_molecular_weight").to_string();
+
+        let mut create_product_unit_temperature = EguiSelect2::default();
+        create_product_unit_temperature.configuration.read_only = true;
+        create_product_unit_temperature.load_suggestions =
+            Arc::new(crate::api::unittemperature::load_suggestions);
+        create_product_unit_temperature.translations = egui_select2_translations.clone();
+        create_product_unit_temperature.translations.hint =
+            t!("select2_hint_unit_temperature").to_string();
 
         // Initialize textures.
         let mut textures = HashMap::new();
@@ -443,6 +486,9 @@ impl App {
         // Create application.
         Self {
             state,
+            visual,
+
+            search_limit: 20,
             // sender: Some(app_tx),
             // receiver: Some(worker_rx),
             search_store_location_widget: search_store_location,
@@ -465,6 +511,10 @@ impl App {
             create_product_synonym_widget: create_product_synonym,
             create_product_empirical_formula_widget: create_product_empirical_formula,
             create_product_linear_formula_widget: create_product_linear_formula,
+            create_product_cas_number_widget: create_product_cas_number,
+            create_product_ce_number_widget: create_product_ce_number,
+            create_product_unit_molecular_weight_widget: create_product_unit_molecular_weight,
+            create_product_unit_temperature_widget: create_product_unit_temperature,
 
             channel_sender: Some(channel_sender),
             channel_receiver: Some(channel_receiver),
@@ -488,7 +538,6 @@ impl App {
             }
         };
 
-        // if let Some(mut permissions) = maybe_permissions {
         let maybe_permission = permissions_lock.iter().find(|p| {
             p.http_method == *http_method
                 && p.item == *permission_item
@@ -548,7 +597,7 @@ impl App {
 
         let mut filter = RequestFilter {
             offset: Some(self.current_search_offset),
-            limit: Some(SEARCH_LIMIT),
+            limit: Some(self.search_limit),
             borrowing: self.search_product_borrowed,
             cas_number: self
                 .search_cas_number_widget
@@ -614,6 +663,20 @@ impl App {
         }
 
         filter
+    }
+
+    pub fn get_version_info(&self) -> Result<Option<VersionInfo>, String> {
+        let version_info_lock = match self.version_info.lock() {
+            Ok(locked) => locked,
+            Err(e) => {
+                elog!(error, e.to_string());
+                return Err(e.to_string());
+            }
+        };
+
+        let result: Option<VersionInfo> = (*version_info_lock).clone();
+
+        Ok(result)
     }
 
     pub fn get_connected_user(&self) -> Result<Option<Person>, String> {
@@ -744,6 +807,17 @@ impl App {
         Ok(result)
     }
 
+    // pub fn setup_custom_style(&self, ctx: &egui::Context) {
+    //     let theme = if self.state.darkmode {
+    //         egui::Theme::Dark
+    //     } else {
+    //         egui::Theme::Light
+    //     };
+    //     &ctx.style_mut_of(theme, |style| {
+    //         style.override_font_id = Some(egui::FontId::proportional(self.visual.app_font_size));
+    //     });
+    // }
+
     // pub fn get_permissions(&self) -> Result<Option<Vec<Permission>>, String> {
     //     let permissions_lock = match self.permissions.lock() {
     //         Ok(locked) => locked,
@@ -763,6 +837,62 @@ impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         // Update window size.
         self.state.window_rect = ui.max_rect();
+
+        // Init visual if needed.
+        if !self.visual.is_init {
+            let visual = &ui.visuals();
+            let widgets = &visual.widgets;
+            let selection = &visual.selection;
+
+            self.visual.hovered_bg_color = widgets.hovered.bg_fill;
+            self.visual.selected_bg_color = selection.bg_fill;
+
+            self.visual.normal_bg_color = visual.window_fill;
+            self.visual.faint_bg_color = visual.faint_bg_color;
+            self.visual.normal_stroke = widgets.noninteractive.bg_stroke;
+            self.visual.hovered_stroke = widgets.hovered.fg_stroke;
+            self.visual.selected_stroke = selection.stroke;
+
+            self.visual.info_color = egui::Color32::from_rgb(60, 180, 95);
+            self.visual.error_color = egui::Color32::from_rgb(220, 70, 70);
+
+            self.visual.app_top_margin = 20;
+            self.visual.app_bottom_margin = 10;
+            self.visual.app_left_margin = 50;
+            self.visual.app_right_margin = 50;
+
+            // Managed by slider.
+            // self.visual.app_font_size = 16.0;
+
+            self.visual.app_corner_radius = CornerRadius::same(5);
+
+            self.visual.product_label_inner_margin = egui::Margin::symmetric(20, 10);
+            self.visual.product_label_outer_margin = egui::Margin::symmetric(40, 5);
+            self.visual.product_label_plus_width = 50.0;
+            self.visual.product_label_action_width = 50.0;
+
+            self.visual.storage_label_inner_margin = egui::Margin::symmetric(20, 10);
+            self.visual.storage_label_outer_margin = egui::Margin::symmetric(40, 5);
+            self.visual.storage_label_plus_width = 50.0;
+            self.visual.storage_label_action_width = 50.0;
+
+            self.visual.search_form_width = 925.0;
+            self.visual.search_form_inner_margin = egui::Margin::symmetric(20, 20);
+            self.visual.search_form_widget_horizontal_spacing = 20.0;
+            self.visual.search_form_widget_vertical_spacing = 20.0;
+
+            self.visual.input_filled_stroke = Stroke {
+                width: 4.0,
+                color: selection.bg_fill,
+            };
+
+            self.visual.select2_border_when_selected_stroke = self.visual.input_filled_stroke;
+            self.visual.select2_border_when_selected_margin = egui::Margin::symmetric(5, 5);
+            self.visual.select2_border_when_selected_corner_radius =
+                self.visual.app_corner_radius.average();
+
+            self.visual.is_init = true;
+        }
 
         // Check for user informations promise.
         // if let Some(p) = &self.promise_user_info {
@@ -798,6 +928,9 @@ impl eframe::App for App {
                 false,
                 self.channel_sender.clone(),
             );
+
+            // Get version info.
+            get_version_info(Arc::clone(&self.version_info), self.channel_sender.clone());
         });
 
         // Check channel messages.
@@ -806,6 +939,11 @@ impl eframe::App for App {
             && let Some(message) = maybe_message
         {
             self.is_loading = message;
+
+            if !message {
+                let ctx = ui.ctx();
+                ctx.request_repaint();
+            }
         }
 
         // Handle actions.
@@ -942,6 +1080,11 @@ impl eframe::App for App {
         self.create_product_synonym_widget.check_loading();
         self.create_product_empirical_formula_widget.check_loading();
         self.create_product_linear_formula_widget.check_loading();
+        self.create_product_cas_number_widget.check_loading();
+        self.create_product_ce_number_widget.check_loading();
+        self.create_product_unit_molecular_weight_widget
+            .check_loading();
+        self.create_product_unit_temperature_widget.check_loading();
 
         // Check export storages ready to download.
         if let Ok(Some(export_storages)) = self.get_export_storages() {
@@ -1024,26 +1167,6 @@ fn load_svg_texture(
 
 //     ctx.load_texture(name.to_string(), color_image, egui::TextureOptions::LINEAR)
 // }
-
-fn use_custom_accent(style: &mut Style) {
-    style.visuals.widgets.active.corner_radius =
-        crate::defines::VISUALS_WIDGETS_ACTIVE_CORNER_RADIUS;
-    style.visuals.widgets.hovered.corner_radius =
-        crate::defines::VISUALS_WIDGETS_HOVERED_CORNER_RADIUS;
-    style.visuals.widgets.inactive.corner_radius =
-        crate::defines::VISUALS_WIDGETS_INACTIVE_CORNER_RADIUS;
-    style.visuals.widgets.noninteractive.corner_radius =
-        crate::defines::VISUALS_WIDGETS_NONINTERACTIVE_CORNER_RADIUS;
-    style.visuals.widgets.open.corner_radius = crate::defines::VISUALS_WIDGETS_OPEN_CORNER_RADIUS;
-
-    style.override_font_id = Some(egui::FontId::proportional(crate::defines::GLOBAL_FONT_SIZE));
-}
-
-fn setup_custom_style(ctx: &egui::Context) {
-    // Ensure the theme is initialized.
-    ctx.set_theme(Theme::Light);
-    ctx.style_mut_of(Theme::Light, use_custom_accent);
-}
 
 fn setup_custom_fonts(ctx: &egui::Context) -> Result<(), Box<dyn Error>> {
     let mut fonts = egui::FontDefinitions::default();

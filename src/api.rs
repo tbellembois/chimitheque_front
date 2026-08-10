@@ -19,3 +19,6 @@ pub(crate) mod storage;
 pub(crate) mod storelocation;
 pub(crate) mod symbol;
 pub(crate) mod tag;
+pub(crate) mod unitmolecularweight;
+pub(crate) mod unittemperature;
+pub(crate) mod versioninfo;

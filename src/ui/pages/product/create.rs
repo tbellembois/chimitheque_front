@@ -1,4 +1,5 @@
 use crate::types::ProductType;
+use crate::ui::widgets::icon::icon;
 use crate::ui::widgets::size::Size;
 use crate::ui::{app::App, widgets::buttonwithiconandtext::button_with_icon_and_text};
 use rust_i18n::t;
@@ -41,6 +42,7 @@ pub fn render(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
 
                 // egui's ui.group does not support margins, so we use a custom frame instead.
                 let custom_group_frame = egui::Frame::new()
+                    .fill(app.visual.faint_bg_color)
                     .inner_margin(CREATE_PRODUCT_FORM_INNER_MARGIN)
                     .corner_radius(CREATE_PRODUCT_FORM_CORNER_RADIUS)
                     .stroke(normal_stroke);
@@ -105,12 +107,51 @@ pub fn render(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                             app.create_product_category_widget.ui(ui);
                             ui.end_row();
 
-                            app.create_product_name_widget.ui(ui);
+                            ui.horizontal(|ui| {
+                                icon(ui, egui_phosphor::regular::ASTERISK, &Size::Small);
+                                app.create_product_name_widget.ui(ui);
+                            });
                             app.create_product_synonym_widget.ui(ui);
                             ui.end_row();
 
                             app.create_product_empirical_formula_widget.ui(ui);
                             app.create_product_linear_formula_widget.ui(ui);
+                            ui.end_row();
+
+                            app.create_product_cas_number_widget.ui(ui);
+                            app.create_product_ce_number_widget.ui(ui);
+                            ui.end_row();
+
+                            ui.add(
+                                egui::TextEdit::singleline(&mut app.create_product_specificity)
+                                    .hint_text(t!("create_product_form_specificity")),
+                            );
+                            ui.end_row();
+
+                            ui.add(
+                                egui::TextEdit::singleline(&mut app.create_product_inchi)
+                                    .hint_text(t!("create_product_form_inchi")),
+                            );
+                            ui.add(
+                                egui::TextEdit::singleline(&mut app.create_product_inchikey)
+                                    .hint_text(t!("create_product_form_inchikey")),
+                            );
+                            ui.end_row();
+
+                            ui.add(
+                                egui::TextEdit::singleline(&mut app.create_product_smiles)
+                                    .hint_text(t!("create_product_form_smiles")),
+                            );
+                            ui.end_row();
+
+                            ui.horizontal(|ui| {
+                                ui.label(t!("create_product_form_molecular_weight"));
+                                ui.add(
+                                    egui::DragValue::new(&mut app.create_product_molecular_weight)
+                                        .speed(0.1),
+                                );
+                                app.create_product_unit_molecular_weight_widget.ui(ui);
+                            });
                             ui.end_row();
 
                             // ui.add(

@@ -10,40 +10,35 @@ use crate::ui::widgets::buttonwithicon::button_with_icon;
 use crate::ui::widgets::buttonwithiconandtext::button_with_icon_and_text;
 use crate::ui::widgets::size::Size;
 
-const PRODUCT_LABEL_INNER_MARGIN: egui::Margin = egui::Margin::symmetric(20, 10);
-const PRODUCT_LABEL_PLUS_WIDTH: f32 = 40.0;
-const PRODUCT_LABEL_ACTIONS_WIDTH: f32 = 40.0;
-const PRODUCT_LABEL_CORNER_RADIUS: f32 = 8.0;
-
 pub fn render_product_label(
     app: &mut App,
     ui: &mut egui::Ui,
     _frame: &mut eframe::Frame,
     product: Product,
 ) {
-    let widgets = &ui.visuals().widgets;
-    let stroke = widgets.noninteractive.bg_stroke;
-
     let window_available_width = app.state.window_available_rect.width();
 
-    let product_label_outer_margin = if window_available_width > 1024.0 {
-        egui::Margin::symmetric(40, 5)
-    } else {
-        egui::Margin::symmetric(5, 5)
-    };
+    // let product_label_outer_margin = if window_available_width > 1024.0 {
+    //     egui::Margin::symmetric(40, 5)
+    // } else {
+    //     egui::Margin::symmetric(5, 5)
+    // };
 
-    let label_width = window_available_width - (2.0 * product_label_outer_margin.leftf());
-    let available_space_for_cols = label_width - (2.0 * PRODUCT_LABEL_INNER_MARGIN.leftf());
-    let available_space_for_dyn_cols =
-        available_space_for_cols - PRODUCT_LABEL_PLUS_WIDTH - PRODUCT_LABEL_ACTIONS_WIDTH;
+    let label_width =
+        window_available_width - (2.0 * app.visual.product_label_outer_margin.leftf());
+    let available_space_for_cols =
+        label_width - (2.0 * app.visual.product_label_inner_margin.leftf());
+    let available_space_for_dyn_cols = available_space_for_cols
+        - app.visual.product_label_plus_width
+        - app.visual.product_label_action_width;
     let available_space_for_dyn_cols_in_percent = available_space_for_dyn_cols / 100.0;
 
     // egui's ui.group does not support margins, so we use a custom frame instead.
     let custom_group_frame = egui::Frame::new()
-        .inner_margin(PRODUCT_LABEL_INNER_MARGIN)
-        .outer_margin(product_label_outer_margin)
-        .corner_radius(PRODUCT_LABEL_CORNER_RADIUS)
-        .stroke(egui::Stroke::new(1.0, stroke.color));
+        .inner_margin(app.visual.product_label_inner_margin)
+        .outer_margin(app.visual.product_label_outer_margin)
+        .corner_radius(app.visual.app_corner_radius)
+        .stroke(app.visual.normal_stroke);
 
     let product_card_shown = app
         .product_cards_shown
@@ -61,7 +56,7 @@ pub fn render_product_label(
     custom_group_frame.show(ui, |ui| {
         TableBuilder::new(ui)
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::exact(PRODUCT_LABEL_PLUS_WIDTH))
+            .column(Column::exact(app.visual.product_label_plus_width))
             .column(Column::exact(
                 available_space_for_dyn_cols_in_percent * 60.0,
             ))
@@ -71,7 +66,7 @@ pub fn render_product_label(
             .column(Column::exact(
                 available_space_for_dyn_cols_in_percent * 20.0,
             ))
-            .column(Column::exact(PRODUCT_LABEL_ACTIONS_WIDTH))
+            .column(Column::exact(app.visual.product_label_action_width))
             .id_salt(format!("{}_product_label", product.name.name_label))
             .body(|mut body| {
                 body.row(50.0, |mut row| {

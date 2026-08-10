@@ -1,107 +1,109 @@
 use crate::{
-    defines::{APP_BOTTOM_MARGIN, APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN},
     logger::{LOGS, LogMessage},
     ui::{
         app::App,
         components::searchform::render_search_form,
         pages::{entity, person, product, pubchem, storage, storelocation},
         state::{Action, Page},
-        widgets::{clickablelabelwithiconandtext::clickable_label_with_icon_and_text, size::Size},
+        widgets::{
+            buttonwithiconandtext::button_with_icon_and_text, buttonwithimage::button_with_image,
+            clickablelabelwithiconandtext::clickable_label_with_icon_and_text, icon::icon,
+            size::Size,
+        },
     },
 };
-use egui::{Margin, Pos2, Rect, RichText, TextBuffer};
+use egui::{Margin, Popup, Pos2, Rect, RichText, TextBuffer};
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
-    let visuals = ui.visuals();
-    let bg_color = visuals.window_fill;
-
     let panel_response = egui::Panel::top("top_panel")
         .frame(
             egui::Frame::NONE
                 .inner_margin(Margin {
-                    top: APP_TOP_MARGIN,
-                    bottom: APP_BOTTOM_MARGIN,
-                    left: APP_LEFT_MARGIN,
-                    right: APP_RIGHT_MARGIN,
+                    top: app.visual.app_top_margin,
+                    bottom: app.visual.app_bottom_margin,
+                    left: app.visual.app_left_margin,
+                    right: app.visual.app_right_margin,
                 })
-                .fill(bg_color),
+                .fill(app.visual.normal_bg_color),
         )
         .show_separator_line(false)
         .show(ui, |ui| {
             ui.horizontal(|ui| {
-                ui.label(app.state.advanced_search_rect.width().to_string());
-
                 // Switch locale, theme.
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
                     // Switch locale.
                     if let Some(fr_locale_icon) = app.textures.get("flag_fr")
-                        && ui
-                            .add(egui::Button::image_and_text(fr_locale_icon, "Fr"))
-                            .clicked()
+                        && button_with_image(ui, fr_locale_icon).clicked()
                     {
                         rust_i18n::set_locale("fr-FR");
                     }
                     if let Some(en_locale_icon) = app.textures.get("flag_gb")
-                        && ui
-                            .add(egui::Button::image_and_text(en_locale_icon, "En"))
-                            .clicked()
+                        && button_with_image(ui, en_locale_icon).clicked()
                     {
                         rust_i18n::set_locale("en-GB");
                     }
 
+                    ui.add_space(10.0);
+
+                    // Font size.
+                    icon(ui, egui_phosphor::regular::MAGNIFYING_GLASS, &Size::Small);
+                    ui.add(egui::Slider::new(
+                        &mut app.visual.app_font_size,
+                        14.0..=21.0,
+                    ));
+                    // This scales fonts, spacing and widgets.✅
+                    let ctx = ui.ctx();
+                    ctx.set_pixels_per_point(app.visual.app_font_size / 16.0);
+
+                    ui.add_space(10.0);
+
                     // Theme switch.
-                    if ui
-                        .checkbox(&mut app.state.darkmode, t!("darkmode"))
-                        .changed()
-                    {
+                    if app.state.darkmode {
+                        icon(ui, egui_phosphor::regular::SUN, &Size::Small);
+                    } else {
+                        icon(ui, egui_phosphor::regular::MOON, &Size::Small);
+                    }
+                    if ui.checkbox(&mut app.state.darkmode, "").changed() {
                         if app.state.darkmode {
-                            ui.ctx().set_visuals(egui::Visuals::dark());
+                            ui.ctx().set_theme(egui::Theme::Dark);
+                            app.visual.is_init = false;
                         } else {
-                            ui.ctx().set_visuals(egui::Visuals::light());
+                            ui.ctx().set_theme(egui::Theme::Light);
+                            app.visual.is_init = false;
                         }
                     }
                 });
 
-                // Info and error messages.
-                ui.with_layout(
-                    egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
-                    |ui| {
-                        let logs = LOGS
-                            .lock()
-                            .unwrap_or_else(std::sync::PoisonError::into_inner);
-
-                        if let Some(msg) = logs.back() {
-                            match msg {
-                                LogMessage::Info(text) => {
-                                    ui.label(
-                                        RichText::new(text)
-                                            .color(egui::Color32::from_rgb(60, 180, 95)),
-                                    );
-                                }
-                                LogMessage::Error(text) => {
-                                    ui.label(
-                                        RichText::new(text)
-                                            .color(egui::Color32::from_rgb(220, 70, 70)),
-                                    );
-                                }
-                                LogMessage::Debug(_) => (),
-                            }
-                        }
-                    },
-                );
-
-                // User info.
+                // User info and version info.
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    // Version info.
+                    if let Ok(maybe_version_info) = &app.get_version_info()
+                        && let Some(version_info) = maybe_version_info
+                    {
+                        let button_response = button_with_icon_and_text(
+                            ui,
+                            t!("version").to_string(),
+                            egui_phosphor::regular::INFO,
+                            &Size::Small,
+                        );
+                        let popup = Popup::menu(&button_response);
+                        popup.show(|ui| {
+                            ui.label(version_info.clone().build_time);
+                            ui.label(version_info.clone().git_commit.unwrap_or_default());
+                            ui.label(version_info.clone().git_commit_hash.unwrap_or_default());
+                            ui.label(version_info.clone().rustc);
+                            ui.label(version_info.clone().target);
+                            ui.label(version_info.clone().version);
+                        });
+                    }
+
                     // User info.
                     if let Ok(maybe_connected_user) = app.get_connected_user()
                         && let Some(connected_user) = maybe_connected_user
                     {
-                        ui.label(egui::RichText::new(format!(
-                            "{} {}",
-                            egui_phosphor::regular::USER,
-                            connected_user.person_email
-                        )));
+                        ui.label(connected_user.person_email.clone());
+                        icon(ui, egui_phosphor::regular::USER, &Size::Small);
                     }
                 });
             });
@@ -255,12 +257,12 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     app.state.top_panel_rect = panel_response.response.rect;
     app.state.window_available_rect = Rect {
         min: Pos2 {
-            x: app.state.top_panel_rect.min.x + f32::from(APP_LEFT_MARGIN),
-            y: app.state.top_panel_rect.min.y + f32::from(APP_TOP_MARGIN),
+            x: app.state.top_panel_rect.min.x + f32::from(app.visual.app_left_margin),
+            y: app.state.top_panel_rect.min.y + f32::from(app.visual.app_top_margin),
         },
         max: Pos2 {
-            x: app.state.top_panel_rect.max.x - f32::from(APP_RIGHT_MARGIN),
-            y: app.state.top_panel_rect.max.y - f32::from(APP_BOTTOM_MARGIN),
+            x: app.state.top_panel_rect.max.x - f32::from(app.visual.app_right_margin),
+            y: app.state.top_panel_rect.max.y - f32::from(app.visual.app_bottom_margin),
         },
     };
 
@@ -269,7 +271,26 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     //
     egui::Panel::bottom("footer").show(ui, |ui| {
         ui.horizontal(|ui| {
-            ui.label("© 2026 Chimithèque, released under the GPL-3.0 license.");
+            ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                ui.label("© 2026 Chimithèque, released under the GPL-3.0 license.");
+            });
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let logs = LOGS
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner);
+
+                if let Some(msg) = logs.back() {
+                    match msg {
+                        LogMessage::Info(text) => {
+                            ui.label(RichText::new(text));
+                        }
+                        LogMessage::Error(text) => {
+                            ui.label(RichText::new(text).color(app.visual.error_color));
+                        }
+                        LogMessage::Debug(_) => (),
+                    }
+                }
+            });
         });
     });
 
@@ -285,7 +306,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     left: 25,
                     right: 25,
                 })
-                .fill(bg_color),
+                .fill(app.visual.normal_bg_color),
         )
         .show(ui, |ui| match app.state.active_page {
             Page::ProductList => {

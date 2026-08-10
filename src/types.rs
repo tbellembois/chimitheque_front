@@ -3,6 +3,7 @@ use chimitheque_types::person::Person;
 use chimitheque_types::pubchem::Autocomplete;
 use chimitheque_types::pubchemproduct::PubchemProduct;
 use chimitheque_types::storage::Storage;
+use chimitheque_types::versioninfo::VersionInfo;
 use chimitheque_types::{entity::Entity, product::Product, storelocation::StoreLocation};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
@@ -18,6 +19,7 @@ pub type SharedPubchemProduct = Arc<Mutex<Option<PubchemProduct>>>;
 pub type SharedPerson = Arc<Mutex<Option<Person>>>;
 pub type SharedPermissionList = Arc<Mutex<Vec<Permission>>>;
 pub type SharedPersonAndCountList = Arc<Mutex<Option<(Vec<Person>, u64)>>>;
+pub type SharedVersionInfo = Arc<Mutex<Option<VersionInfo>>>;
 
 #[derive(Clone, PartialEq, Default)]
 pub enum PermissionStatus {
