@@ -52,7 +52,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     app.state.active_page = Page::ProductList;
                 }
 
-                if app.storages_show_archives
+                if app.storage_state.storages_show_archives
                     && button_with_icon_and_text(
                         ui,
                         t!("storages_hide_archives").to_string(),
@@ -62,10 +62,10 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     .clicked()
                 {
                     app.state.action.push_back(Action::GetStorages(false));
-                    app.storages_show_archives = false;
+                    app.storage_state.storages_show_archives = false;
                 }
 
-                if !app.storages_show_archives
+                if !app.storage_state.storages_show_archives
                     && button_with_icon_and_text(
                         ui,
                         t!("storages_show_archives").to_string(),
@@ -75,7 +75,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     .clicked()
                 {
                     app.state.action.push_back(Action::GetStorages(false));
-                    app.storages_show_archives = true;
+                    app.storage_state.storages_show_archives = true;
                 }
 
                 if button_with_icon_and_text(
@@ -91,7 +91,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             },
         );
 
-        let showing_storages = app.search_limit + app.current_search_offset;
+        let showing_storages = app.search_form.search_limit + app.search_form.search_offset;
         let total_storages = count;
 
         ui.label(t!(
@@ -109,7 +109,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.storages_order_by,
+                    &mut app.storage_state.storages_order_by,
                     StoragesOrderBy::Product,
                     t!("storage_card_product"),
                 )
@@ -120,7 +120,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.storages_order_by,
+                    &mut app.storage_state.storages_order_by,
                     StoragesOrderBy::StoreLocation,
                     t!("storage_card_store_location"),
                 )
@@ -131,7 +131,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.storages_order_by,
+                    &mut app.storage_state.storages_order_by,
                     StoragesOrderBy::BatchNumber,
                     t!("storage_card_batch_number"),
                 )
@@ -142,7 +142,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.storages_order_by,
+                    &mut app.storage_state.storages_order_by,
                     StoragesOrderBy::ModificationDate,
                     t!("storage_card_modification_date"),
                 )
@@ -155,7 +155,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.storages_order,
+                    &mut app.storage_state.storages_order,
                     crate::types::GenericOrder::Asc,
                     t!("order_asc"),
                 )
@@ -166,7 +166,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.storages_order,
+                    &mut app.storage_state.storages_order,
                     crate::types::GenericOrder::Desc,
                     t!("order_desc"),
                 )
@@ -191,7 +191,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         let near_bottom = offset >= max_offset - 50.0;
 
         if near_bottom && !app.state.scrollarea_was_near_bottom && count > 0 {
-            app.current_search_offset += app.search_limit;
+            app.search_form.search_offset += app.search_form.search_limit;
 
             app.state.action.push_back(Action::GetStorages(true));
         }

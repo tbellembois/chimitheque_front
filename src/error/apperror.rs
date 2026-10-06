@@ -1,8 +1,6 @@
 use std::fmt;
 
-#[allow(dead_code)]
 pub enum AppError {
-    TestError,
     ChannelReceiveError,
     InternalError(String),
     UnexpectedEmptyResponse,
@@ -13,7 +11,6 @@ pub enum AppError {
 impl fmt::Display for AppError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            AppError::TestError => write!(f, "just a test error, nothing anormal"),
             AppError::InternalError(s) => write!(f, "internal error: {s}"),
             AppError::UnexpectedEmptyResponse => write!(f, "unexpected empty response"),
             AppError::NotOkHTTPResponse(s) => write!(f, "HTTP response not ok: {s}"),

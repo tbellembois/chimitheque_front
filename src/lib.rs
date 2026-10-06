@@ -13,6 +13,7 @@
 )]
 mod api;
 pub mod atomic;
+pub mod config;
 pub mod download;
 mod error;
 mod keycloak;

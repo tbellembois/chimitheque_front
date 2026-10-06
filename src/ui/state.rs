@@ -92,31 +92,8 @@ impl ApplicationState {
     #[must_use]
     pub fn new(active_locale: &str) -> Self {
         Self {
-            active_page: Page::ProductList,
             active_locale: active_locale.to_string(),
-            window_rect: Rect {
-                min: Pos2 { x: 0.0, y: 0.0 },
-                max: Pos2 { x: 0.0, y: 0.0 },
-            },
-            window_available_rect: Rect {
-                min: Pos2 { x: 0.0, y: 0.0 },
-                max: Pos2 { x: 0.0, y: 0.0 },
-            },
-            advanced_search_rect: Rect {
-                min: Pos2 { x: 0.0, y: 0.0 },
-                max: Pos2 { x: 0.0, y: 0.0 },
-            },
-            top_panel_rect: Rect {
-                min: Pos2 { x: 0.0, y: 0.0 },
-                max: Pos2 { x: 0.0, y: 0.0 },
-            },
-            search_rect: Rect {
-                min: Pos2 { x: 0.0, y: 0.0 },
-                max: Pos2 { x: 0.0, y: 0.0 },
-            },
-            scrollarea_was_near_bottom: false,
-            action: VecDeque::new(),
-            darkmode: false,
+            ..Default::default()
         }
     }
 }

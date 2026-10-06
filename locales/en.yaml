@@ -181,3 +181,5 @@ create_product_form_inchikey: "inchikey"
 create_product_form_smiles: "smiles"
 create_product_form_molecular_weight: "molecular weight"
 create_product_form_specificity: "specificity"
+
+create_product_form_inchi_invalid: "invalid inchi"

@@ -1,10 +1,11 @@
-use crate::{elog, error::apperror::AppError, keycloak::get_token, types::SharedPubchemProduct};
+use crate::{elog, keycloak::get_token, types::SharedPubchemProduct};
 use chimitheque_types::pubchemproduct::PubchemProduct;
 use wasm_rs_shared_channel::spsc::Sender;
 
 fn build_request(name: &String) -> ehttp::Request {
     ehttp::Request::get(format!(
-        "https://localhost:8443/back/products/pubchemgetproductbyname/{name}",
+        "{}/back/products/pubchemgetproductbyname/{name}",
+        crate::config::BASE_URL.as_str(),
     ))
     .with_headers(ehttp::Headers::new(&[
         (
@@ -18,17 +19,12 @@ fn build_request(name: &String) -> ehttp::Request {
 pub fn get_pubchem_product(
     name: &String,
     shared_maybe_pubchem_product: SharedPubchemProduct,
-    is_loading_channel_sender: Option<Sender<bool>>,
+    channel_sender: Sender<i32>,
 ) {
     let request = build_request(name);
     let name_clone = name.clone();
 
-    let Some(channel_sender) = is_loading_channel_sender else {
-        elog!(error, "is_loading_channel_sender is None");
-        return;
-    };
-
-    let _ = channel_sender.send(&true);
+    let _ = channel_sender.send(&1_i32);
 
     elog!(info, format!("getting pubchem product with {name}"));
 
@@ -44,7 +40,7 @@ pub fn get_pubchem_product(
                     }
                 };
 
-                match parse_response(&response) {
+                match crate::api::parse_json_response::<PubchemProduct>(&response) {
                     Ok(response_pubchem_product) => {
                         *maybe_current_pubchem_product = Some(response_pubchem_product);
                     }
@@ -54,11 +50,11 @@ pub fn get_pubchem_product(
                 }
             }
             Err(e) => {
-                elog!(error, format!("{e}"));
+                elog!(error, e.to_string());
             }
         }
 
-        let _ = channel_sender.send(&false);
+        let _ = channel_sender.send(&(-1_i32));
 
         elog!(
             info,
@@ -68,26 +64,4 @@ pub fn get_pubchem_product(
             )
         );
     });
-}
-
-fn parse_response(response: &ehttp::Response) -> Result<PubchemProduct, AppError> {
-    match response.status {
-        200 => {
-            if let Some(text_response) = response.text() {
-                match serde_json::from_str(text_response) {
-                    Ok(json_response) => Ok(json_response),
-                    Err(e) => Err(AppError::InternalError(e.to_string())),
-                }
-            } else {
-                Err(AppError::UnexpectedEmptyResponse)
-            }
-        }
-        _ => {
-            if let Some(text_response) = response.text() {
-                Err(AppError::NotOkHTTPResponse(text_response.to_string()))
-            } else {
-                Err(AppError::NotOkHTTPResponse(response.status.to_string()))
-            }
-        }
-    }
 }

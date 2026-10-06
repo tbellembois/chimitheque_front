@@ -53,7 +53,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 ui.add_space(20.0);
 
                 let response = ui.add(
-                    egui::TextEdit::singleline(&mut app.search_store_location)
+                    egui::TextEdit::singleline(&mut app.store_location_state.search_store_location)
                         .hint_text(t!("storelocation_search_hint")),
                 );
                 if button_with_icon_and_text(
@@ -64,7 +64,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 )
                 .clicked()
                 {
-                    app.search_store_location = String::new();
+                    app.store_location_state.search_store_location = String::new();
                     app.state.action.push_back(Action::GetStorelocations);
                 }
 
@@ -73,15 +73,19 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
 
                 // Detect changes.
                 if response.changed() {
-                    app.search_store_location_last_edit = now;
-                    app.search_store_location_action_triggered = false;
+                    app.store_location_state.search_store_location_last_edit = now;
+                    app.store_location_state
+                        .search_store_location_action_triggered = false;
                 }
 
                 // Debounce logic.
-                if !app.search_store_location_action_triggered
-                    && (now - app.search_store_location_last_edit) >= 0.5
+                if !app
+                    .store_location_state
+                    .search_store_location_action_triggered
+                    && (now - app.store_location_state.search_store_location_last_edit) >= 0.5
                 {
-                    app.search_store_location_action_triggered = true;
+                    app.store_location_state
+                        .search_store_location_action_triggered = true;
 
                     app.state.action.push_back(Action::GetStorelocations);
                 }
@@ -107,33 +111,39 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 .header(60.0, |mut header| {
                     header.col(|ui| {
                         if ui.link(t!("storelocation_parent")).clicked() {
-                            app.store_locations_order_by = StoreLocationsOrderBy::Parent;
-                            app.store_locations_order = match app.store_locations_order {
-                                GenericOrder::Asc => GenericOrder::Desc,
-                                GenericOrder::Desc => GenericOrder::Asc,
-                            };
+                            app.store_location_state.store_locations_order_by =
+                                StoreLocationsOrderBy::Parent;
+                            app.store_location_state.store_locations_order =
+                                match app.store_location_state.store_locations_order {
+                                    GenericOrder::Asc => GenericOrder::Desc,
+                                    GenericOrder::Desc => GenericOrder::Asc,
+                                };
 
                             app.state.action.push_back(Action::GetStorelocations);
                         }
                     });
                     header.col(|ui| {
                         if ui.link(t!("storelocation_name")).clicked() {
-                            app.store_locations_order_by = StoreLocationsOrderBy::Name;
-                            app.store_locations_order = match app.store_locations_order {
-                                GenericOrder::Asc => GenericOrder::Desc,
-                                GenericOrder::Desc => GenericOrder::Asc,
-                            };
+                            app.store_location_state.store_locations_order_by =
+                                StoreLocationsOrderBy::Name;
+                            app.store_location_state.store_locations_order =
+                                match app.store_location_state.store_locations_order {
+                                    GenericOrder::Asc => GenericOrder::Desc,
+                                    GenericOrder::Desc => GenericOrder::Asc,
+                                };
 
                             app.state.action.push_back(Action::GetStorelocations);
                         }
                     });
                     header.col(|ui| {
                         if ui.link(t!("storelocation_entity")).clicked() {
-                            app.store_locations_order_by = StoreLocationsOrderBy::Entity;
-                            app.store_locations_order = match app.store_locations_order {
-                                GenericOrder::Asc => GenericOrder::Desc,
-                                GenericOrder::Desc => GenericOrder::Asc,
-                            };
+                            app.store_location_state.store_locations_order_by =
+                                StoreLocationsOrderBy::Entity;
+                            app.store_location_state.store_locations_order =
+                                match app.store_location_state.store_locations_order {
+                                    GenericOrder::Asc => GenericOrder::Desc,
+                                    GenericOrder::Desc => GenericOrder::Asc,
+                                };
 
                             app.state.action.push_back(Action::GetStorelocations);
                         }

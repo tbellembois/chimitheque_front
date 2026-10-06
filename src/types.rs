@@ -86,7 +86,7 @@ impl Display for ProductsOrderBy {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq)]
 pub enum StoreLocationsOrderBy {
     #[default]
     Name,

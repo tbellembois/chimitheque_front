@@ -41,10 +41,12 @@ pub fn render_product_label(
         .stroke(app.visual.normal_stroke);
 
     let product_card_shown = app
+        .product_state
         .product_cards_shown
         .contains(&product.product_id.unwrap_or_default());
 
     let product_card_actions_shown = app
+        .product_state
         .product_cards_actions_shown
         .contains(&product.product_id.unwrap_or_default());
 
@@ -67,17 +69,23 @@ pub fn render_product_label(
                 available_space_for_dyn_cols_in_percent * 20.0,
             ))
             .column(Column::exact(app.visual.product_label_action_width))
-            .id_salt(format!("{}_product_label", product.name.name_label))
+            .id_salt(format!(
+                "{}_{}_product_label",
+                product.product_id.unwrap_or_default(),
+                product.name.name_label
+            ))
             .body(|mut body| {
                 body.row(50.0, |mut row| {
                     row.col(|ui| {
                         if product_card_shown {
                             if button_with_icon(ui, egui_phosphor::regular::MINUS).clicked() {
-                                app.product_cards_shown
+                                app.product_state
+                                    .product_cards_shown
                                     .retain(|id| *id != product.product_id.unwrap_or_default());
                             }
                         } else if button_with_icon(ui, egui_phosphor::regular::PLUS).clicked() {
-                            app.product_cards_shown
+                            app.product_state
+                                .product_cards_shown
                                 .push(product.product_id.unwrap_or_default());
                         }
                     });
@@ -161,7 +169,8 @@ pub fn render_product_label(
                             if button_with_icon(ui, egui_phosphor::regular::DOTS_THREE_CIRCLE)
                                 .clicked()
                             {
-                                app.product_cards_actions_shown
+                                app.product_state
+                                    .product_cards_actions_shown
                                     .retain(|id| *id != product.product_id.unwrap_or_default());
                             }
                         } else if button_with_icon(
@@ -170,7 +179,8 @@ pub fn render_product_label(
                         )
                         .clicked()
                         {
-                            app.product_cards_actions_shown
+                            app.product_state
+                                .product_cards_actions_shown
                                 .push(product.product_id.unwrap_or_default());
                         }
                     });

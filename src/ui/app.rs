@@ -11,15 +11,16 @@ use crate::api::storelocation::get_store_locations;
 use crate::api::versioninfo::get_version_info;
 use crate::download::download_csv;
 use crate::types::{
-    GenericOrder, Permission, PermissionStatus, ProductType, ProductsOrderBy,
-    SharedEntityAndCountList, SharedPermissionList, SharedPerson, SharedPersonAndCountList,
-    SharedProductAndCountList, SharedPubchemAutocomplete, SharedPubchemProduct,
-    SharedStorageAndCountList, SharedStoreLocationAndCountList, SharedString, SharedVersionInfo,
-    StoragesOrderBy, StoreLocationsOrderBy,
+    Permission, PermissionStatus, ProductType, SharedPermissionList, SharedPerson,
+    SharedVersionInfo,
 };
+use crate::ui::domain_state::{
+    EntityState, PeopleState, ProductState, PubchemState, StorageState, StoreLocationState,
+};
+use crate::ui::forms::createproduct::CreateProductForm;
+use crate::ui::forms::search::SearchForm;
 use crate::ui::pages::main;
 use crate::ui::state::Action;
-use crate::ui::validators;
 use crate::ui::visual::ApplicationVisual;
 use crate::{atomic, elog};
 use chimitheque_types::entity::Entity;
@@ -34,7 +35,6 @@ use chimitheque_types::storelocation::StoreLocation;
 use chimitheque_types::versioninfo::VersionInfo;
 use eframe::CreationContext;
 use egui::{CornerRadius, Stroke, TextureHandle};
-use egui_select2::select2::EguiSelect2;
 use rust_i18n::t;
 use std::collections::HashMap;
 use std::error::Error;
@@ -53,164 +53,39 @@ pub struct App {
     pub visual: ApplicationVisual,
 
     // Channel for communication between application and functions.
-    pub channel_sender: Option<Sender<bool>>,
-    pub channel_receiver: Option<Receiver<bool>>,
+    pub channel_sender: Option<Sender<i32>>,
+    pub channel_receiver: Option<Receiver<i32>>,
 
     // Image textures.
     pub textures: HashMap<String, TextureHandle>,
 
-    // Does not work in wasm.
-    // Channels for communication beetween
-    // application (GUI) and worker.
-    // pub sender: Option<Sender<ToWorker>>,
-    // receiver: Option<Receiver<ToApp>>,
+    // Search form.
+    pub search_form: SearchForm,
 
-    // Global search limit.
-    pub search_limit: usize,
-
-    // Product ids of cards shown (ie. expanded) in the product list.
-    pub product_cards_shown: Vec<u64>,
-    pub product_cards_actions_shown: Vec<u64>,
-    // Storage ids of cards shown (ie. expanded) in the storage list.
-    pub storage_cards_shown: Vec<u64>,
-    pub storage_cards_actions_shown: Vec<u64>,
-
-    // Is the search form expanded?
-    pub search_form_expanded: bool,
-    // Is the pubchem search results expanded?
-    pub pubchem_results_expanded: bool,
-
-    // Widgets/variables for principal search form.
-    pub search_part_of_name: String,
-    pub search_barecode: String,
-
-    pub search_store_location_widget: EguiSelect2, // EguiSelect2 contains its own variable.
-    pub search_name_widget: EguiSelect2,
-    pub search_entity_widget: EguiSelect2,
-    pub search_producer_ref_widget: EguiSelect2,
-    pub search_signal_word_widget: EguiSelect2,
-    pub search_category_widget: EguiSelect2,
-    pub search_cas_number_widget: EguiSelect2,
-    pub search_empirical_formula_widget: EguiSelect2,
-    pub search_hazard_statement_widget: EguiSelect2,
-    pub search_precautionary_statement_widget: EguiSelect2,
-    pub search_symbol_widget: EguiSelect2,
-    pub search_tag_widget: EguiSelect2,
-
-    pub search_product_cmr: bool,
-    pub search_product_to_destroy: bool,
-    pub search_product_borrowed: bool,
-    pub search_product_type: ProductType,
-
-    // Widgets/variables for create product form.
-    pub create_product_type: ProductType,
-    pub create_product_tag_widget: EguiSelect2,
-    pub create_product_category_widget: EguiSelect2,
-    pub create_product_name_widget: EguiSelect2,
-    pub create_product_synonym_widget: EguiSelect2,
-    pub create_product_empirical_formula_widget: EguiSelect2,
-    pub create_product_linear_formula_widget: EguiSelect2,
-    pub create_product_cas_number_widget: EguiSelect2,
-    pub create_product_ce_number_widget: EguiSelect2,
-    pub create_product_specificity: String,
-    pub create_product_inchi: String,
-    pub create_product_inchikey: String,
-    pub create_product_smiles: String,
-    pub create_product_molecular_weight: f64,
-    pub create_product_unit_molecular_weight_widget: EguiSelect2,
-    pub create_product_unit_temperature_widget: EguiSelect2,
-    pub create_product_3d_formula: String,
-    pub create_product_molecule_picture: Vec<u8>,
-    // // Works on both native and WASM
-    // let file = rfd::AsyncFileDialog::new()
-    //     .add_filter("text", &["txt", "rs"])
-    //     .pick_file()
-    //     .await;
-
-    // if let Some(file) = file {
-    //     // On WASM, you must read the content into bytes
-    //     // On native, you can also access file.path()
-    //     let data: Vec<u8> = file.read().await;
-    // }
-    pub create_product_msds_link: String,
-    pub create_product_producer_sheet: String,
-    pub create_product_physical_state_widget: EguiSelect2,
-    pub create_product_class_of_compound_widget: EguiSelect2,
-    pub create_product_signal_word_widget: EguiSelect2,
-    pub create_product_symbol_widget: EguiSelect2,
-    pub create_product_hazard_statement_widget: EguiSelect2,
-    pub create_product_precautionary_statement_widget: EguiSelect2,
-    pub create_product_disposal_comment: String,
-    pub create_product_remark: String,
-    pub create_product_restricted: bool,
-    pub create_product_radioactive: bool,
-
-    // Widgets/variables for the store location page.
-    pub search_store_location: String,
-    pub search_store_location_last_edit: f64,
-    pub search_store_location_action_triggered: bool,
-
-    // Widgets/variables for the entity page.
-    pub search_entity: String,
-    pub search_entity_last_edit: f64,
-    pub search_entity_action_triggered: bool,
-
-    // Widgets/variables for the person page.
-    pub search_person: String,
-    pub search_person_last_edit: f64,
-    pub search_person_action_triggered: bool,
-
-    // Widgets/variables for pubchem.
-    pub pubchem_search: String,
-    pub pubchem_search_name_clicked: String,
+    // Create product form.
+    pub create_product_form: CreateProductForm,
 
     // Version info.
     pub version_info: SharedVersionInfo,
     // User information.
     pub connected_user: SharedPerson,
-    // Store locations.
-    pub store_locations: SharedStoreLocationAndCountList,
-    // Entities.
-    pub entities: SharedEntityAndCountList,
-    // People.
-    pub people: SharedPersonAndCountList,
-    // Products.
-    pub products: SharedProductAndCountList,
-    // Storages.
-    pub storages: SharedStorageAndCountList,
-    // Pubchem autocomplete.
-    pub pubchem_autocomplete: SharedPubchemAutocomplete,
-    // Pubchem product selected.
-    pub pubchem_product: SharedPubchemProduct,
     // Permissions.
     pub permissions: SharedPermissionList,
-    // Export storages.
-    pub export_storages: SharedString,
 
-    // Sorting for store locations.
-    pub store_locations_order_by: StoreLocationsOrderBy,
-    pub store_locations_order: GenericOrder,
+    // Domain sub-structs.
+    pub product_state: ProductState,
+    pub storage_state: StorageState,
+    pub store_location_state: StoreLocationState,
+    pub entity_state: EntityState,
+    pub people_state: PeopleState,
+    pub pubchem_state: PubchemState,
 
-    // Sorting for products.
-    pub products_order_by: ProductsOrderBy,
-    pub products_order: GenericOrder,
-
-    // Sorting for storages.
-    pub storages_order_by: StoragesOrderBy,
-    pub storages_order: GenericOrder,
-    pub storages_show_archives: bool,
-
-    // Sorting for entities.
-    pub entities_order: GenericOrder,
-
-    // Sorting for people.
-    pub people_order: GenericOrder,
-
-    // Current search offset.
-    pub current_search_offset: usize,
+    // Whether the visual needs to be (re-)initialized from the egui context.
+    // Set to true on startup and whenever the theme changes.
+    pub visual_needs_init: bool,
 
     // Loading state.
-    pub is_loading: bool,
+    pub in_flight: i32,
 }
 
 impl App {
@@ -219,25 +94,10 @@ impl App {
     /// Will panic if svg pictures cannot be loaded, or if custom fonts cannot be set.
     #[allow(clippy::unwrap_used)]
     pub fn new(cc: &CreationContext) -> Self {
-        // Does not work in wasm.
-        // // Create channels.
-        // let (app_tx, app_rx) = mpsc::channel();
-        // let (worker_tx, worker_rx) = mpsc::channel();
-
-        // dbg!("Spawning new worker.");
-
-        // // Spawn a thread with a new worker.
-        // let context = cc.egui_ctx.clone();
-        // thread::spawn(move || {
-        //     crate::worker::builder::Worker::new(worker_tx, app_rx, context).init();
-        // });
-
-        // dbg!("New worker spawned.");
-
         log::set_max_level(log::LevelFilter::Debug);
 
         // Create application channel.
-        let channel_channel = channel::<bool>(1024);
+        let channel_channel = channel::<i32>(1024);
         let (channel_sender, channel_receiver) = channel_channel.split();
 
         // Create application state and visual.
@@ -248,175 +108,11 @@ impl App {
         setup_custom_fonts(&cc.egui_ctx).unwrap();
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
-        // Initialize select2 widgets.
-        let egui_select2_translations = egui_select2::select2::Translations {
-            loading: t!("select2_loading").to_string(),
-            no_results: t!("select2_no_results").to_string(),
-            add: t!("select2_add").to_string(),
-            new: t!("select2_new").to_string(),
-            clear_all: t!("select2_clear_all").to_string(),
-            load_more: t!("select2_load_more").to_string(),
-            hint: t!("select2_hint").to_string(),
-        };
+        // Create search form.
+        let search_form = SearchForm::new();
 
-        // .. for search form
-        let mut search_store_location = EguiSelect2::default();
-        search_store_location.load_suggestions =
-            Arc::new(crate::api::storelocation::load_suggestions);
-        search_store_location.translations = egui_select2_translations.clone();
-        search_store_location.translations.hint = t!("select2_hint_store_location").to_string();
-
-        let mut search_name = EguiSelect2::default();
-        search_name.load_suggestions = Arc::new(crate::api::name::load_suggestions);
-        search_name.translations = egui_select2_translations.clone();
-        search_name.translations.hint = t!("select2_hint_name").to_string();
-
-        let mut search_entity = EguiSelect2::default();
-        search_entity.load_suggestions = Arc::new(crate::api::entity::load_suggestions);
-        search_entity.translations = egui_select2_translations.clone();
-        search_entity.translations.hint = t!("select2_hint_entity").to_string();
-
-        let mut search_cas_number = EguiSelect2::default();
-        search_cas_number.load_suggestions = Arc::new(crate::api::casnumber::load_suggestions);
-        search_cas_number.translations = egui_select2_translations.clone();
-        search_cas_number.translations.hint = t!("select2_hint_cas_number").to_string();
-
-        let mut search_ce_number = EguiSelect2::default();
-        search_ce_number.load_suggestions = Arc::new(crate::api::cenumber::load_suggestions);
-        search_ce_number.translations = egui_select2_translations.clone();
-        search_ce_number.translations.hint = t!("select2_hint_ce_number").to_string();
-
-        let mut search_empirical_formula = EguiSelect2::default();
-        search_empirical_formula.load_suggestions =
-            Arc::new(crate::api::empiricalformula::load_suggestions);
-        search_empirical_formula.translations = egui_select2_translations.clone();
-        search_empirical_formula.translations.hint =
-            t!("select2_hint_empirical_formula").to_string();
-
-        let mut search_hazard_statement = EguiSelect2::default();
-        search_hazard_statement.load_suggestions =
-            Arc::new(crate::api::hazardstatement::load_suggestions);
-        search_hazard_statement.translations = egui_select2_translations.clone();
-        search_hazard_statement.translations.hint = t!("select2_hint_hazard_statement").to_string();
-        search_hazard_statement.configuration.multiple = true;
-
-        let mut search_precautionary_statement = EguiSelect2::default();
-        search_precautionary_statement.load_suggestions =
-            Arc::new(crate::api::precautionarystatement::load_suggestions);
-        search_precautionary_statement.translations = egui_select2_translations.clone();
-        search_precautionary_statement.translations.hint =
-            t!("select2_hint_precautionary_statement").to_string();
-        search_precautionary_statement.configuration.multiple = true;
-
-        let mut search_symbol = EguiSelect2::default();
-        search_symbol.load_suggestions = Arc::new(crate::api::symbol::load_suggestions);
-        search_symbol.format_suggestion = Box::new(crate::api::symbol::format_suggestion);
-        search_symbol.translations = egui_select2_translations.clone();
-        search_symbol.translations.hint = t!("select2_hint_symbol").to_string();
-        search_symbol.configuration.multiple = true;
-
-        let mut search_tag = EguiSelect2::default();
-        search_tag.load_suggestions = Arc::new(crate::api::tag::load_suggestions);
-        search_tag.translations = egui_select2_translations.clone();
-        search_tag.translations.hint = t!("select2_hint_tag").to_string();
-
-        let mut search_signal_word = EguiSelect2::default();
-        search_signal_word.load_suggestions = Arc::new(crate::api::signalword::load_suggestions);
-        search_signal_word.translations = egui_select2_translations.clone();
-        search_signal_word.translations.hint = t!("select2_hint_signal_word").to_string();
-
-        let mut search_producer_ref = EguiSelect2::default();
-        search_producer_ref.load_suggestions = Arc::new(crate::api::producerref::load_suggestions);
-        search_producer_ref.translations = egui_select2_translations.clone();
-        search_producer_ref.translations.hint = t!("select2_hint_producer_ref").to_string();
-
-        let mut search_category = EguiSelect2::default();
-        search_category.load_suggestions = Arc::new(crate::api::category::load_suggestions);
-        search_category.translations = egui_select2_translations.clone();
-        search_category.translations.hint = t!("select2_hint_category").to_string();
-
-        // .. for create product form
-        let mut create_product_tag = EguiSelect2::default();
-        create_product_tag.configuration.multiple = true;
-        create_product_tag.configuration.read_only = false;
-        // create_product_tag.show_border = true;
-        create_product_tag.load_suggestions = Arc::new(crate::api::tag::load_suggestions);
-        create_product_tag.translations = egui_select2_translations.clone();
-        create_product_tag.translations.hint = t!("select2_hint_tag").to_string();
-
-        let mut create_product_category = EguiSelect2::default();
-        create_product_category.configuration.read_only = false;
-        // create_product_category.show_border = true;
-        create_product_category.load_suggestions = Arc::new(crate::api::category::load_suggestions);
-        create_product_category.translations = egui_select2_translations.clone();
-        create_product_category.translations.hint = t!("select2_hint_category").to_string();
-
-        let mut create_product_name = EguiSelect2::default();
-        create_product_name.configuration.read_only = false;
-        // create_product_name.show_border = true;
-        create_product_name.validate_new_item = Some(Arc::new(validators::name::validate));
-        create_product_name.load_suggestions = Arc::new(crate::api::name::load_suggestions);
-        create_product_name.translations = egui_select2_translations.clone();
-        create_product_name.translations.hint = t!("select2_hint_name").to_string();
-
-        let mut create_product_synonym = EguiSelect2::default();
-        create_product_synonym.configuration.read_only = false;
-        // create_product_synonym.show_border = true;
-        create_product_synonym.configuration.multiple = true;
-        create_product_synonym.validate_new_item = Some(Arc::new(validators::name::validate));
-        create_product_synonym.load_suggestions = Arc::new(crate::api::name::load_suggestions);
-        create_product_synonym.translations = egui_select2_translations.clone();
-        create_product_synonym.translations.hint = t!("select2_hint_synonym").to_string();
-
-        let mut create_product_empirical_formula = EguiSelect2::default();
-        create_product_empirical_formula.configuration.read_only = false;
-        // create_product_empirical_formula.show_border = true;
-        create_product_empirical_formula.load_suggestions =
-            Arc::new(crate::api::empiricalformula::load_suggestions);
-        create_product_empirical_formula.translations = egui_select2_translations.clone();
-        create_product_empirical_formula.translations.hint =
-            t!("select2_hint_empirical_formula").to_string();
-
-        let mut create_product_linear_formula = EguiSelect2::default();
-        create_product_linear_formula.configuration.read_only = false;
-        // create_product_linear_formula.show_border = true;
-        create_product_linear_formula.load_suggestions =
-            Arc::new(crate::api::linearformula::load_suggestions);
-        create_product_linear_formula.translations = egui_select2_translations.clone();
-        create_product_linear_formula.translations.hint =
-            t!("select2_hint_linear_formula").to_string();
-
-        let mut create_product_cas_number = EguiSelect2::default();
-        create_product_cas_number.configuration.read_only = false;
-        create_product_cas_number.validate_new_item =
-            Some(Arc::new(validators::casnumber::validate));
-        create_product_cas_number.load_suggestions =
-            Arc::new(crate::api::casnumber::load_suggestions);
-        create_product_cas_number.translations = egui_select2_translations.clone();
-        create_product_cas_number.translations.hint = t!("select2_hint_cas_number").to_string();
-
-        let mut create_product_ce_number = EguiSelect2::default();
-        create_product_ce_number.configuration.read_only = false;
-        create_product_ce_number.load_suggestions =
-            Arc::new(crate::api::cenumber::load_suggestions);
-        create_product_ce_number.translations = egui_select2_translations.clone();
-        create_product_ce_number.translations.hint = t!("select2_hint_ce_number").to_string();
-
-        let mut create_product_unit_molecular_weight = EguiSelect2::default();
-        create_product_unit_molecular_weight.configuration.read_only = true;
-        create_product_unit_molecular_weight.load_suggestions =
-            Arc::new(crate::api::unitmolecularweight::load_suggestions);
-        create_product_unit_molecular_weight.translations = egui_select2_translations.clone();
-        create_product_unit_molecular_weight.translations.hint =
-            t!("select2_hint_unit_molecular_weight").to_string();
-
-        let mut create_product_unit_temperature = EguiSelect2::default();
-        create_product_unit_temperature.configuration.read_only = true;
-        create_product_unit_temperature.load_suggestions =
-            Arc::new(crate::api::unittemperature::load_suggestions);
-        create_product_unit_temperature.translations = egui_select2_translations.clone();
-        create_product_unit_temperature.translations.hint =
-            t!("select2_hint_unit_temperature").to_string();
+        // Create create product form.
+        let create_product_form = CreateProductForm::new();
 
         // Initialize textures.
         let mut textures = HashMap::new();
@@ -487,42 +183,28 @@ impl App {
         Self {
             state,
             visual,
-
-            search_limit: 20,
-            // sender: Some(app_tx),
-            // receiver: Some(worker_rx),
-            search_store_location_widget: search_store_location,
-            search_name_widget: search_name,
-            search_entity_widget: search_entity,
-            search_producer_ref_widget: search_producer_ref,
-            search_signal_word_widget: search_signal_word,
-            search_tag_widget: search_tag,
-            search_cas_number_widget: search_cas_number,
-            search_category_widget: search_category,
-            search_empirical_formula_widget: search_empirical_formula,
-            search_hazard_statement_widget: search_hazard_statement,
-            search_precautionary_statement_widget: search_precautionary_statement,
-            search_symbol_widget: search_symbol,
-            search_form_expanded: false,
-
-            create_product_tag_widget: create_product_tag,
-            create_product_category_widget: create_product_category,
-            create_product_name_widget: create_product_name,
-            create_product_synonym_widget: create_product_synonym,
-            create_product_empirical_formula_widget: create_product_empirical_formula,
-            create_product_linear_formula_widget: create_product_linear_formula,
-            create_product_cas_number_widget: create_product_cas_number,
-            create_product_ce_number_widget: create_product_ce_number,
-            create_product_unit_molecular_weight_widget: create_product_unit_molecular_weight,
-            create_product_unit_temperature_widget: create_product_unit_temperature,
+            search_form,
+            create_product_form,
 
             channel_sender: Some(channel_sender),
             channel_receiver: Some(channel_receiver),
             textures,
+            visual_needs_init: true,
             ..Default::default()
         }
     }
 
+    /// Returns the in-flight counter sender.
+    /// # Panics
+    /// Panics if called before `App::new()` initialises the channel, which
+    /// cannot happen in normal operation.
+    fn sender(&self) -> Sender<i32> {
+        self.channel_sender
+            .clone()
+            .unwrap_or_else(|| unreachable!("channel_sender is None — called before App::new()"))
+    }
+
+    // Check if the user has permission to perform an action on a given entity.
     pub fn has_permission(
         &mut self,
         permission_item: &PermissionItem,
@@ -568,6 +250,7 @@ impl App {
     #[must_use]
     pub fn get_request_filter(&self) -> RequestFilter {
         let hazard_statements: Vec<_> = self
+            .search_form
             .search_hazard_statement_widget
             .selected
             .iter()
@@ -575,6 +258,7 @@ impl App {
             .collect();
 
         let precautionary_statements: Vec<_> = self
+            .search_form
             .search_precautionary_statement_widget
             .selected
             .iter()
@@ -582,6 +266,7 @@ impl App {
             .collect();
 
         let symbols: Vec<_> = self
+            .search_form
             .search_symbol_widget
             .selected
             .iter()
@@ -589,6 +274,7 @@ impl App {
             .collect();
 
         let tags: Vec<_> = self
+            .search_form
             .search_tag_widget
             .selected
             .iter()
@@ -596,50 +282,62 @@ impl App {
             .collect();
 
         let mut filter = RequestFilter {
-            offset: Some(self.current_search_offset),
-            limit: Some(self.search_limit),
-            borrowing: self.search_product_borrowed,
+            offset: Some(self.search_form.search_offset),
+            limit: Some(self.search_form.search_limit),
+            borrowing: self.search_form.search_product_borrowed,
             cas_number: self
+                .search_form
                 .search_cas_number_widget
                 .selected
                 .first()
                 .and_then(|s| s.id),
-            is_cmr: self.search_product_cmr,
+            is_cmr: self.search_form.search_product_cmr,
             category: self
+                .search_form
                 .search_category_widget
                 .selected
                 .first()
                 .and_then(|s| s.id),
-            custom_name_part_of: (!self.search_part_of_name.is_empty())
-                .then(|| self.search_part_of_name.clone()),
+            custom_name_part_of: (!self.search_form.search_part_of_name.is_empty())
+                .then(|| self.search_form.search_part_of_name.clone()),
             empirical_formula: self
+                .search_form
                 .search_empirical_formula_widget
                 .selected
                 .first()
                 .and_then(|s| s.id),
             entity: self
+                .search_form
                 .search_entity_widget
                 .selected
                 .first()
                 .and_then(|s| s.id),
             hazard_statements: (!hazard_statements.is_empty()).then_some(hazard_statements),
-            name: self.search_name_widget.selected.first().and_then(|s| s.id),
+            name: self
+                .search_form
+                .search_name_widget
+                .selected
+                .first()
+                .and_then(|s| s.id),
             precautionary_statements: (!precautionary_statements.is_empty())
                 .then_some(precautionary_statements),
             producer_ref: self
+                .search_form
                 .search_producer_ref_widget
                 .selected
                 .first()
                 .and_then(|s| s.id),
             signal_word: self
+                .search_form
                 .search_signal_word_widget
                 .selected
                 .first()
                 .and_then(|s| s.id),
-            storage_barecode: (!self.search_barecode.is_empty())
-                .then(|| self.search_barecode.clone()),
-            storage_to_destroy: self.search_product_to_destroy,
+            storage_barecode: (!self.search_form.search_barecode.is_empty())
+                .then(|| self.search_form.search_barecode.clone()),
+            storage_to_destroy: self.search_form.search_product_to_destroy,
             store_location: self
+                .search_form
                 .search_store_location_widget
                 .selected
                 .first()
@@ -649,7 +347,7 @@ impl App {
             ..Default::default()
         };
 
-        match self.search_product_type {
+        match self.search_form.search_product_type {
             ProductType::Chemical => {
                 filter.show_chem = true;
             }
@@ -662,6 +360,16 @@ impl App {
             ProductType::All => (),
         }
 
+        filter
+    }
+
+    /// Builds a `RequestFilter` for storage-related requests, applying the
+    /// current sort order and archive-visibility preference.
+    fn build_storages_filter(&self) -> RequestFilter {
+        let mut filter = self.get_request_filter();
+        filter.order_by = Some(self.storage_state.storages_order_by.to_string());
+        filter.order = self.storage_state.storages_order.to_string();
+        filter.storage_archive = Some(self.storage_state.storages_show_archives);
         filter
     }
 
@@ -694,7 +402,7 @@ impl App {
     }
 
     pub fn get_pubchem_product(&self) -> Result<Option<PubchemProduct>, String> {
-        let pubchem_product_lock = match self.pubchem_product.lock() {
+        let pubchem_product_lock = match self.pubchem_state.pubchem_product.lock() {
             Ok(locked) => locked,
             Err(e) => {
                 elog!(error, e.to_string());
@@ -708,7 +416,7 @@ impl App {
     }
 
     pub fn get_pubchem_autocomplete(&self) -> Result<Option<Autocomplete>, String> {
-        let pubchem_autocomplete_lock = match self.pubchem_autocomplete.lock() {
+        let pubchem_autocomplete_lock = match self.pubchem_state.pubchem_autocomplete.lock() {
             Ok(locked) => locked,
             Err(e) => {
                 elog!(error, e.to_string());
@@ -724,7 +432,8 @@ impl App {
     pub fn get_store_locations_and_count(
         &self,
     ) -> Result<Option<(Vec<StoreLocation>, u64)>, String> {
-        let store_locations_and_count_lock = match self.store_locations.lock() {
+        let store_locations_and_count_lock = match self.store_location_state.store_locations.lock()
+        {
             Ok(locked) => locked,
             Err(e) => {
                 elog!(error, e.to_string());
@@ -738,7 +447,7 @@ impl App {
     }
 
     pub fn get_people_and_count(&self) -> Result<Option<(Vec<Person>, u64)>, String> {
-        let people_and_count_lock = match self.people.lock() {
+        let people_and_count_lock = match self.people_state.people.lock() {
             Ok(locked) => locked,
             Err(e) => {
                 elog!(error, e.to_string());
@@ -752,7 +461,7 @@ impl App {
     }
 
     pub fn get_entities_and_count(&self) -> Result<Option<(Vec<Entity>, u64)>, String> {
-        let entities_and_count_lock = match self.entities.lock() {
+        let entities_and_count_lock = match self.entity_state.entities.lock() {
             Ok(locked) => locked,
             Err(e) => {
                 elog!(error, e.to_string());
@@ -766,7 +475,7 @@ impl App {
     }
 
     pub fn get_products_and_count(&self) -> Result<Option<(Vec<Product>, u64)>, String> {
-        let products_and_count_lock = match self.products.lock() {
+        let products_and_count_lock = match self.product_state.products.lock() {
             Ok(locked) => locked,
             Err(e) => {
                 elog!(error, e.to_string());
@@ -780,7 +489,7 @@ impl App {
     }
 
     pub fn get_storages_and_count(&self) -> Result<Option<(Vec<Storage>, u64)>, String> {
-        let storages_and_count_lock = match self.storages.lock() {
+        let storages_and_count_lock = match self.storage_state.storages.lock() {
             Ok(locked) => locked,
             Err(e) => {
                 elog!(error, e.to_string());
@@ -794,7 +503,7 @@ impl App {
     }
 
     pub fn get_export_storages(&self) -> Result<Option<String>, String> {
-        let export_storages_lock = match self.export_storages.lock() {
+        let export_storages_lock = match self.storage_state.export_storages.lock() {
             Ok(locked) => locked,
             Err(e) => {
                 elog!(error, e.to_string());
@@ -806,31 +515,6 @@ impl App {
 
         Ok(result)
     }
-
-    // pub fn setup_custom_style(&self, ctx: &egui::Context) {
-    //     let theme = if self.state.darkmode {
-    //         egui::Theme::Dark
-    //     } else {
-    //         egui::Theme::Light
-    //     };
-    //     &ctx.style_mut_of(theme, |style| {
-    //         style.override_font_id = Some(egui::FontId::proportional(self.visual.app_font_size));
-    //     });
-    // }
-
-    // pub fn get_permissions(&self) -> Result<Option<Vec<Permission>>, String> {
-    //     let permissions_lock = match self.permissions.lock() {
-    //         Ok(locked) => locked,
-    //         Err(e) => {
-    //             elog!(error, e.to_string());
-    //             return Err(e.to_string());
-    //         }
-    //     };
-
-    //     let result: Option<Vec<Permission>> = (*permissions_lock).clone();
-
-    //     Ok(result)
-    // }
 }
 
 impl eframe::App for App {
@@ -839,7 +523,7 @@ impl eframe::App for App {
         self.state.window_rect = ui.max_rect();
 
         // Init visual if needed.
-        if !self.visual.is_init {
+        if self.visual_needs_init {
             let visual = &ui.visuals();
             let widgets = &visual.widgets;
             let selection = &visual.selection;
@@ -860,9 +544,6 @@ impl eframe::App for App {
             self.visual.app_bottom_margin = 10;
             self.visual.app_left_margin = 50;
             self.visual.app_right_margin = 50;
-
-            // Managed by slider.
-            // self.visual.app_font_size = 16.0;
 
             self.visual.app_corner_radius = CornerRadius::same(5);
 
@@ -890,60 +571,54 @@ impl eframe::App for App {
             self.visual.select2_border_when_selected_margin = egui::Margin::symmetric(5, 5);
             self.visual.select2_border_when_selected_corner_radius =
                 self.visual.app_corner_radius.average();
+            self.visual.select2_border_when_selected = egui_select2::select2::SelectedLayout {
+                show_border_when_selected: true,
+                border_when_selected_stroke: self.visual.select2_border_when_selected_stroke,
+                border_when_selected_margin: self.visual.select2_border_when_selected_margin,
+                border_when_selected_corner_radius: self
+                    .visual
+                    .select2_border_when_selected_corner_radius,
+            };
 
-            self.visual.is_init = true;
+            self.search_form.apply_visual(&self.visual);
+            self.create_product_form.apply_visual(&self.visual);
+
+            self.visual_needs_init = false;
         }
-
-        // Check for user informations promise.
-        // if let Some(p) = &self.promise_user_info {
-        //     if let Some(try_user_info) = p.ready() {
-        //         match try_user_info {
-        //             Ok(user_info) => {
-        //                 self.user_info = Some(user_info.clone());
-        //             }
-        //             Err(e) => {
-        //                 debug!("promise_user_info error: {e}");
-        //             }
-        //         }
-        //         self.promise_user_info = None;
-        //     }
-        // }
 
         // Do one time startup job.
         START.call_once(|| {
             // Get connected user.
-            get_connected_user(
-                Arc::clone(&self.connected_user),
-                self.channel_sender.clone(),
-            );
+            get_connected_user(Arc::clone(&self.connected_user), self.sender());
 
             // Get products.
             let mut request_filter = self.get_request_filter();
-            request_filter.order_by = Some(self.products_order_by.to_string());
-            request_filter.order = self.products_order.to_string();
+            request_filter.order_by = Some(self.product_state.products_order_by.to_string());
+            request_filter.order = self.product_state.products_order.to_string();
 
             get_products(
                 &request_filter,
-                Arc::clone(&self.products),
+                Arc::clone(&self.product_state.products),
                 false,
-                self.channel_sender.clone(),
+                self.sender(),
             );
 
             // Get version info.
-            get_version_info(Arc::clone(&self.version_info), self.channel_sender.clone());
+            get_version_info(Arc::clone(&self.version_info), self.sender());
         });
 
-        // Check channel messages.
-        if let Some(channel_receiver) = self.channel_receiver.as_ref()
-            && let Ok(maybe_message) = channel_receiver.recv(Some(Duration::ZERO))
-            && let Some(message) = maybe_message
-        {
-            self.is_loading = message;
-
-            if !message {
-                let ctx = ui.ctx();
-                ctx.request_repaint();
+        // Drain all pending loading-counter messages.
+        if let Some(channel_receiver) = self.channel_receiver.as_ref() {
+            while let Ok(Some(delta)) = channel_receiver.recv(Some(Duration::ZERO)) {
+                self.in_flight += delta;
+                if self.in_flight < 0 {
+                    self.in_flight = 0;
+                }
             }
+        }
+        if self.in_flight == 0 {
+            let ctx = ui.ctx();
+            ctx.request_repaint();
         }
 
         // Handle actions.
@@ -951,75 +626,72 @@ impl eframe::App for App {
             match action {
                 Action::GetProducts(append) => {
                     let mut request_filter = self.get_request_filter();
-                    request_filter.order_by = Some(self.products_order_by.to_string());
-                    request_filter.order = self.products_order.to_string();
+                    request_filter.order_by =
+                        Some(self.product_state.products_order_by.to_string());
+                    request_filter.order = self.product_state.products_order.to_string();
 
                     get_products(
                         &request_filter,
-                        Arc::clone(&self.products),
+                        Arc::clone(&self.product_state.products),
                         append,
-                        self.channel_sender.clone(),
+                        self.sender(),
                     );
                 }
                 Action::GetStorages(append) => {
-                    let mut request_filter = self.get_request_filter();
-                    request_filter.order_by = Some(self.storages_order_by.to_string());
-                    request_filter.order = self.storages_order.to_string();
-
-                    if self.storages_show_archives {
-                        request_filter.storage_archive = Some(true);
-                    } else {
-                        request_filter.storage_archive = Some(false);
-                    }
+                    let request_filter = self.build_storages_filter();
 
                     get_storages(
                         &request_filter,
-                        Arc::clone(&self.storages),
+                        Arc::clone(&self.storage_state.storages),
                         append,
-                        self.channel_sender.clone(),
+                        self.sender(),
                     );
                 }
                 Action::GetStorelocations => {
                     get_store_locations(
                         &RequestFilter {
                             // limit: Some(SEARCH_LIMIT),
-                            search: Some(self.search_store_location.clone()),
-                            order: self.store_locations_order.to_string(),
-                            order_by: Some(self.store_locations_order_by.to_string()),
+                            search: Some(self.store_location_state.search_store_location.clone()),
+                            order: self.store_location_state.store_locations_order.to_string(),
+                            order_by: Some(
+                                self.store_location_state
+                                    .store_locations_order_by
+                                    .to_string(),
+                            ),
                             ..Default::default()
                         },
-                        Arc::clone(&self.store_locations),
+                        Arc::clone(&self.store_location_state.store_locations),
                         false,
-                        self.channel_sender.clone(),
+                        self.sender(),
                     );
                 }
                 Action::GetEntities => {
                     get_entities(
                         &RequestFilter {
                             // limit: Some(SEARCH_LIMIT),
-                            search: Some(self.search_entity.clone()),
-                            order: self.entities_order.to_string(),
+                            search: Some(self.entity_state.search_entity.clone()),
+                            order: self.entity_state.entities_order.to_string(),
                             // order_by: Some(self.store_locations_order_by.to_string()),
                             ..Default::default()
                         },
-                        Arc::clone(&self.entities),
+                        Arc::clone(&self.entity_state.entities),
                         false,
-                        self.channel_sender.clone(),
+                        self.sender(),
                     );
                 }
                 Action::None => {}
                 Action::GetPubchemAutocomplete => {
                     get_pubchem_autocomplete(
-                        &self.pubchem_search,
-                        Arc::clone(&self.pubchem_autocomplete),
-                        self.channel_sender.clone(),
+                        &self.pubchem_state.pubchem_search,
+                        Arc::clone(&self.pubchem_state.pubchem_autocomplete),
+                        self.sender(),
                     );
                 }
                 Action::GetPubchemProduct => {
                     get_pubchem_product(
-                        &self.pubchem_search_name_clicked,
-                        Arc::clone(&self.pubchem_product),
-                        self.channel_sender.clone(),
+                        &self.pubchem_state.pubchem_search_name_clicked,
+                        Arc::clone(&self.pubchem_state.pubchem_product),
+                        self.sender(),
                     );
                 }
                 Action::GetPermissions => {
@@ -1027,70 +699,90 @@ impl eframe::App for App {
                 }
                 Action::ExportProducts => todo!(),
                 Action::ExportStorages => {
-                    let mut request_filter = self.get_request_filter();
-                    request_filter.order_by = Some(self.storages_order_by.to_string());
-                    request_filter.order = self.storages_order.to_string();
-
-                    if self.storages_show_archives {
-                        request_filter.storage_archive = Some(true);
-                    } else {
-                        request_filter.storage_archive = Some(false);
-                    }
+                    let request_filter = self.build_storages_filter();
 
                     export_storages(
                         &request_filter,
-                        Arc::clone(&self.export_storages),
-                        self.channel_sender.clone(),
+                        Arc::clone(&self.storage_state.export_storages),
+                        self.sender(),
                     );
                 }
                 Action::GetPeople => {
                     get_people(
                         &RequestFilter {
                             // limit: Some(SEARCH_LIMIT),
-                            search: Some(self.search_person.clone()),
-                            order: self.people_order.to_string(),
+                            search: Some(self.people_state.search_person.clone()),
+                            order: self.people_state.people_order.to_string(),
                             // order_by: Some(self.store_locations_order_by.to_string()),
                             ..Default::default()
                         },
-                        Arc::clone(&self.people),
+                        Arc::clone(&self.people_state.people),
                         false,
-                        self.channel_sender.clone(),
+                        self.sender(),
                     );
                 }
             }
         }
 
         // Check loading state of select2 widgets.
-        self.search_store_location_widget.check_loading();
-        self.search_name_widget.check_loading();
-        self.search_entity_widget.check_loading();
-        self.search_category_widget.check_loading();
-        self.search_empirical_formula_widget.check_loading();
-        self.search_hazard_statement_widget.check_loading();
-        self.search_precautionary_statement_widget.check_loading();
-        self.search_symbol_widget.check_loading();
-        self.search_tag_widget.check_loading();
-        self.search_cas_number_widget.check_loading();
-        self.search_producer_ref_widget.check_loading();
-        self.search_signal_word_widget.check_loading();
-
-        self.create_product_tag_widget.check_loading();
-        self.create_product_category_widget.check_loading();
-        self.create_product_name_widget.check_loading();
-        self.create_product_synonym_widget.check_loading();
-        self.create_product_empirical_formula_widget.check_loading();
-        self.create_product_linear_formula_widget.check_loading();
-        self.create_product_cas_number_widget.check_loading();
-        self.create_product_ce_number_widget.check_loading();
-        self.create_product_unit_molecular_weight_widget
+        self.search_form
+            .search_store_location_widget
             .check_loading();
-        self.create_product_unit_temperature_widget.check_loading();
+        self.search_form.search_name_widget.check_loading();
+        self.search_form.search_entity_widget.check_loading();
+        self.search_form.search_category_widget.check_loading();
+        self.search_form
+            .search_empirical_formula_widget
+            .check_loading();
+        self.search_form
+            .search_hazard_statement_widget
+            .check_loading();
+        self.search_form
+            .search_precautionary_statement_widget
+            .check_loading();
+        self.search_form.search_symbol_widget.check_loading();
+        self.search_form.search_tag_widget.check_loading();
+        self.search_form.search_cas_number_widget.check_loading();
+        self.search_form.search_producer_ref_widget.check_loading();
+        self.search_form.search_signal_word_widget.check_loading();
+
+        self.create_product_form
+            .create_product_tag_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_category_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_name_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_synonym_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_empirical_formula_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_linear_formula_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_cas_number_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_ce_number_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_unit_molecular_weight_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_unit_temperature_widget
+            .check_loading();
 
         // Check export storages ready to download.
         if let Ok(Some(export_storages)) = self.get_export_storages() {
             download_csv(&export_storages, "export_storages.csv");
 
             let mut export_storages_lock = self
+                .storage_state
                 .export_storages
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner);
@@ -1098,16 +790,10 @@ impl eframe::App for App {
             (*export_storages_lock) = None;
         }
 
-        // Check channels for messages.
-        // if let Some(receiver) = &self.receiver {
-        //     receiver.try_recv(){
-        //     }
-        // }
-
         let ctx = ui.ctx();
 
         // Foreground loading overlay.
-        if self.is_loading {
+        if self.in_flight > 0 {
             let screen_rect = ctx.viewport_rect();
 
             // keep repainting so spinner animates
@@ -1122,6 +808,7 @@ impl eframe::App for App {
                 });
         }
 
+        // Update connected user.
         match self.get_connected_user() {
             Ok(connected_user) => {
                 if connected_user.is_some() {
@@ -1136,6 +823,7 @@ impl eframe::App for App {
     }
 }
 
+// Loads an SVG from bytes and converts it into an egui texture.
 fn load_svg_texture(
     ctx: &egui::Context,
     name: &str,
@@ -1158,15 +846,6 @@ fn load_svg_texture(
 
     Ok(ctx.load_texture(name, image, egui::TextureOptions::LINEAR))
 }
-
-// fn load_texture(ctx: &egui::Context, name: &str, bytes: &[u8]) -> egui::TextureHandle {
-//     let image = image::load_from_memory(bytes).unwrap().to_rgba8();
-//     let size = [image.width() as usize, image.height() as usize];
-//     let pixels = image.into_raw();
-//     let color_image = egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
-
-//     ctx.load_texture(name.to_string(), color_image, egui::TextureOptions::LINEAR)
-// }
 
 fn setup_custom_fonts(ctx: &egui::Context) -> Result<(), Box<dyn Error>> {
     let mut fonts = egui::FontDefinitions::default();

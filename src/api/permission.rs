@@ -1,6 +1,5 @@
 use crate::{
     elog,
-    error::apperror::AppError,
     keycloak::get_token,
     types::{PermissionStatus, SharedPermissionList},
 };
@@ -21,7 +20,7 @@ pub fn get_permissions(maybe_permissions: &SharedPermissionList) {
             if permission.status == PermissionStatus::ToRetrieve {
                 permission.status = PermissionStatus::InProgress;
 
-                let mut url = "https://localhost:8443/back/f".to_string();
+                let mut url = format!("{}/back/f", crate::config::BASE_URL.as_str());
                 url.push_str(format!("/{}", permission.item).as_str());
 
                 if let Some(entity) = permission.entity {
@@ -59,7 +58,7 @@ fn send_request(
     ehttp::fetch(
         request.clone(),
         move |mayerr_response| match mayerr_response {
-            Ok(response) => match parse_response(&response) {
+            Ok(response) => match crate::api::parse_json_response::<bool>(&response) {
                 Ok(granted) => {
                     let mut permissions_lock = match maybe_permissions.lock() {
                         Ok(locked) => locked,
@@ -86,26 +85,4 @@ fn send_request(
             }
         },
     );
-}
-
-fn parse_response(response: &ehttp::Response) -> Result<bool, AppError> {
-    match response.status {
-        200 => {
-            if let Some(text_response) = response.text() {
-                match serde_json::from_str(text_response) {
-                    Ok(json_response) => Ok(json_response),
-                    Err(e) => Err(AppError::InternalError(e.to_string())),
-                }
-            } else {
-                Err(AppError::UnexpectedEmptyResponse)
-            }
-        }
-        _ => {
-            if let Some(text_response) = response.text() {
-                Err(AppError::NotOkHTTPResponse(text_response.to_string()))
-            } else {
-                Err(AppError::NotOkHTTPResponse(response.status.to_string()))
-            }
-        }
-    }
 }

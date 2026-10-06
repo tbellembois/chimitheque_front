@@ -1,11 +1,10 @@
 use egui::{Color32, CornerRadius, Margin, Stroke};
 use egui_select2::select2::SelectedLayout;
 
-/// Application visual.
+/// Application visual — always holds fully-initialized values.
+/// Whether the values are up-to-date is tracked separately in `App::visual_needs_init`.
 #[derive(Debug)]
 pub struct ApplicationVisual {
-    pub is_init: bool,
-
     pub hovered_bg_color: Color32,
     pub selected_bg_color: Color32,
 
@@ -54,7 +53,6 @@ pub struct ApplicationVisual {
 impl Default for ApplicationVisual {
     fn default() -> ApplicationVisual {
         Self {
-            is_init: false,
             normal_bg_color: Color32::WHITE,
             faint_bg_color: Color32::WHITE,
             hovered_bg_color: Color32::WHITE,

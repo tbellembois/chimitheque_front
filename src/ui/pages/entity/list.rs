@@ -50,7 +50,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 ui.add_space(20.0);
 
                 let response = ui.add(
-                    egui::TextEdit::singleline(&mut app.search_entity)
+                    egui::TextEdit::singleline(&mut app.entity_state.search_entity)
                         .hint_text(t!("entity_search_hint")),
                 );
                 if button_with_icon_and_text(
@@ -61,7 +61,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 )
                 .clicked()
                 {
-                    app.search_entity = String::new();
+                    app.entity_state.search_entity = String::new();
                     app.state.action.push_back(Action::GetEntities);
                 }
 
@@ -70,14 +70,15 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
 
                 // Detect changes.
                 if response.changed() {
-                    app.search_entity_last_edit = now;
-                    app.search_entity_action_triggered = false;
+                    app.entity_state.search_entity_last_edit = now;
+                    app.entity_state.search_entity_action_triggered = false;
                 }
 
                 // Debounce logic.
-                if !app.search_entity_action_triggered && (now - app.search_entity_last_edit) >= 0.5
+                if !app.entity_state.search_entity_action_triggered
+                    && (now - app.entity_state.search_entity_last_edit) >= 0.5
                 {
-                    app.search_entity_action_triggered = true;
+                    app.entity_state.search_entity_action_triggered = true;
 
                     app.state.action.push_back(Action::GetEntities);
                 }
@@ -101,7 +102,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 .header(60.0, |mut header| {
                     header.col(|ui| {
                         if ui.link(t!("entity_name")).clicked() {
-                            app.entities_order = match app.entities_order {
+                            app.entity_state.entities_order = match app.entity_state.entities_order
+                            {
                                 GenericOrder::Asc => GenericOrder::Desc,
                                 GenericOrder::Desc => GenericOrder::Asc,
                             };

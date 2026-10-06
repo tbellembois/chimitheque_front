@@ -31,10 +31,12 @@ pub fn render_storage_label(
         .stroke(app.visual.normal_stroke);
 
     let storage_card_shown = app
+        .storage_state
         .storage_cards_shown
         .contains(&storage.storage_id.unwrap_or_default());
 
     let storage_card_actions_shown = app
+        .storage_state
         .storage_cards_actions_shown
         .contains(&storage.storage_id.unwrap_or_default());
 
@@ -68,11 +70,13 @@ pub fn render_storage_label(
                     row.col(|ui| {
                         if storage_card_shown {
                             if button_with_icon(ui, egui_phosphor::regular::MINUS).clicked() {
-                                app.storage_cards_shown
+                                app.storage_state
+                                    .storage_cards_shown
                                     .retain(|id| *id != storage.storage_id.unwrap_or_default());
                             }
                         } else if button_with_icon(ui, egui_phosphor::regular::PLUS).clicked() {
-                            app.storage_cards_shown
+                            app.storage_state
+                                .storage_cards_shown
                                 .push(storage.storage_id.unwrap_or_default());
                         }
                     });
@@ -149,7 +153,8 @@ pub fn render_storage_label(
                             if button_with_icon(ui, egui_phosphor::regular::DOTS_THREE_CIRCLE)
                                 .clicked()
                             {
-                                app.storage_cards_actions_shown
+                                app.storage_state
+                                    .storage_cards_actions_shown
                                     .retain(|id| *id != storage.storage_id.unwrap_or_default());
                             }
                         } else if button_with_icon(
@@ -158,7 +163,8 @@ pub fn render_storage_label(
                         )
                         .clicked()
                         {
-                            app.storage_cards_actions_shown
+                            app.storage_state
+                                .storage_cards_actions_shown
                                 .push(storage.storage_id.unwrap_or_default());
                         }
                     });

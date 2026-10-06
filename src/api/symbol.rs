@@ -1,11 +1,12 @@
-use crate::{elog, error::apperror::AppError, keycloak::get_token};
+use crate::{elog, keycloak::get_token};
 use chimitheque_types::{requestfilter::RequestFilter, symbol::Symbol};
 use egui::{Response, Ui, Vec2};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
 
 fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
     ehttp::Request::get(format!(
-        "https://localhost:8443/back/products/symbols{request_filter}",
+        "{}/back/products/symbols{request_filter}",
+        crate::config::BASE_URL.as_str(),
     ))
     .with_headers(ehttp::Headers::new(&[
         (
@@ -61,7 +62,7 @@ pub fn load_suggestions(
                 }
             };
 
-            match parse_response(&response) {
+            match crate::api::parse_json_response::<(Vec<Symbol>, u64)>(&response) {
                 Ok(response_symbolss_and_count) => {
                     let items: Vec<SelectItem> = response_symbolss_and_count
                         .0
@@ -89,26 +90,4 @@ pub fn load_suggestions(
             log::error!("{e}");
         }
     });
-}
-
-fn parse_response(response: &ehttp::Response) -> Result<(Vec<Symbol>, u64), AppError> {
-    match response.status {
-        200 => {
-            if let Some(text_response) = response.text() {
-                match serde_json::from_str(text_response) {
-                    Ok(json_response) => Ok(json_response),
-                    Err(e) => Err(AppError::InternalError(e.to_string())),
-                }
-            } else {
-                Err(AppError::UnexpectedEmptyResponse)
-            }
-        }
-        _ => {
-            if let Some(text_response) = response.text() {
-                Err(AppError::NotOkHTTPResponse(text_response.to_string()))
-            } else {
-                Err(AppError::NotOkHTTPResponse(response.status.to_string()))
-            }
-        }
-    }
 }

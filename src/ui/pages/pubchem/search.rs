@@ -28,12 +28,12 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
 
         ui.horizontal(|ui| {
             let response = ui.add(
-                egui::TextEdit::singleline(&mut app.pubchem_search)
+                egui::TextEdit::singleline(&mut app.pubchem_state.pubchem_search)
                     .hint_text(t!("pubchem_input_search")),
             );
 
             if response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                app.pubchem_results_expanded = true;
+                app.pubchem_state.pubchem_results_expanded = true;
                 app.state.action.push_back(Action::GetPubchemAutocomplete);
             }
 
@@ -47,14 +47,14 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
             )
             .clicked()
             {
-                app.pubchem_results_expanded = true;
+                app.pubchem_state.pubchem_results_expanded = true;
                 app.state.action.push_back(Action::GetPubchemAutocomplete);
             }
         });
 
         ui.add_space(20.0);
 
-        if app.pubchem_results_expanded {
+        if app.pubchem_state.pubchem_results_expanded {
             if let Ok(may_be_pubchem_autocomplete) = app.get_pubchem_autocomplete()
                 && let Some(pubchem_autocomplete) = may_be_pubchem_autocomplete
                 && let Some(dictionary_terms) = pubchem_autocomplete.dictionary_terms
@@ -62,8 +62,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
                     for compound in dictionary_terms.compound {
                         if ui.link(compound.clone()).clicked() {
-                            app.pubchem_search_name_clicked = compound;
-                            app.pubchem_results_expanded = false;
+                            app.pubchem_state.pubchem_search_name_clicked = compound;
+                            app.pubchem_state.pubchem_results_expanded = false;
                             app.state.action.push_back(Action::GetPubchemProduct);
                         }
                     }
@@ -79,7 +79,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
             )
             .clicked()
         {
-            app.pubchem_results_expanded = true;
+            app.pubchem_state.pubchem_results_expanded = true;
         }
 
         ui.add_space(20.0);

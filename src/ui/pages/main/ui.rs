@@ -2,7 +2,6 @@ use crate::{
     logger::{LOGS, LogMessage},
     ui::{
         app::App,
-        components::searchform::render_search_form,
         pages::{entity, person, product, pubchem, storage, storelocation},
         state::{Action, Page},
         widgets::{
@@ -67,10 +66,10 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     if ui.checkbox(&mut app.state.darkmode, "").changed() {
                         if app.state.darkmode {
                             ui.ctx().set_theme(egui::Theme::Dark);
-                            app.visual.is_init = false;
+                            app.visual_needs_init = true;
                         } else {
                             ui.ctx().set_theme(egui::Theme::Light);
-                            app.visual.is_init = false;
+                            app.visual_needs_init = true;
                         }
                     }
                 });
@@ -143,7 +142,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 )
                 .clicked()
                 {
-                    app.search_form_expanded = false;
+                    app.search_form.is_expanded = false;
                     app.state.action.push_back(Action::GetProducts(false));
                     app.state.active_page = Page::ProductList;
                 }
@@ -194,62 +193,6 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     app.state.action.push_back(Action::GetPeople);
                     app.state.active_page = Page::PeopleList;
                 }
-                // egui::MenuBar::new().ui(ui, |ui| {
-                //     ui.menu_button(
-                //         egui::RichText::new(format!(
-                //             "{} {}",
-                //             egui_phosphor::fill::BOOKMARK,
-                //             t!("menu_bookmarks")
-                //         )),
-                //         |ui| {
-                //             if ui.button(t!("list")).clicked() {
-                //                 //functionality
-                //             }
-                //         },
-                //     );
-
-                //     ui.menu_button(
-                //         egui::RichText::new(format!(
-                //             "{} {}",
-                //             egui_phosphor::fill::TAG,
-                //             t!("menu_products")
-                //         )),
-                //         |ui| {
-                //             if ui.button(t!("list")).clicked() {
-                //                 app.state.action = Action::GetProducts;
-                //                 app.state.active_page = Page::ProductList;
-                //             }
-                //         },
-                //     );
-
-                //     ui.menu_button(
-                //         egui::RichText::new(format!(
-                //             "{} {}",
-                //             egui_phosphor::fill::LETTER_CIRCLE_P,
-                //             t!("menu_pubchem")
-                //         )),
-                //         |ui| {
-                //             if ui.button(t!("search")).clicked() {
-                //                 // app.state.action = Action::GetProducts;
-                //                 app.state.active_page = Page::Pubchem;
-                //             }
-                //         },
-                //     );
-
-                //     ui.menu_button(
-                //         egui::RichText::new(format!(
-                //             "{} {}",
-                //             egui_phosphor::fill::WAREHOUSE,
-                //             t!("menu_storelocations")
-                //         )),
-                //         |ui| {
-                //             if ui.button(t!("list")).clicked() {
-                //                 app.state.action = Action::GetStorelocations;
-                //                 app.state.active_page = Page::StorelocationList;
-                //             }
-                //         },
-                //     );
-                // });
             });
         });
 
@@ -310,14 +253,16 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         )
         .show(ui, |ui| match app.state.active_page {
             Page::ProductList => {
-                render_search_form(app, ui, frame);
+                let state = &mut app.state;
+                app.search_form.render(ui, state, &app.visual);
 
                 ui.add_space(20.0);
 
                 product::list::update(app, ui, frame);
             }
             Page::StorageList => {
-                render_search_form(app, ui, frame);
+                let state = &mut app.state;
+                app.search_form.render(ui, state, &app.visual);
 
                 ui.add_space(20.0);
 
@@ -335,6 +280,9 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             Page::PeopleList => {
                 person::list::update(app, ui, frame);
             }
-            Page::ProductCreate => product::create::render(app, ui, frame),
+            Page::ProductCreate => {
+                let state = &mut app.state;
+                app.create_product_form.render(ui, state, &app.visual);
+            }
         });
 }

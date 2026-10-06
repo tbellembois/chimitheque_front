@@ -50,7 +50,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 ui.add_space(20.0);
 
                 let response = ui.add(
-                    egui::TextEdit::singleline(&mut app.search_person)
+                    egui::TextEdit::singleline(&mut app.people_state.search_person)
                         .hint_text(t!("person_search_hint")),
                 );
                 if button_with_icon_and_text(
@@ -61,7 +61,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 )
                 .clicked()
                 {
-                    app.search_person = String::new();
+                    app.people_state.search_person = String::new();
                     app.state.action.push_back(Action::GetPeople);
                 }
 
@@ -70,14 +70,15 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
 
                 // Detect changes.
                 if response.changed() {
-                    app.search_person_last_edit = now;
-                    app.search_person_action_triggered = false;
+                    app.people_state.search_person_last_edit = now;
+                    app.people_state.search_person_action_triggered = false;
                 }
 
                 // Debounce logic.
-                if !app.search_person_action_triggered && (now - app.search_person_last_edit) >= 0.5
+                if !app.people_state.search_person_action_triggered
+                    && (now - app.people_state.search_person_last_edit) >= 0.5
                 {
-                    app.search_person_action_triggered = true;
+                    app.people_state.search_person_action_triggered = true;
 
                     app.state.action.push_back(Action::GetPeople);
                 }
@@ -101,7 +102,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 .header(60.0, |mut header| {
                     header.col(|ui| {
                         if ui.link(t!("person_name")).clicked() {
-                            app.people_order = match app.people_order {
+                            app.people_state.people_order = match app.people_state.people_order {
                                 GenericOrder::Asc => GenericOrder::Desc,
                                 GenericOrder::Desc => GenericOrder::Asc,
                             };

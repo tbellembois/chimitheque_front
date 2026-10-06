@@ -65,7 +65,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             },
         );
 
-        let showing_products = app.search_limit + app.current_search_offset;
+        let showing_products = app.search_form.search_limit + app.search_form.search_offset;
         let total_products = count;
 
         ui.label(t!(
@@ -83,7 +83,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.products_order_by,
+                    &mut app.product_state.products_order_by,
                     ProductsOrderBy::Name,
                     t!("product_card_name"),
                 )
@@ -94,7 +94,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.products_order_by,
+                    &mut app.product_state.products_order_by,
                     ProductsOrderBy::CasNumber,
                     t!("product_card_cas_number"),
                 )
@@ -105,7 +105,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.products_order_by,
+                    &mut app.product_state.products_order_by,
                     ProductsOrderBy::EmpiricalFormula,
                     t!("product_card_empirical_formula"),
                 )
@@ -118,7 +118,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.products_order,
+                    &mut app.product_state.products_order,
                     crate::types::GenericOrder::Asc,
                     t!("order_asc"),
                 )
@@ -129,7 +129,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
             if ui
                 .selectable_value(
-                    &mut app.products_order,
+                    &mut app.product_state.products_order,
                     crate::types::GenericOrder::Desc,
                     t!("order_desc"),
                 )
@@ -154,7 +154,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         let near_bottom = offset >= max_offset - 50.0;
 
         if near_bottom && !app.state.scrollarea_was_near_bottom && count > 0 {
-            app.current_search_offset += app.search_limit;
+            app.search_form.search_offset += app.search_form.search_limit;
 
             app.state.action.push_back(Action::GetProducts(true));
         }

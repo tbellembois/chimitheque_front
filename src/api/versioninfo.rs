@@ -1,27 +1,21 @@
-use crate::{elog, error::apperror::AppError, keycloak::get_token, types::SharedVersionInfo};
+use crate::{elog, keycloak::get_token, types::SharedVersionInfo};
 use chimitheque_types::versioninfo::VersionInfo;
 use wasm_rs_shared_channel::spsc::Sender;
 
-pub fn get_version_info(
-    shared_maybe_version_info: SharedVersionInfo,
-    is_loading_channel_sender: Option<Sender<bool>>,
-) {
-    let request = ehttp::Request::get("https://localhost:8443/back/versioninfo").with_headers(
-        ehttp::Headers::new(&[
-            (
-                "Authorization",
-                format!("Bearer {}", get_token().unwrap_or_default()).as_str(),
-            ),
-            ("Content-Type", "application/json; charset=UTF-8;"),
-        ]),
-    );
+pub fn get_version_info(shared_maybe_version_info: SharedVersionInfo, channel_sender: Sender<i32>) {
+    let request = ehttp::Request::get(format!(
+        "{}/back/versioninfo",
+        crate::config::BASE_URL.as_str()
+    ))
+    .with_headers(ehttp::Headers::new(&[
+        (
+            "Authorization",
+            format!("Bearer {}", get_token().unwrap_or_default()).as_str(),
+        ),
+        ("Content-Type", "application/json; charset=UTF-8;"),
+    ]));
 
-    let Some(channel_sender) = is_loading_channel_sender else {
-        elog!(error, "is_loading_channel_sender is None");
-        return;
-    };
-
-    let _ = channel_sender.send(&true);
+    let _ = channel_sender.send(&1_i32);
 
     elog!(info, "getting version info");
 
@@ -37,7 +31,7 @@ pub fn get_version_info(
                     }
                 };
 
-                match parse_response(&response) {
+                match crate::api::parse_json_response::<VersionInfo>(&response) {
                     Ok(response_version_info) => {
                         *maybe_current_version_info = Some(response_version_info);
                     }
@@ -51,7 +45,7 @@ pub fn get_version_info(
             }
         }
 
-        let _ = channel_sender.send(&false);
+        let _ = channel_sender.send(&(-1_i32));
 
         elog!(
             info,
@@ -61,26 +55,4 @@ pub fn get_version_info(
             )
         );
     });
-}
-
-fn parse_response(response: &ehttp::Response) -> Result<VersionInfo, AppError> {
-    match response.status {
-        200 => {
-            if let Some(text_response) = response.text() {
-                match serde_json::from_str(text_response) {
-                    Ok(json_response) => Ok(json_response),
-                    Err(e) => Err(AppError::InternalError(e.to_string())),
-                }
-            } else {
-                Err(AppError::UnexpectedEmptyResponse)
-            }
-        }
-        _ => {
-            if let Some(text_response) = response.text() {
-                Err(AppError::NotOkHTTPResponse(text_response.to_string()))
-            } else {
-                Err(AppError::NotOkHTTPResponse(response.status.to_string()))
-            }
-        }
-    }
 }

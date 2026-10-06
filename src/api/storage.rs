@@ -9,7 +9,8 @@ use wasm_rs_shared_channel::spsc::Sender;
 
 fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
     ehttp::Request::get(format!(
-        "https://localhost:8443/back/storages{request_filter}",
+        "{}/back/storages{request_filter}",
+        crate::config::BASE_URL.as_str(),
     ))
     .with_headers(ehttp::Headers::new(&[
         (
@@ -22,7 +23,8 @@ fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
 
 fn build_export_request(request_filter: &RequestFilter) -> ehttp::Request {
     ehttp::Request::get(format!(
-        "https://localhost:8443/back/exportstorages{request_filter}",
+        "{}/back/exportstorages{request_filter}",
+        crate::config::BASE_URL.as_str(),
     ))
     .with_headers(ehttp::Headers::new(&[
         (
@@ -36,19 +38,14 @@ fn build_export_request(request_filter: &RequestFilter) -> ehttp::Request {
 pub fn export_storages(
     request_filter: &RequestFilter,
     shared_maybe_string: SharedString,
-    is_loading_channel_sender: Option<Sender<bool>>,
+    channel_sender: Sender<i32>,
 ) {
     let mut request_filter = request_filter.clone();
     request_filter.offset = None;
     request_filter.limit = None;
     let request = build_export_request(&request_filter);
 
-    let Some(channel_sender) = is_loading_channel_sender else {
-        elog!(error, "is_loading_channel_sender is None");
-        return;
-    };
-
-    let _ = channel_sender.send(&true);
+    let _ = channel_sender.send(&1_i32);
 
     elog!(info, "exporting storages");
 
@@ -64,7 +61,18 @@ pub fn export_storages(
                     }
                 };
 
-                match parse_export_response(&response) {
+                match match response.status {
+                    200 => response
+                        .text()
+                        .map(|t| t.to_string())
+                        .ok_or(AppError::UnexpectedEmptyResponse),
+                    _ => Err(AppError::NotOkHTTPResponse(
+                        response
+                            .text()
+                            .map(|t| t.to_string())
+                            .unwrap_or_else(|| response.status.to_string()),
+                    )),
+                } {
                     Ok(response_string) => {
                         *maybe_string = Some(response_string);
                     }
@@ -74,11 +82,11 @@ pub fn export_storages(
                 }
             }
             Err(e) => {
-                elog!(error, format!("{e}"));
+                elog!(error, e.to_string());
             }
         }
 
-        let _ = channel_sender.send(&false);
+        let _ = channel_sender.send(&(-1_i32));
 
         elog!(
             info,
@@ -94,17 +102,12 @@ pub fn get_storages(
     request_filter: &RequestFilter,
     shared_maybe_storages_and_count: SharedStorageAndCountList,
     append: bool,
-    is_loading_channel_sender: Option<Sender<bool>>,
+    channel_sender: Sender<i32>,
 ) {
     let offset = request_filter.offset.unwrap_or_default();
     let request = build_request(request_filter);
 
-    let Some(channel_sender) = is_loading_channel_sender else {
-        elog!(error, "is_loading_channel_sender is None");
-        return;
-    };
-
-    let _ = channel_sender.send(&true);
+    let _ = channel_sender.send(&1_i32);
 
     elog!(info, format!("getting storages (offset: {offset})"));
 
@@ -121,7 +124,7 @@ pub fn get_storages(
                         }
                     };
 
-                match parse_response(&response) {
+                match crate::api::parse_json_response::<(Vec<Storage>, u64)>(&response) {
                     Ok(mut response_storages_and_count) => {
                         if append {
                             if let Some(current_storages_and_count) =
@@ -148,7 +151,7 @@ pub fn get_storages(
             }
         }
 
-        let _ = channel_sender.send(&false);
+        let _ = channel_sender.send(&(-1_i32));
 
         elog!(
             info,
@@ -158,45 +161,4 @@ pub fn get_storages(
             )
         );
     });
-}
-
-fn parse_response(response: &ehttp::Response) -> Result<(Vec<Storage>, u64), AppError> {
-    match response.status {
-        200 => {
-            if let Some(text_response) = response.text() {
-                match serde_json::from_str(text_response) {
-                    Ok(json_response) => Ok(json_response),
-                    Err(e) => Err(AppError::InternalError(e.to_string())),
-                }
-            } else {
-                Err(AppError::UnexpectedEmptyResponse)
-            }
-        }
-        _ => {
-            if let Some(text_response) = response.text() {
-                Err(AppError::NotOkHTTPResponse(text_response.to_string()))
-            } else {
-                Err(AppError::NotOkHTTPResponse(response.status.to_string()))
-            }
-        }
-    }
-}
-
-fn parse_export_response(response: &ehttp::Response) -> Result<String, AppError> {
-    match response.status {
-        200 => {
-            if let Some(text_response) = response.text() {
-                Ok(text_response.to_string())
-            } else {
-                Err(AppError::UnexpectedEmptyResponse)
-            }
-        }
-        _ => {
-            if let Some(text_response) = response.text() {
-                Err(AppError::NotOkHTTPResponse(text_response.to_string()))
-            } else {
-                Err(AppError::NotOkHTTPResponse(response.status.to_string()))
-            }
-        }
-    }
 }
