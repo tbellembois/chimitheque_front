@@ -1,6 +1,6 @@
-use chimitheque_utils::{inchi::is_inchi, smiles::is_canonical_smiles};
+use chimitheque_utils::inchi::is_inchi;
 use egui::{Response, TextBuffer};
-use egui_select2::select2::EguiSelect2;
+use egui_select2::select2::{Configuration, EguiSelect2};
 use rust_i18n::t;
 use std::sync::Arc;
 
@@ -67,6 +67,8 @@ pub struct CreateProductForm {
     pub create_product_radioactive: bool,
 
     pub inchi_is_valid: bool,
+    pub inchikey_is_valid: bool,
+    pub smiles_is_valid: bool,
 }
 
 impl CreateProductForm {
@@ -94,12 +96,6 @@ impl CreateProductForm {
             .selected_layout = layout;
     }
 
-    /// Helper method to configure widget settings
-    fn configure_widget(widget: &mut EguiSelect2, multiple: bool, read_only: bool) {
-        widget.configuration.multiple = multiple;
-        widget.configuration.read_only = read_only;
-    }
-
     pub fn new() -> Self {
         let translations = egui_select2::select2::Translations {
             loading: t!("select2_loading").to_string(),
@@ -111,86 +107,214 @@ impl CreateProductForm {
             ..Default::default()
         };
 
-        let mut create_product_form = Self {
+        let create_product_form = Self {
             create_product_tag_widget: EguiSelect2::new(
                 Arc::new(crate::api::tag::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_tag").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: true,
+                    read_only: false,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_category_widget: EguiSelect2::new(
                 Arc::new(crate::api::category::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_category").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: false,
+                    read_only: true,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_name_widget: EguiSelect2::new(
                 Arc::new(crate::api::name::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_name").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: false,
+                    read_only: false,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_synonym_widget: EguiSelect2::new(
                 Arc::new(crate::api::name::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_synonym").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: true,
+                    read_only: false,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_empirical_formula_widget: EguiSelect2::new(
                 Arc::new(crate::api::empiricalformula::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_empirical_formula").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: false,
+                    read_only: false,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_linear_formula_widget: EguiSelect2::new(
                 Arc::new(crate::api::linearformula::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_linear_formula").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: false,
+                    read_only: false,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_cas_number_widget: EguiSelect2::new(
                 Arc::new(crate::api::casnumber::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_cas_number").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: false,
+                    read_only: false,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_ce_number_widget: EguiSelect2::new(
                 Arc::new(crate::api::cenumber::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_ce_number").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: false,
+                    read_only: false,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_unit_molecular_weight_widget: EguiSelect2::new(
                 Arc::new(crate::api::unitmolecularweight::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_unit_molecular_weight").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: false,
+                    read_only: true,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_unit_temperature_widget: EguiSelect2::new(
                 Arc::new(crate::api::unittemperature::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_unit_temperature").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: false,
+                    read_only: true,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_physical_state_widget: EguiSelect2::new(
                 Arc::new(crate::api::physicalstate::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_physical_state").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: false,
+                    read_only: true,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_class_of_compound_widget: EguiSelect2::new(
                 Arc::new(crate::api::classofcompound::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_class_of_compound").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: true,
+                    read_only: false,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_signal_word_widget: EguiSelect2::new(
                 Arc::new(crate::api::signalword::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_signal_word").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: false,
+                    read_only: true,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_symbol_widget: EguiSelect2::new(
                 Arc::new(crate::api::symbol::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_symbol").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: true,
+                    read_only: true,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_hazard_statement_widget: EguiSelect2::new(
                 Arc::new(crate::api::hazardstatement::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_hazard_statement").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: true,
+                    read_only: true,
+                    ..Default::default()
+                }),
+                None,
             ),
             create_product_precautionary_statement_widget: EguiSelect2::new(
                 Arc::new(crate::api::precautionarystatement::load_suggestions),
-                translations.clone(),
                 t!("select2_hint_precautionary_statement").as_str(),
+                Some(translations.clone()),
+                None,
+                None,
+                Some(Configuration {
+                    multiple: true,
+                    read_only: true,
+                    ..Default::default()
+                }),
+                None,
             ),
 
             // Initialize all remaining fields
@@ -210,59 +334,9 @@ impl CreateProductForm {
             create_product_molecule_picture: Vec::default(),
 
             inchi_is_valid: true,
+            inchikey_is_valid: true,
+            smiles_is_valid: true,
         };
-
-        // Configure widget settings using helper method
-        Self::configure_widget(
-            &mut create_product_form.create_product_tag_widget,
-            true,
-            false,
-        );
-        Self::configure_widget(
-            &mut create_product_form.create_product_category_widget,
-            false,
-            true,
-        );
-        Self::configure_widget(
-            &mut create_product_form.create_product_name_widget,
-            false,
-            false,
-        );
-        Self::configure_widget(
-            &mut create_product_form.create_product_synonym_widget,
-            true,
-            false,
-        );
-        Self::configure_widget(
-            &mut create_product_form.create_product_empirical_formula_widget,
-            false,
-            false,
-        );
-        Self::configure_widget(
-            &mut create_product_form.create_product_linear_formula_widget,
-            false,
-            false,
-        );
-        Self::configure_widget(
-            &mut create_product_form.create_product_cas_number_widget,
-            false,
-            false,
-        );
-        Self::configure_widget(
-            &mut create_product_form.create_product_ce_number_widget,
-            false,
-            false,
-        );
-        Self::configure_widget(
-            &mut create_product_form.create_product_unit_molecular_weight_widget,
-            false,
-            true,
-        );
-        Self::configure_widget(
-            &mut create_product_form.create_product_unit_temperature_widget,
-            false,
-            true,
-        );
 
         create_product_form
     }
@@ -369,7 +443,7 @@ impl CreateProductForm {
                                 self.create_product_category_widget.ui(ui);
                                 ui.end_row();
 
-                                // ui.horizontal() bug.
+                                // ui.horizontal() destroys the layout with select2
                                 egui::Frame::group(ui.style())
                                     .stroke(egui::Stroke::NONE)
                                     .show(ui, |ui| {
@@ -394,9 +468,9 @@ impl CreateProductForm {
                                     )
                                     .hint_text(t!("create_product_form_specificity")),
                                 );
-
                                 ui.end_row();
 
+                                // inchi input and validation.
                                 egui::Frame::group(ui.style())
                                     .stroke(egui::Stroke::NONE)
                                     .show(ui, |ui| {
@@ -418,17 +492,52 @@ impl CreateProductForm {
                                         }
                                     });
 
-                                ui.add(
-                                    egui::TextEdit::singleline(&mut self.create_product_inchikey)
-                                        .hint_text(t!("create_product_form_inchikey")),
-                                );
+                                // inchi key input and validation.
+                                egui::Frame::group(ui.style())
+                                    .stroke(egui::Stroke::NONE)
+                                    .show(ui, |ui| {
+                                        let response = ui.add(
+                                            egui::TextEdit::singleline(
+                                                &mut self.create_product_inchi,
+                                            )
+                                            .hint_text(t!("create_product_form_inchikey")),
+                                        );
+                                        if response.changed() {
+                                            self.inchikey_is_valid =
+                                                is_inchi(self.create_product_inchikey.as_str());
+                                        }
+                                        if !self.inchikey_is_valid {
+                                            invalid_input_label(
+                                                ui,
+                                                t!("create_product_form_inchikey_invalid")
+                                                    .to_string(),
+                                            );
+                                        }
+                                    });
                                 ui.end_row();
 
-                                ui.add(
-                                    egui::TextEdit::singleline(&mut self.create_product_smiles)
-                                        .hint_text(t!("create_product_form_smiles")),
-                                );
-
+                                // smiles input and validation.
+                                egui::Frame::group(ui.style())
+                                    .stroke(egui::Stroke::NONE)
+                                    .show(ui, |ui| {
+                                        let response = ui.add(
+                                            egui::TextEdit::singleline(
+                                                &mut self.create_product_smiles,
+                                            )
+                                            .hint_text(t!("create_product_form_smiles")),
+                                        );
+                                        if response.changed() {
+                                            self.smiles_is_valid =
+                                                is_inchi(self.create_product_smiles.as_str());
+                                        }
+                                        if !self.smiles_is_valid {
+                                            invalid_input_label(
+                                                ui,
+                                                t!("create_product_form_smiles_invalid")
+                                                    .to_string(),
+                                            );
+                                        }
+                                    });
                                 ui.end_row();
 
                                 egui::Frame::group(ui.style())
@@ -443,29 +552,6 @@ impl CreateProductForm {
                                         );
                                         self.create_product_unit_molecular_weight_widget.ui(ui);
                                     });
-
-                                // ui.horizontal(|ui| {
-                                //     ui.label(t!("create_product_form_molecular_weight"));
-                                //     ui.add(
-                                //         egui::DragValue::new(
-                                //             &mut self.create_product_molecular_weight,
-                                //         )
-                                //         .speed(0.1),
-                                //     );
-                                //     self.create_product_unit_molecular_weight_widget.ui(ui);
-                                // });
-                                // ui.end_row();
-
-                                // ui.add(
-                                //     egui::TextEdit::singleline(&mut app.search_part_of_name)
-                                //         .hint_text(t!("search_input_part_of_name")),
-                                // );
-                                // app.search_name_widget.ui(ui);
-                                // ui.add(
-                                //     egui::TextEdit::singleline(&mut app.search_barecode)
-                                //         .hint_text(t!("search_input_barecode")),
-                                // );
-                                // ui.end_row();
 
                                 // app.search_cas_number_widget.ui(ui);
                                 // app.search_empirical_formula_widget.ui(ui);

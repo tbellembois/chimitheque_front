@@ -1,7 +1,6 @@
 use std::fmt;
 
 pub enum AppError {
-    ChannelReceiveError,
     InternalError(String),
     UnexpectedEmptyResponse,
     NotOkHTTPResponse(String),
@@ -14,7 +13,6 @@ impl fmt::Display for AppError {
             AppError::InternalError(s) => write!(f, "internal error: {s}"),
             AppError::UnexpectedEmptyResponse => write!(f, "unexpected empty response"),
             AppError::NotOkHTTPResponse(s) => write!(f, "HTTP response not ok: {s}"),
-            AppError::ChannelReceiveError => write!(f, "channel receive error"),
         }
     }
 }

@@ -5,6 +5,7 @@ pub enum Size {
     Small,
     #[default]
     Medium,
+    Large,
 }
 
 impl Size {
@@ -12,6 +13,7 @@ impl Size {
         match self {
             Size::Small => 18.0,
             Size::Medium => 30.0,
+            Size::Large => 40.0,
         }
     }
 
@@ -19,6 +21,7 @@ impl Size {
         match self {
             Size::Small => egui::Margin::symmetric(5, 5),
             Size::Medium => egui::Margin::symmetric(10, 10),
+            Size::Large => egui::Margin::symmetric(15, 15),
         }
     }
 }

@@ -24,14 +24,18 @@ pub fn button_with_icon_and_text(
         .stroke(normal_stroke);
 
     let inner = frame.show(ui, |ui| {
-        ui.horizontal(|ui| {
-            ui.label(RichText::new(icon).font(FontId {
-                size: size.icon_size(),
-                family: FontFamily::Name("phosphor".into()),
-            }));
+        egui::Frame::group(ui.style())
+            .stroke(egui::Stroke::NONE)
+            .inner_margin(0.0)
+            .inner_margin(0.0)
+            .show(ui, |ui| {
+                ui.label(RichText::new(icon).font(FontId {
+                    size: size.icon_size(),
+                    family: FontFamily::Name("phosphor".into()),
+                }));
 
-            ui.label(RichText::new(text));
-        });
+                ui.label(RichText::new(text));
+            });
     });
 
     let response = inner.response.interact(Sense::click());

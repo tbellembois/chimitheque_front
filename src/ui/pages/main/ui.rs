@@ -5,13 +5,15 @@ use crate::{
         pages::{entity, person, product, pubchem, storage, storelocation},
         state::{Action, Page},
         widgets::{
-            buttonwithiconandtext::button_with_icon_and_text, buttonwithimage::button_with_image,
+            buttonwithicon::button_with_icon, buttonwithiconandtext::button_with_icon_and_text,
+            buttonwithimage::button_with_image, clickablelabelwithicon::clickable_label_with_icon,
             clickablelabelwithiconandtext::clickable_label_with_icon_and_text, icon::icon,
             size::Size,
         },
     },
 };
 use egui::{Margin, Popup, Pos2, Rect, RichText, TextBuffer};
+use egui_phosphor::fill::PLUS_CIRCLE;
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
@@ -43,14 +45,33 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                         rust_i18n::set_locale("en-GB");
                     }
 
-                    ui.add_space(10.0);
+                    ui.add_space(30.0);
 
                     // Font size.
-                    icon(ui, egui_phosphor::regular::MAGNIFYING_GLASS, &Size::Small);
-                    ui.add(egui::Slider::new(
-                        &mut app.visual.app_font_size,
-                        14.0..=21.0,
-                    ));
+
+                    if clickable_label_with_icon(
+                        ui,
+                        egui_phosphor::regular::MINUS_CIRCLE,
+                        &Size::Medium,
+                    )
+                    .clicked()
+                    {
+                        if app.visual.app_font_size > 13.0 {
+                            app.visual.app_font_size -= 1.0;
+                        }
+                    }
+                    if clickable_label_with_icon(
+                        ui,
+                        egui_phosphor::regular::PLUS_CIRCLE,
+                        &Size::Medium,
+                    )
+                    .clicked()
+                    {
+                        if app.visual.app_font_size < 23.0 {
+                            app.visual.app_font_size += 1.0;
+                        }
+                    }
+
                     // This scales fonts, spacing and widgets.✅
                     let ctx = ui.ctx();
                     ctx.set_pixels_per_point(app.visual.app_font_size / 16.0);
@@ -59,9 +80,9 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
                     // Theme switch.
                     if app.state.darkmode {
-                        icon(ui, egui_phosphor::regular::SUN, &Size::Small);
+                        icon(ui, egui_phosphor::regular::SUN, &Size::Medium);
                     } else {
-                        icon(ui, egui_phosphor::regular::MOON, &Size::Small);
+                        icon(ui, egui_phosphor::regular::MOON, &Size::Medium);
                     }
                     if ui.checkbox(&mut app.state.darkmode, "").changed() {
                         if app.state.darkmode {
@@ -80,11 +101,11 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     if let Ok(maybe_version_info) = &app.get_version_info()
                         && let Some(version_info) = maybe_version_info
                     {
-                        let button_response = button_with_icon_and_text(
+                        let button_response = clickable_label_with_icon_and_text(
                             ui,
-                            t!("version").to_string(),
+                            t!("version").as_str(),
                             egui_phosphor::regular::INFO,
-                            &Size::Small,
+                            &Size::Medium,
                         );
                         let popup = Popup::menu(&button_response);
                         popup.show(|ui| {
@@ -102,7 +123,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                         && let Some(connected_user) = maybe_connected_user
                     {
                         ui.label(connected_user.person_email.clone());
-                        icon(ui, egui_phosphor::regular::USER, &Size::Small);
+                        icon(ui, egui_phosphor::regular::USER, &Size::Medium);
                     }
                 });
             });

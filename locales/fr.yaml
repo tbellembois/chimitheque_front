@@ -182,3 +182,5 @@ create_product_form_molecular_weight: "poids moléculaire"
 create_product_form_specificity: "spécificité"
 
 create_product_form_inchi_invalid: "inchi non valide"
+create_product_form_inchikey_invalid: "inchikey non valide"
+create_product_form_smiles_invalid: "smiles non valide"
