@@ -1,10 +1,13 @@
+//! Create product form.
+use base64::{Engine, engine::general_purpose};
 use chimitheque_utils::inchi::is_inchi;
 use egui::{Response, TextBuffer};
 use egui_select2::select2::{Configuration, EguiSelect2};
 use rust_i18n::t;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use crate::{
+    elog,
     types::ProductType,
     ui::{
         state::ApplicationState,
@@ -39,20 +42,11 @@ pub struct CreateProductForm {
     pub create_product_smiles: String,
     pub create_product_molecular_weight: f64,
     pub create_product_unit_molecular_weight_widget: EguiSelect2,
+    pub create_product_temperature: f64,
     pub create_product_unit_temperature_widget: EguiSelect2,
-    pub create_product_3d_formula: String,
-    pub create_product_molecule_picture: Vec<u8>,
-    // // Works on both native and WASM
-    // let file = rfd::AsyncFileDialog::new()
-    //     .add_filter("text", &["txt", "rs"])
-    //     .pick_file()
-    //     .await;
-
-    // if let Some(file) = file {
-    //     // On WASM, you must read the content into bytes
-    //     // On native, you can also access file.path()
-    //     let data: Vec<u8> = file.read().await;
-    // }
+    pub create_product_3d_formula_link: String,
+    pub create_product_molecule_picture: Arc<Mutex<Option<Vec<u8>>>>,
+    pub create_product_molecule_base64_picture: Option<String>, // base64 encoded image
     pub create_product_msds_link: String,
     pub create_product_producer_sheet: String,
     pub create_product_physical_state_widget: EguiSelect2,
@@ -327,11 +321,13 @@ impl CreateProductForm {
             create_product_inchi: String::default(),
             create_product_inchikey: String::default(),
             create_product_smiles: String::default(),
+            create_product_temperature: 0.0,
             create_product_molecular_weight: 0.0,
             create_product_restricted: false,
             create_product_radioactive: false,
-            create_product_3d_formula: String::default(),
-            create_product_molecule_picture: Vec::default(),
+            create_product_3d_formula_link: String::default(),
+            create_product_molecule_picture: Arc::new(Mutex::new(None)),
+            create_product_molecule_base64_picture: None,
 
             inchi_is_valid: true,
             inchikey_is_valid: true,
@@ -373,7 +369,7 @@ impl CreateProductForm {
             ui.scope_builder(
                 egui::UiBuilder::new().max_rect(create_product_form_rec),
                 |ui| {
-                    // FIXME
+                    // Add some vertical spacing at the top
                     ui.add_space(20.0);
 
                     // egui's ui.group does not support margins, so we use a custom frame instead.
@@ -498,7 +494,7 @@ impl CreateProductForm {
                                     .show(ui, |ui| {
                                         let response = ui.add(
                                             egui::TextEdit::singleline(
-                                                &mut self.create_product_inchi,
+                                                &mut self.create_product_inchikey,
                                             )
                                             .hint_text(t!("create_product_form_inchikey")),
                                         );
@@ -552,13 +548,109 @@ impl CreateProductForm {
                                         );
                                         self.create_product_unit_molecular_weight_widget.ui(ui);
                                     });
+                                egui::Frame::group(ui.style())
+                                    .stroke(egui::Stroke::NONE)
+                                    .show(ui, |ui| {
+                                        ui.label(t!("create_product_form_temperature"));
+                                        ui.add(
+                                            egui::DragValue::new(
+                                                &mut self.create_product_temperature,
+                                            )
+                                            .speed(0.1),
+                                        );
+                                        self.create_product_unit_temperature_widget.ui(ui);
+                                    });
+                                ui.end_row();
 
-                                // app.search_cas_number_widget.ui(ui);
-                                // app.search_empirical_formula_widget.ui(ui);
-                                // app.search_producer_ref_widget.ui(ui);
-                                // ui.end_row();
+                                ui.add(
+                                    egui::TextEdit::singleline(
+                                        &mut self.create_product_3d_formula_link,
+                                    )
+                                    .hint_text(t!("create_product_form_3d_formula_link")),
+                                );
+                                egui::Frame::group(ui.style())
+                                    .stroke(egui::Stroke::NONE)
+                                    .show(ui, |ui| {
+                                        ui.label(t!("create_product_form_molecule_picture"));
+                                        if ui.button(t!("open_file")).clicked() {
+                                            let create_product_molecule_picture_clone =
+                                                Arc::clone(&self.create_product_molecule_picture);
+
+                                            // 1. Create the dialog asynchronously
+                                            let task = async move {
+                                                let file = rfd::AsyncFileDialog::new()
+                                                    .add_filter("image", &["png"])
+                                                    .add_filter("image", &["jpg"])
+                                                    .add_filter("image", &["jpeg"])
+                                                    .pick_file()
+                                                    .await;
+
+                                                if let Some(file) = file {
+                                                    // Read image bytes
+                                                    let image_bytes = file.read().await;
+
+                                                    match create_product_molecule_picture_clone
+                                                        .lock()
+                                                    {
+                                                        Ok(mut data) => {
+                                                            *data = Some(image_bytes);
+                                                        }
+                                                        Err(e) => {
+                                                            elog!(error, e.to_string());
+                                                        }
+                                                    }
+                                                }
+                                            };
+
+                                            #[cfg(target_arch = "wasm32")]
+                                            {
+                                                wasm_bindgen_futures::spawn_local(task);
+                                            }
+                                            #[cfg(not(target_arch = "wasm32"))]
+                                            {
+                                                std::thread::spawn(move || {
+                                                    pollster::block_on(task)
+                                                });
+                                            }
+                                        }
+                                    });
+                                ui.end_row();
+
+                                ui.label("");
+                                match self.create_product_molecule_picture.lock() {
+                                    Ok(data) => {
+                                        let maybe_image_bytes = data.clone();
+
+                                        if let Some(image_bytes) = maybe_image_bytes {
+                                            // Encode image bytes to Base64
+                                            let base64_encoded =
+                                                general_purpose::STANDARD.encode(&image_bytes);
+
+                                            // Format image data URL
+                                            let image_data_url =
+                                                format!("data:image/png;base64,{}", base64_encoded);
+
+                                            // Set the base64 picture URL
+                                            self.create_product_molecule_base64_picture =
+                                                Some(image_data_url);
+
+                                            // Display the image from image_bytes
+                                            // Use a unique URI string so egui can cache the image texture internally
+                                            ui.add(
+                                                egui::Image::from_bytes(
+                                                    "bytes://product_image.png",
+                                                    image_bytes,
+                                                )
+                                                .fit_to_exact_size(egui::vec2(150.0, 150.0)),
+                                            );
+                                        }
+                                    }
+                                    Err(e) => {
+                                        elog!(error, e.to_string());
+                                    }
+                                }
+                                ui.end_row();
                             });
-
                         ui.add_space(WIDGET_VERTICAL_SPACING);
 
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {

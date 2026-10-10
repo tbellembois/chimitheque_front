@@ -5,7 +5,6 @@ use crate::{
         pages::{entity, person, product, pubchem, storage, storelocation},
         state::{Action, Page},
         widgets::{
-            buttonwithicon::button_with_icon, buttonwithiconandtext::button_with_icon_and_text,
             buttonwithimage::button_with_image, clickablelabelwithicon::clickable_label_with_icon,
             clickablelabelwithiconandtext::clickable_label_with_icon_and_text, icon::icon,
             size::Size,
@@ -13,7 +12,6 @@ use crate::{
     },
 };
 use egui::{Margin, Popup, Pos2, Rect, RichText, TextBuffer};
-use egui_phosphor::fill::PLUS_CIRCLE;
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {

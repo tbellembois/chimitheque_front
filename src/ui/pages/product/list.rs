@@ -1,4 +1,4 @@
-use egui::RichText;
+use egui::{RichText, TextBuffer};
 use rust_i18n::t;
 
 use crate::{
@@ -7,7 +7,10 @@ use crate::{
         app::App,
         components::productlabel::render_product_label,
         state::{Action, Page},
-        widgets::{buttonwithiconandtext::button_with_icon_and_text, size::Size},
+        widgets::{
+            buttonwithiconandtext::button_with_icon_and_text,
+            clickablelabelwithiconandtext::clickable_label_with_icon_and_text, size::Size,
+        },
     },
 };
 
@@ -61,6 +64,19 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 .clicked()
                 {
                     app.state.action.push_back(Action::ExportProducts);
+                }
+
+                if !app.search_form.is_expanded {
+                    if clickable_label_with_icon_and_text(
+                        ui,
+                        t!("search_form_expand").as_str(),
+                        egui_phosphor::regular::ARROWS_OUT,
+                        &Size::Medium,
+                    )
+                    .clicked()
+                    {
+                        app.search_form.is_expanded = true;
+                    }
                 }
             },
         );

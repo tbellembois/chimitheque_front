@@ -1,4 +1,4 @@
-use egui::{Sense, TextureHandle};
+use egui::{CursorIcon, Sense, TextureHandle};
 
 const CORNER_RADIUS: f32 = 5.0;
 const INNER_MARGIN: egui::Margin = egui::Margin::symmetric(10, 10);
@@ -12,6 +12,7 @@ pub fn button_with_image(ui: &mut egui::Ui, image: &TextureHandle) -> egui::Resp
     let normal_stroke = widgets.noninteractive.bg_stroke;
     let hovered_stroke = widgets.hovered.fg_stroke;
 
+    // 1. Draw the frame layout content
     let frame = egui::Frame::new()
         .fill(normal_bg)
         .corner_radius(CORNER_RADIUS)
@@ -19,11 +20,13 @@ pub fn button_with_image(ui: &mut egui::Ui, image: &TextureHandle) -> egui::Resp
         .stroke(normal_stroke);
 
     let inner = frame.show(ui, |ui| {
-        ui.image(image);
+        ui.image(image).on_hover_cursor(CursorIcon::PointingHand);
     });
 
-    let response = inner.response.interact(Sense::click());
+    // 2. Allocate the entire frame area as a single interactive element
+    let response = ui.interact(inner.response.rect, inner.response.id, Sense::click());
 
+    // 3. Apply hover effects and cursor changes directly via the response
     if response.hovered() {
         ui.painter().rect_stroke(
             response.rect,
@@ -31,6 +34,9 @@ pub fn button_with_image(ui: &mut egui::Ui, image: &TextureHandle) -> egui::Resp
             hovered_stroke,
             egui::StrokeKind::Outside,
         );
+
+        // This will change the cursor seamlessly for the entire button area
+        ui.ctx().set_cursor_icon(CursorIcon::PointingHand);
     }
 
     response

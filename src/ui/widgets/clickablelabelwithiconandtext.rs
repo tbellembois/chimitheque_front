@@ -1,5 +1,5 @@
 use crate::ui::widgets::size::Size;
-use egui::{FontFamily, FontId, Pos2, RichText, Sense, Stroke};
+use egui::{CursorIcon, FontFamily, FontId, Pos2, RichText, Sense, Stroke};
 
 pub fn clickable_label_with_icon_and_text(
     ui: &mut egui::Ui,
@@ -12,6 +12,7 @@ pub fn clickable_label_with_icon_and_text(
 
     let frame = egui::Frame::new().inner_margin(size.inner_margin());
 
+    // 1. Draw the frame layout content
     let inner = frame.show(ui, |ui| {
         egui::Frame::group(ui.style())
             .stroke(egui::Stroke::NONE)
@@ -21,17 +22,17 @@ pub fn clickable_label_with_icon_and_text(
                 ui.label(RichText::new(icon).font(FontId {
                     size: size.icon_size(),
                     family: FontFamily::Name("phosphor".into()),
-                }));
+                }))
+                .on_hover_cursor(CursorIcon::PointingHand);
 
                 ui.label(RichText::new(text));
             });
     });
 
-    let response = inner
-        .response
-        .interact(Sense::click())
-        .interact(Sense::hover());
+    // 2. Allocate the entire frame area as a single interactive element
+    let response = ui.interact(inner.response.rect, inner.response.id, Sense::click());
 
+    // 3. Apply hover effects and cursor changes directly via the response
     if response.hovered() {
         let rect = response.rect;
 
@@ -42,6 +43,9 @@ pub fn clickable_label_with_icon_and_text(
             ],
             Stroke::new(2.0, hovered_stroke.color),
         );
+
+        // This will change the cursor seamlessly for the entire button area
+        ui.ctx().set_cursor_icon(CursorIcon::PointingHand);
     }
 
     response

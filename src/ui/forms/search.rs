@@ -9,10 +9,7 @@ use crate::{
     ui::{
         state::{Action, ApplicationState, Page},
         visual::ApplicationVisual,
-        widgets::{
-            buttonwithiconandtext::button_with_icon_and_text,
-            clickablelabelwithiconandtext::clickable_label_with_icon_and_text, size::Size,
-        },
+        widgets::{buttonwithiconandtext::button_with_icon_and_text, size::Size},
     },
 };
 
@@ -575,16 +572,17 @@ impl SearchForm {
                             }
                         });
                     });
-                } else if clickable_label_with_icon_and_text(
-                    ui,
-                    t!("search_form_expand").as_str(),
-                    egui_phosphor::regular::ARROWS_OUT,
-                    &Size::Medium,
-                )
-                .clicked()
-                {
-                    self.is_expanded = true;
                 }
+                // } else if clickable_label_with_icon_and_text(
+                //     ui,
+                //     t!("search_form_expand").as_str(),
+                //     egui_phosphor::regular::ARROWS_OUT,
+                //     &Size::Medium,
+                // )
+                // .clicked()
+                // {
+                //     self.is_expanded = true;
+                // }
             });
         });
 

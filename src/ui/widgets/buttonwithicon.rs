@@ -1,4 +1,4 @@
-use egui::{FontFamily, FontId, RichText, Sense};
+use egui::{CursorIcon, FontFamily, FontId, RichText, Sense};
 
 const CORNER_RADIUS: f32 = 5.0;
 const INNER_MARGIN: egui::Margin = egui::Margin::symmetric(10, 10);
@@ -18,15 +18,19 @@ pub fn button_with_icon(ui: &mut egui::Ui, icon: &str) -> egui::Response {
         .inner_margin(INNER_MARGIN)
         .stroke(normal_stroke);
 
+    // 1. Draw the frame layout content
     let inner = frame.show(ui, |ui| {
         ui.label(RichText::new(icon).font(FontId {
             size: 20.0,
             family: FontFamily::Name("phosphor".into()),
-        }));
+        }))
+        .on_hover_cursor(CursorIcon::PointingHand);
     });
 
-    let response = inner.response.interact(Sense::click());
+    // 2. Allocate the entire frame area as a single interactive element
+    let response = ui.interact(inner.response.rect, inner.response.id, Sense::click());
 
+    // 3. Apply hover effects and cursor changes directly via the response
     if response.hovered() {
         ui.painter().rect_stroke(
             response.rect,
@@ -34,6 +38,9 @@ pub fn button_with_icon(ui: &mut egui::Ui, icon: &str) -> egui::Response {
             hovered_stroke,
             egui::StrokeKind::Outside,
         );
+
+        // This will change the cursor seamlessly for the entire button area
+        ui.ctx().set_cursor_icon(CursorIcon::PointingHand);
     }
 
     response
