@@ -41,7 +41,7 @@ pub fn get_version_info(shared_maybe_version_info: SharedVersionInfo, channel_se
                 }
             }
             Err(e) => {
-                elog!(error, format!("{e}"));
+                elog!(error, e.clone());
             }
         }
 

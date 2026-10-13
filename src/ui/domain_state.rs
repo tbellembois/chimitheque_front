@@ -58,7 +58,7 @@ pub struct PeopleState {
     pub search_person_action_triggered: bool,
 }
 
-/// State for the PubChem search page.
+/// State for the `PubChem` search page.
 #[derive(Default)]
 pub struct PubchemState {
     pub pubchem_autocomplete: SharedPubchemAutocomplete,

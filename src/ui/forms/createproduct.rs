@@ -88,7 +88,9 @@ impl CreateProductForm {
                 .unwrap(),
         };
 
-        let create_product_form = Self {
+        
+
+        Self {
             create_product_tag_widget: EguiSelect2::new(
                 Arc::new(crate::api::tag::load_suggestions),
                 t!("select2_hint_tag").as_str(),
@@ -319,9 +321,7 @@ impl CreateProductForm {
             inchi_is_valid: true,
             inchikey_is_valid: true,
             smiles_is_valid: true,
-        };
-
-        create_product_form
+        }
     }
 
     /// Renders the complete create product form UI component.
@@ -330,7 +330,7 @@ impl CreateProductForm {
     /// 2. Rendering all form widgets including:
     ///    - Product type selection (Chemical/Biological/Consumable)
     ///    - Tag, category, and name selection fields
-    ///    - Chemical identifiers (InChI, InChIKey, SMILES)
+    ///    - Chemical identifiers (`InChI`, `InChIKey`, SMILES)
     ///    - Molecular properties (weight, temperature)
     ///    - File upload for molecule images
     ///    - Action buttons (Cancel/Create)
@@ -651,7 +651,7 @@ impl CreateProductForm {
                                             #[cfg(not(target_arch = "wasm32"))]
                                             {
                                                 std::thread::spawn(move || {
-                                                    pollster::block_on(task)
+                                                    pollster::block_on(task);
                                                 });
                                             }
                                         }
@@ -671,8 +671,7 @@ impl CreateProductForm {
 
                                                     // Format image data URL
                                                     let image_data_url = format!(
-                                                        "data:image/png;base64,{}",
-                                                        base64_encoded
+                                                        "data:image/png;base64,{base64_encoded}"
                                                     );
 
                                                     // Set the base64 picture URL
@@ -759,14 +758,13 @@ impl CreateProductForm {
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::TOP),
                                     |ui| {
-                                        if button_with_icon_and_text(
+                                        button_with_icon_and_text(
                                             ui,
                                             t!("create_product_form_action_cancel").to_string(),
                                             egui_phosphor::fill::MAGIC_WAND,
                                             &Size::Medium,
                                         )
-                                        .clicked()
-                                        {}
+                                        .clicked();
 
                                         if button_with_icon_and_text(
                                             ui,

@@ -68,7 +68,7 @@ pub fn get_store_locations(
                 }
             }
             Err(e) => {
-                elog!(error, format!("{e}"));
+                elog!(error, e.clone());
                 return;
             }
         }
@@ -136,7 +136,7 @@ pub fn load_suggestions(
             }
         }
         Err(e) => {
-            elog!(error, format!("{e}"));
+            elog!(error, e.clone());
         }
     });
 }

@@ -51,7 +51,7 @@ pub fn get_pubchem_autocomplete(
                 }
             }
             Err(e) => {
-                elog!(error, e.to_string());
+                elog!(error, e.clone());
             }
         }
 

@@ -33,7 +33,7 @@ pub fn render_product_label(
     let available_space_for_dyn_cols_in_percent =
         (available_space_for_cols - product_label_plus_width - product_label_action_width) / 100.0;
 
-    ui.label(format!("label_width: {:?}", label_width));
+    ui.label(format!("label_width: {label_width:?}"));
 
     // egui's ui.group does not support margins, so we use a custom frame instead.
     let custom_group_frame = egui::Frame::new()

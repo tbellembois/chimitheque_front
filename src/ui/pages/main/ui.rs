@@ -1,6 +1,6 @@
 use crate::{
     config::{
-        APP_FONT_SIZE, APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN, ERROR_COLOR,
+        APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN, ERROR_COLOR,
         NORMAL_BG_COLOR,
     },
     logger::{LOGS, LogMessage},
@@ -73,22 +73,18 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                         &Size::Medium,
                     )
                     .clicked()
-                    {
-                        if app.state.font_size > 13.0 {
+                        && app.state.font_size > 13.0 {
                             app.state.font_size -= 1.0;
                         }
-                    }
                     if clickable_label_with_icon(
                         ui,
                         egui_phosphor::regular::PLUS_CIRCLE,
                         &Size::Medium,
                     )
                     .clicked()
-                    {
-                        if app.state.font_size < 23.0 {
+                        && app.state.font_size < 23.0 {
                             app.state.font_size += 1.0;
                         }
-                    }
 
                     // This scales fonts, spacing and widgets.✅
                     let ctx = ui.ctx();

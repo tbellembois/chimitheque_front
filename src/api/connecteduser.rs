@@ -41,7 +41,7 @@ pub fn get_connected_user(shared_maybe_person: SharedPerson, channel_sender: Sen
                 }
             }
             Err(e) => {
-                elog!(error, e.to_string());
+                elog!(error, e.clone());
             }
         }
 

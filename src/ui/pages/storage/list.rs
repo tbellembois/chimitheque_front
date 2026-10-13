@@ -92,8 +92,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     app.state.action.push_back(Action::ExportStorages);
                 }
 
-                if !app.search_form.is_expanded {
-                    if clickable_label_with_icon_and_text(
+                if !app.search_form.is_expanded
+                    && clickable_label_with_icon_and_text(
                         ui,
                         t!("search_form_expand").as_str(),
                         egui_phosphor::regular::ARROWS_OUT,
@@ -103,7 +103,6 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     {
                         app.search_form.is_expanded = true;
                     }
-                }
             },
         );
 

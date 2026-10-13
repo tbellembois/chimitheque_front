@@ -65,7 +65,7 @@ pub fn get_products(
                 }
             }
             Err(e) => {
-                elog!(error, e.to_string());
+                elog!(error, e.clone());
             }
         }
 

@@ -64,13 +64,11 @@ pub fn export_storages(
                 match match response.status {
                     200 => response
                         .text()
-                        .map(|t| t.to_string())
+                        .map(std::string::ToString::to_string)
                         .ok_or(AppError::UnexpectedEmptyResponse),
                     _ => Err(AppError::NotOkHTTPResponse(
                         response
-                            .text()
-                            .map(|t| t.to_string())
-                            .unwrap_or_else(|| response.status.to_string()),
+                            .text().map_or_else(|| response.status.to_string(), std::string::ToString::to_string),
                     )),
                 } {
                     Ok(response_string) => {
@@ -82,7 +80,7 @@ pub fn export_storages(
                 }
             }
             Err(e) => {
-                elog!(error, e.to_string());
+                elog!(error, e.clone());
             }
         }
 
@@ -147,7 +145,7 @@ pub fn get_storages(
                 }
             }
             Err(e) => {
-                elog!(error, format!("{e}"));
+                elog!(error, e.clone());
             }
         }
 

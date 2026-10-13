@@ -98,6 +98,7 @@ impl App {
     ///
     /// Will panic if svg pictures cannot be loaded, or if custom fonts cannot be set.
     #[allow(clippy::unwrap_used)]
+    #[must_use]
     pub fn new(cc: &CreationContext) -> Self {
         log::set_max_level(log::LevelFilter::Debug);
 

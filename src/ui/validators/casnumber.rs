@@ -8,7 +8,7 @@ pub fn validate(s: &str) -> Result<String, String> {
     let mayerr_is_cas_number = is_cas_number(cleaned.as_str());
 
     match mayerr_is_cas_number {
-        Ok(_) => Ok(cleaned),
+        Ok(()) => Ok(cleaned),
         Err(e) => Err(format!("Invalid CAS number: {e}")),
     }
 }

@@ -70,7 +70,7 @@ pub fn load_suggestions(
             }
         }
         Err(e) => {
-            elog!(error, e.to_string());
+            elog!(error, e.clone());
         }
     });
 }

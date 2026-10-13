@@ -67,7 +67,9 @@ impl SearchForm {
                 .unwrap(),
         };
 
-        let search_form = SearchForm {
+        
+
+        SearchForm {
             search_store_location_widget: EguiSelect2::new(
                 Arc::new(crate::api::storelocation::load_suggestions),
                 t!("select2_hint_store_location").as_str(),
@@ -186,9 +188,7 @@ impl SearchForm {
             search_product_to_destroy: Default::default(),
             search_product_borrowed: Default::default(),
             search_product_type: Default::default(),
-        };
-
-        search_form
+        }
     }
 
     pub fn render(

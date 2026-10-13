@@ -50,7 +50,7 @@ pub fn get_pubchem_product(
                 }
             }
             Err(e) => {
-                elog!(error, e.to_string());
+                elog!(error, e.clone());
             }
         }
 
