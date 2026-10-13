@@ -1,5 +1,5 @@
 use crate::{elog, keycloak::get_token};
-use chimitheque_types::{physicalstate::PhysicalState, requestfilter::RequestFilter};
+use chimitheque_types::{classofcompound::ClassOfCompound, requestfilter::RequestFilter};
 use egui_select2::select2::{SelectItem, SelectItems, SharedSelect2Items};
 
 fn build_request(request_filter: &RequestFilter) -> ehttp::Request {
@@ -37,22 +37,22 @@ pub fn load_suggestions(
             let mut maybe_current_suggestions = match shared_suggestions.lock() {
                 Ok(locked) => locked,
                 Err(e) => {
-                    log::error!("{e}");
+                    elog!(error, e.to_string());
                     return;
                 }
             };
 
-            match crate::api::parse_json_response::<(Vec<PhysicalState>, u64)>(&response) {
-                Ok(response_ce_numbers_and_count) => {
-                    let items: Vec<SelectItem> = response_ce_numbers_and_count
+            match crate::api::parse_json_response::<(Vec<ClassOfCompound>, u64)>(&response) {
+                Ok(response_data_and_count) => {
+                    let items: Vec<SelectItem> = response_data_and_count
                         .0
                         .into_iter()
-                        .map(|physical_state| SelectItem {
-                            id: physical_state.physical_state_id,
-                            label: physical_state.physical_state_label,
+                        .map(|class_of_compounds| SelectItem {
+                            id: class_of_compounds.class_of_compound_id,
+                            label: class_of_compounds.class_of_compound_label,
                         })
                         .collect();
-                    let total = match usize::try_from(response_ce_numbers_and_count.1) {
+                    let total = match usize::try_from(response_data_and_count.1) {
                         Ok(total) => total,
                         Err(e) => {
                             elog!(error, format!("{e}"));
@@ -67,7 +67,7 @@ pub fn load_suggestions(
             }
         }
         Err(e) => {
-            log::error!("{e}");
+            elog!(error, e.to_string());
         }
     });
 }

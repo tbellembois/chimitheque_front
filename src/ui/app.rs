@@ -9,6 +9,18 @@ use crate::api::pubchemsearch::get_pubchem_autocomplete;
 use crate::api::storage::{export_storages, get_storages};
 use crate::api::storelocation::get_store_locations;
 use crate::api::versioninfo::get_version_info;
+use crate::config::{
+    APP_BOTTOM_MARGIN, APP_CORNER_RADIUS, APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN,
+    CREATE_PRODUCT_FORM_CORNER_RADIUS, CREATE_PRODUCT_FORM_DESIRED_WIDTH,
+    CREATE_PRODUCT_FORM_INNER_MARGIN, CREATE_PRODUCT_FORM_WIDGET_HORIZONTAL_SPACING,
+    CREATE_PRODUCT_FORM_WIDGET_VERTICAL_SPACING, ERROR_COLOR, FAINT_BG_COLOR, HOVERED_BG_COLOR,
+    HOVERED_STROKE, INFO_COLOR, INPUT_FILLED_STROKE, NORMAL_BG_COLOR, NORMAL_STROKE,
+    PRODUCT_LABEL_ACTION_WIDTH, PRODUCT_LABEL_INNER_MARGIN, PRODUCT_LABEL_OUTER_MARGIN,
+    PRODUCT_LABEL_PLUS_WIDTH, SELECT2_BORDER_WHEN_SELECTED_CORNER_RADIUS,
+    SELECT2_BORDER_WHEN_SELECTED_MARGIN, SELECT2_BORDER_WHEN_SELECTED_STROKE, SELECTED_BG_COLOR,
+    SELECTED_STROKE, STORAGE_LABEL_ACTION_WIDTH, STORAGE_LABEL_INNER_MARGIN,
+    STORAGE_LABEL_OUTER_MARGIN, STORAGE_LABEL_PLUS_WIDTH,
+};
 use crate::download::download_csv;
 use crate::types::{
     Permission, PermissionStatus, ProductType, SharedPermissionList, SharedPerson,
@@ -21,7 +33,6 @@ use crate::ui::forms::createproduct::CreateProductForm;
 use crate::ui::forms::search::SearchForm;
 use crate::ui::pages::main;
 use crate::ui::state::Action;
-use crate::ui::visual::ApplicationVisual;
 use crate::{atomic, elog};
 use chimitheque_types::entity::Entity;
 use chimitheque_types::permission::PermissionItem;
@@ -49,8 +60,6 @@ static START: Once = Once::new();
 pub struct App {
     // Application state.
     pub state: ApplicationState,
-    // Application visual.
-    pub visual: ApplicationVisual,
 
     // Channel for communication between application and functions.
     pub channel_sender: Option<Sender<i32>>,
@@ -80,10 +89,6 @@ pub struct App {
     pub people_state: PeopleState,
     pub pubchem_state: PubchemState,
 
-    // Whether the visual needs to be (re-)initialized from the egui context.
-    // Set to true on startup and whenever the theme changes.
-    pub visual_needs_init: bool,
-
     // Loading state.
     pub in_flight: i32,
 }
@@ -102,7 +107,6 @@ impl App {
 
         // Create application state and visual.
         let state = ApplicationState::new(&rust_i18n::locale());
-        let visual = ApplicationVisual::default();
 
         // Initialize the custom theme/styles for egui.
         setup_custom_fonts(&cc.egui_ctx).unwrap();
@@ -182,14 +186,13 @@ impl App {
         // Create application.
         Self {
             state,
-            visual,
+
             search_form,
             create_product_form,
 
             channel_sender: Some(channel_sender),
             channel_receiver: Some(channel_receiver),
             textures,
-            visual_needs_init: true,
             ..Default::default()
         }
     }
@@ -522,72 +525,51 @@ impl eframe::App for App {
         // Update window size.
         self.state.window_rect = ui.max_rect();
 
-        // Init visual if needed.
-        if self.visual_needs_init {
+        // Do one time startup job.
+        START.call_once(|| {
+            // Init statics.
             let visual = &ui.visuals();
             let widgets = &visual.widgets;
             let selection = &visual.selection;
 
-            self.visual.hovered_bg_color = widgets.hovered.bg_fill;
-            self.visual.selected_bg_color = selection.bg_fill;
-
-            self.visual.normal_bg_color = visual.window_fill;
-            self.visual.faint_bg_color = visual.faint_bg_color;
-            self.visual.normal_stroke = widgets.noninteractive.bg_stroke;
-            self.visual.hovered_stroke = widgets.hovered.fg_stroke;
-            self.visual.selected_stroke = selection.stroke;
-
-            self.visual.info_color = egui::Color32::from_rgb(60, 180, 95);
-            self.visual.error_color = egui::Color32::from_rgb(220, 70, 70);
-
-            self.visual.app_top_margin = 20;
-            self.visual.app_bottom_margin = 10;
-            self.visual.app_left_margin = 50;
-            self.visual.app_right_margin = 50;
-
-            self.visual.app_corner_radius = CornerRadius::same(5);
-
-            self.visual.product_label_inner_margin = egui::Margin::symmetric(20, 10);
-            self.visual.product_label_outer_margin = egui::Margin::symmetric(40, 5);
-            self.visual.product_label_plus_width = 50.0;
-            self.visual.product_label_action_width = 50.0;
-
-            self.visual.storage_label_inner_margin = egui::Margin::symmetric(20, 10);
-            self.visual.storage_label_outer_margin = egui::Margin::symmetric(40, 5);
-            self.visual.storage_label_plus_width = 50.0;
-            self.visual.storage_label_action_width = 50.0;
-
-            self.visual.search_form_width = 925.0;
-            self.visual.search_form_inner_margin = egui::Margin::symmetric(20, 20);
-            self.visual.search_form_widget_horizontal_spacing = 20.0;
-            self.visual.search_form_widget_vertical_spacing = 20.0;
-
-            self.visual.input_filled_stroke = Stroke {
+            HOVERED_BG_COLOR.get_or_init(|| visual.widgets.inactive.bg_fill);
+            SELECTED_BG_COLOR.get_or_init(|| visual.selection.bg_fill);
+            NORMAL_BG_COLOR.get_or_init(|| visual.window_fill);
+            FAINT_BG_COLOR.get_or_init(|| visual.faint_bg_color);
+            NORMAL_STROKE.get_or_init(|| widgets.noninteractive.bg_stroke);
+            HOVERED_STROKE.get_or_init(|| widgets.hovered.fg_stroke);
+            SELECTED_STROKE.get_or_init(|| selection.stroke);
+            INFO_COLOR.get_or_init(|| egui::Color32::from_rgb(60, 180, 95));
+            ERROR_COLOR.get_or_init(|| egui::Color32::from_rgb(220, 70, 70));
+            APP_TOP_MARGIN.get_or_init(|| 20);
+            APP_BOTTOM_MARGIN.get_or_init(|| 10);
+            APP_LEFT_MARGIN.get_or_init(|| 50);
+            APP_RIGHT_MARGIN.get_or_init(|| 50);
+            APP_CORNER_RADIUS.get_or_init(|| CornerRadius::same(5));
+            PRODUCT_LABEL_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 10));
+            PRODUCT_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 10));
+            PRODUCT_LABEL_PLUS_WIDTH.get_or_init(|| 50.0);
+            PRODUCT_LABEL_ACTION_WIDTH.get_or_init(|| 50.0);
+            STORAGE_LABEL_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 10));
+            STORAGE_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(40, 5));
+            STORAGE_LABEL_PLUS_WIDTH.get_or_init(|| 50.0);
+            STORAGE_LABEL_ACTION_WIDTH.get_or_init(|| 50.0);
+            CREATE_PRODUCT_FORM_DESIRED_WIDTH.get_or_init(|| 925.0);
+            CREATE_PRODUCT_FORM_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 20));
+            CREATE_PRODUCT_FORM_CORNER_RADIUS.get_or_init(|| 5.0);
+            CREATE_PRODUCT_FORM_WIDGET_HORIZONTAL_SPACING.get_or_init(|| 20.0);
+            CREATE_PRODUCT_FORM_WIDGET_VERTICAL_SPACING.get_or_init(|| 20.0);
+            SELECT2_BORDER_WHEN_SELECTED_STROKE.get_or_init(|| Stroke {
                 width: 4.0,
                 color: selection.bg_fill,
-            };
+            });
+            SELECT2_BORDER_WHEN_SELECTED_MARGIN.get_or_init(|| egui::Margin::symmetric(5, 5));
+            SELECT2_BORDER_WHEN_SELECTED_CORNER_RADIUS.get_or_init(|| 5.0);
+            INPUT_FILLED_STROKE.get_or_init(|| Stroke {
+                width: 4.0,
+                color: selection.bg_fill,
+            });
 
-            self.visual.select2_border_when_selected_stroke = self.visual.input_filled_stroke;
-            self.visual.select2_border_when_selected_margin = egui::Margin::symmetric(5, 5);
-            self.visual.select2_border_when_selected_corner_radius =
-                self.visual.app_corner_radius.average();
-            self.visual.select2_border_when_selected = egui_select2::select2::SelectedLayout {
-                show_border_when_selected: true,
-                border_when_selected_stroke: self.visual.select2_border_when_selected_stroke,
-                border_when_selected_margin: self.visual.select2_border_when_selected_margin,
-                border_when_selected_corner_radius: self
-                    .visual
-                    .select2_border_when_selected_corner_radius,
-            };
-
-            self.search_form.apply_visual(&self.visual);
-            self.create_product_form.apply_visual(&self.visual);
-
-            self.visual_needs_init = false;
-        }
-
-        // Do one time startup job.
-        START.call_once(|| {
             // Get connected user.
             get_connected_user(Arc::clone(&self.connected_user), self.sender());
 
@@ -775,6 +757,24 @@ impl eframe::App for App {
             .check_loading();
         self.create_product_form
             .create_product_unit_temperature_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_physical_state_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_class_of_compound_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_signal_word_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_symbol_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_hazard_statement_widget
+            .check_loading();
+        self.create_product_form
+            .create_product_precautionary_statement_widget
             .check_loading();
 
         // Check export storages ready to download.

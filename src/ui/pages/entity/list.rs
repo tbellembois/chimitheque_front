@@ -41,7 +41,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
             && let Some((entities, count)) = maybe_entities_and_count
         {
             // let list_rec = app.state.search_rect;
-            let list_rec = app.state.window_available_rect;
+            let list_rec = app.state.central_panel_rect;
 
             // ui.scope_builder(egui::UiBuilder::new().max_rect(list_rec), |ui| {
             ui.horizontal(|ui| {

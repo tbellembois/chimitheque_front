@@ -5,10 +5,16 @@ use egui_select2::select2::EguiSelect2;
 use rust_i18n::t;
 
 use crate::{
+    config::{
+        APP_CORNER_RADIUS, FAINT_BG_COLOR, INPUT_FILLED_STROKE, NORMAL_STROKE,
+        SEARCH_FORM_INNER_MARGIN, SEARCH_FORM_WIDGET_HORIZONTAL_SPACING,
+        SEARCH_FORM_WIDGET_VERTICAL_SPACING, SEARCH_FORM_WIDTH,
+        SELECT2_BORDER_WHEN_SELECTED_CORNER_RADIUS, SELECT2_BORDER_WHEN_SELECTED_MARGIN,
+        SELECT2_BORDER_WHEN_SELECTED_STROKE,
+    },
     types::ProductType,
     ui::{
         state::{Action, ApplicationState, Page},
-        visual::ApplicationVisual,
         widgets::{buttonwithiconandtext::button_with_icon_and_text, size::Size},
     },
 };
@@ -41,24 +47,6 @@ pub struct SearchForm {
 }
 
 impl SearchForm {
-    /// Apply theme-dependent visual settings to all select2 widgets.
-    /// Must be called once after the egui visuals are available (i.e. from the first `ui()` frame).
-    pub fn apply_visual(&mut self, visual: &ApplicationVisual) {
-        let layout = visual.select2_border_when_selected.clone();
-        self.search_store_location_widget.selected_layout = layout.clone();
-        self.search_name_widget.selected_layout = layout.clone();
-        self.search_entity_widget.selected_layout = layout.clone();
-        self.search_producer_ref_widget.selected_layout = layout.clone();
-        self.search_signal_word_widget.selected_layout = layout.clone();
-        self.search_category_widget.selected_layout = layout.clone();
-        self.search_cas_number_widget.selected_layout = layout.clone();
-        self.search_empirical_formula_widget.selected_layout = layout.clone();
-        self.search_hazard_statement_widget.selected_layout = layout.clone();
-        self.search_precautionary_statement_widget.selected_layout = layout.clone();
-        self.search_symbol_widget.selected_layout = layout.clone();
-        self.search_tag_widget.selected_layout = layout;
-    }
-
     pub fn new() -> Self {
         let translations = egui_select2::select2::Translations {
             loading: t!("select2_loading").to_string(),
@@ -70,6 +58,15 @@ impl SearchForm {
             ..Default::default()
         };
 
+        let select2_layout = egui_select2::select2::SelectedLayout {
+            show_border_when_selected: true,
+            border_when_selected_stroke: *SELECT2_BORDER_WHEN_SELECTED_STROKE.get().unwrap(),
+            border_when_selected_margin: *SELECT2_BORDER_WHEN_SELECTED_MARGIN.get().unwrap(),
+            border_when_selected_corner_radius: *SELECT2_BORDER_WHEN_SELECTED_CORNER_RADIUS
+                .get()
+                .unwrap(),
+        };
+
         let search_form = SearchForm {
             search_store_location_widget: EguiSelect2::new(
                 Arc::new(crate::api::storelocation::load_suggestions),
@@ -78,7 +75,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_name_widget: EguiSelect2::new(
                 Arc::new(crate::api::name::load_suggestions),
@@ -87,7 +84,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_entity_widget: EguiSelect2::new(
                 Arc::new(crate::api::entity::load_suggestions),
@@ -96,7 +93,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_producer_ref_widget: EguiSelect2::new(
                 Arc::new(crate::api::producerref::load_suggestions),
@@ -105,7 +102,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_signal_word_widget: EguiSelect2::new(
                 Arc::new(crate::api::signalword::load_suggestions),
@@ -114,7 +111,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_category_widget: EguiSelect2::new(
                 Arc::new(crate::api::category::load_suggestions),
@@ -123,7 +120,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_cas_number_widget: EguiSelect2::new(
                 Arc::new(crate::api::casnumber::load_suggestions),
@@ -132,7 +129,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_empirical_formula_widget: EguiSelect2::new(
                 Arc::new(crate::api::empiricalformula::load_suggestions),
@@ -141,7 +138,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_hazard_statement_widget: EguiSelect2::new(
                 Arc::new(crate::api::hazardstatement::load_suggestions),
@@ -150,7 +147,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_precautionary_statement_widget: EguiSelect2::new(
                 Arc::new(crate::api::precautionarystatement::load_suggestions),
@@ -159,7 +156,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_symbol_widget: EguiSelect2::new(
                 Arc::new(crate::api::symbol::load_suggestions),
@@ -168,7 +165,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout.clone()),
             ),
             search_tag_widget: EguiSelect2::new(
                 Arc::new(crate::api::tag::load_suggestions),
@@ -177,7 +174,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                None,
+                Some(select2_layout),
             ),
 
             is_expanded: false,
@@ -198,23 +195,28 @@ impl SearchForm {
         &mut self,
         ui: &mut egui::Ui,
         application_state: &mut ApplicationState,
-        application_visual: &ApplicationVisual,
     ) -> Response {
-        let top_panel_height = application_state.top_panel_rect.height();
+        // Get config values from static OnceLock variables
+        let search_form_width = *SEARCH_FORM_WIDTH.get().unwrap();
+        let search_form_inner_margin = *SEARCH_FORM_INNER_MARGIN.get().unwrap();
+        let search_form_widget_horizontal_spacing =
+            *SEARCH_FORM_WIDGET_HORIZONTAL_SPACING.get().unwrap();
+        let search_form_widget_vertical_spacing =
+            *SEARCH_FORM_WIDGET_VERTICAL_SPACING.get().unwrap();
+        let app_corner_radius = *APP_CORNER_RADIUS.get().unwrap();
+        let faint_bg_color = *FAINT_BG_COLOR.get().unwrap();
+        let normal_stroke = *NORMAL_STROKE.get().unwrap();
+        let input_filled_stroke = *INPUT_FILLED_STROKE.get().unwrap();
 
-        let window_available_rect = application_state.window_available_rect;
-        let window_available_width = window_available_rect.width();
+        // Calculate search form outer x margin to center it horizontally.
         let search_form_outer_x_margin =
-            (window_available_width - application_visual.search_form_width) / 2.0;
-
-        let widgets = &ui.visuals().widgets;
-        let normal_stroke = widgets.noninteractive.bg_stroke;
+            (application_state.central_panel_rect.width() - (search_form_width)) / 2.0;
 
         // Calculate search form size and position (ie. rect).
-        let search_form_top_left = window_available_rect.left_top()
-            + egui::vec2(search_form_outer_x_margin, top_panel_height);
-        let search_form_bottom_right =
-            window_available_rect.right_bottom() - egui::vec2(search_form_outer_x_margin, 0.0);
+        let search_form_top_left = application_state.central_panel_rect.left_bottom()
+            + egui::vec2(search_form_outer_x_margin, 0.0);
+        let search_form_bottom_right = application_state.central_panel_rect.right_top()
+            - egui::vec2(search_form_outer_x_margin, 0.0);
         let search_form_rec =
             egui::Rect::from_two_pos(search_form_top_left, search_form_bottom_right);
 
@@ -224,39 +226,32 @@ impl SearchForm {
 
         let response = ui.vertical(|ui| {
             ui.scope_builder(egui::UiBuilder::new().max_rect(search_form_rec), |ui| {
-                // FIXME
-                ui.add_space(20.0);
-
                 // egui's ui.group does not support margins, so we use a custom frame instead.
                 let custom_group_frame = egui::Frame::new()
-                    .inner_margin(application_visual.search_form_inner_margin)
-                    .corner_radius(application_visual.app_corner_radius)
-                    .fill(application_visual.faint_bg_color)
+                    .inner_margin(search_form_inner_margin)
+                    .corner_radius(app_corner_radius)
+                    .fill(faint_bg_color)
                     .stroke(normal_stroke);
 
                 if self.is_expanded {
                     custom_group_frame.show(ui, |ui| {
                         egui::Grid::new("search_form_product_type_grid")
                             .min_col_width(
-                                (application_visual.search_form_width
-                                    - (2.0 * application_visual.search_form_inner_margin.leftf())
-                                    - (5.0
-                                        * application_visual
-                                            .search_form_widget_horizontal_spacing))
+                                (SEARCH_FORM_WIDTH.get().unwrap()
+                                    - (2.0 * search_form_inner_margin.leftf())
+                                    - (5.0 * search_form_widget_horizontal_spacing))
                                     / 4.0,
                             )
                             .max_col_width(
-                                (application_visual.search_form_width
-                                    - (2.0 * application_visual.search_form_inner_margin.leftf())
-                                    - (5.0
-                                        * application_visual
-                                            .search_form_widget_horizontal_spacing))
+                                (SEARCH_FORM_WIDTH.get().unwrap()
+                                    - (2.0 * search_form_inner_margin.leftf())
+                                    - (5.0 * search_form_widget_horizontal_spacing))
                                     / 4.0,
                             )
                             .num_columns(4)
                             .spacing([
-                                application_visual.search_form_widget_horizontal_spacing,
-                                application_visual.search_form_widget_vertical_spacing,
+                                search_form_widget_horizontal_spacing,
+                                search_form_widget_vertical_spacing,
                             ])
                             .striped(false)
                             .show(ui, |ui| {
@@ -300,29 +295,25 @@ impl SearchForm {
                                 ui.end_row();
                             });
 
-                        ui.add_space(application_visual.search_form_widget_vertical_spacing);
+                        ui.add_space(search_form_widget_vertical_spacing);
 
                         egui::Grid::new("search_form_grid")
                             .min_col_width(
-                                (application_visual.search_form_width
-                                    - (2.0 * application_visual.search_form_inner_margin.leftf())
-                                    - (5.0
-                                        * application_visual
-                                            .search_form_widget_horizontal_spacing))
+                                (SEARCH_FORM_WIDTH.get().unwrap()
+                                    - (2.0 * search_form_inner_margin.leftf())
+                                    - (5.0 * search_form_widget_horizontal_spacing))
                                     / 3.0,
                             )
                             .max_col_width(
-                                (application_visual.search_form_width
-                                    - (2.0 * application_visual.search_form_inner_margin.leftf())
-                                    - (5.0
-                                        * application_visual
-                                            .search_form_widget_horizontal_spacing))
+                                (SEARCH_FORM_WIDTH.get().unwrap()
+                                    - (2.0 * search_form_inner_margin.leftf())
+                                    - (5.0 * search_form_widget_horizontal_spacing))
                                     / 3.0,
                             )
                             .num_columns(3)
                             .spacing([
-                                application_visual.search_form_widget_horizontal_spacing,
-                                application_visual.search_form_widget_vertical_spacing,
+                                search_form_widget_horizontal_spacing,
+                                search_form_widget_vertical_spacing,
                             ])
                             .striped(false)
                             .show(ui, |ui| {
@@ -330,7 +321,7 @@ impl SearchForm {
                                 let stroke = if self.search_part_of_name.is_empty() {
                                     Stroke::default()
                                 } else {
-                                    application_visual.input_filled_stroke
+                                    input_filled_stroke
                                 };
                                 let inner_margin = if self.search_part_of_name.is_empty() {
                                     egui::Margin::symmetric(0, 0)
@@ -340,7 +331,7 @@ impl SearchForm {
                                 let frame = egui::Frame::new()
                                     .stroke(stroke)
                                     .inner_margin(inner_margin)
-                                    .corner_radius(application_visual.app_corner_radius);
+                                    .corner_radius(app_corner_radius);
                                 frame.show(ui, |ui| {
                                     ui.add(
                                         egui::TextEdit::singleline(&mut self.search_part_of_name)
@@ -355,7 +346,7 @@ impl SearchForm {
                                 let stroke = if self.search_barecode.is_empty() {
                                     Stroke::default()
                                 } else {
-                                    application_visual.input_filled_stroke
+                                    input_filled_stroke
                                 };
                                 let inner_margin = if self.search_barecode.is_empty() {
                                     egui::Margin::symmetric(0, 0)
@@ -365,7 +356,7 @@ impl SearchForm {
                                 let frame = egui::Frame::new()
                                     .stroke(stroke)
                                     .inner_margin(inner_margin)
-                                    .corner_radius(application_visual.app_corner_radius);
+                                    .corner_radius(app_corner_radius);
                                 frame.show(ui, |ui| {
                                     ui.add(
                                         egui::TextEdit::singleline(&mut self.search_barecode)
@@ -387,10 +378,10 @@ impl SearchForm {
                                 ui.end_row();
                             });
 
-                        ui.add_space(application_visual.search_form_widget_vertical_spacing);
+                        ui.add_space(search_form_widget_vertical_spacing);
 
                         let collapse_state = ui.collapsing(t!("advanced_search"), |ui| {
-                            ui.add_space(application_visual.search_form_widget_vertical_spacing);
+                            ui.add_space(search_form_widget_vertical_spacing);
 
                             let advanced_search_form_width: f32 =
                                 application_state.advanced_search_rect.width();
@@ -398,22 +389,18 @@ impl SearchForm {
                             egui::Grid::new("advanced_search_form_grid")
                                 .min_col_width(
                                     (advanced_search_form_width
-                                        - (4.0
-                                            * application_visual
-                                                .search_form_widget_horizontal_spacing))
+                                        - (4.0 * search_form_widget_horizontal_spacing))
                                         / 3.0,
                                 )
                                 .max_col_width(
                                     (advanced_search_form_width
-                                        - (4.0
-                                            * application_visual
-                                                .search_form_widget_horizontal_spacing))
+                                        - (4.0 * search_form_widget_horizontal_spacing))
                                         / 3.0,
                                 )
                                 .num_columns(3)
                                 .spacing([
-                                    application_visual.search_form_widget_horizontal_spacing,
-                                    application_visual.search_form_widget_vertical_spacing,
+                                    search_form_widget_horizontal_spacing,
+                                    search_form_widget_vertical_spacing,
                                 ])
                                 .striped(false)
                                 .show(ui, |ui| {
@@ -441,7 +428,7 @@ impl SearchForm {
 
                                     // cmr
                                     let stroke = if self.search_product_cmr {
-                                        application_visual.input_filled_stroke
+                                        input_filled_stroke
                                     } else {
                                         Stroke::default()
                                     };
@@ -453,7 +440,7 @@ impl SearchForm {
                                     let frame = egui::Frame::new()
                                         .stroke(stroke)
                                         .inner_margin(inner_margin)
-                                        .corner_radius(application_visual.app_corner_radius);
+                                        .corner_radius(app_corner_radius);
                                     frame.show(ui, |ui| {
                                         ui.add(egui::Checkbox::new(
                                             &mut self.search_product_cmr,
@@ -463,7 +450,7 @@ impl SearchForm {
 
                                     // borrowed
                                     let stroke = if self.search_product_borrowed {
-                                        application_visual.input_filled_stroke
+                                        input_filled_stroke
                                     } else {
                                         Stroke::default()
                                     };
@@ -475,7 +462,7 @@ impl SearchForm {
                                     let frame = egui::Frame::new()
                                         .stroke(stroke)
                                         .inner_margin(inner_margin)
-                                        .corner_radius(application_visual.app_corner_radius);
+                                        .corner_radius(app_corner_radius);
                                     frame.show(ui, |ui| {
                                         ui.add(egui::Checkbox::new(
                                             &mut self.search_product_borrowed,
@@ -485,7 +472,7 @@ impl SearchForm {
 
                                     // to destroy
                                     let stroke = if self.search_product_to_destroy {
-                                        application_visual.input_filled_stroke
+                                        input_filled_stroke
                                     } else {
                                         Stroke::default()
                                     };
@@ -497,7 +484,7 @@ impl SearchForm {
                                     let frame = egui::Frame::new()
                                         .stroke(stroke)
                                         .inner_margin(inner_margin)
-                                        .corner_radius(application_visual.app_corner_radius);
+                                        .corner_radius(app_corner_radius);
                                     frame.show(ui, |ui| {
                                         ui.add(egui::Checkbox::new(
                                             &mut self.search_product_to_destroy,
@@ -511,7 +498,7 @@ impl SearchForm {
                         });
 
                         if collapse_state.fully_open() {
-                            ui.add_space(application_visual.search_form_widget_vertical_spacing);
+                            ui.add_space(search_form_widget_vertical_spacing);
                         }
 
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {

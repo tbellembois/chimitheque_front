@@ -37,14 +37,14 @@ pub fn load_suggestions(
             let mut maybe_current_suggestions = match shared_suggestions.lock() {
                 Ok(locked) => locked,
                 Err(e) => {
-                    log::error!("{e}");
+                    elog!(error, e.to_string());
                     return;
                 }
             };
 
             match crate::api::parse_json_response::<(Vec<SignalWord>, u64)>(&response) {
-                Ok(response_signal_words_and_count) => {
-                    let items: Vec<SelectItem> = response_signal_words_and_count
+                Ok(response_data_and_count) => {
+                    let items: Vec<SelectItem> = response_data_and_count
                         .0
                         .into_iter()
                         .map(|signal_word| SelectItem {
@@ -52,7 +52,7 @@ pub fn load_suggestions(
                             label: signal_word.signal_word_label,
                         })
                         .collect();
-                    let total = match usize::try_from(response_signal_words_and_count.1) {
+                    let total = match usize::try_from(response_data_and_count.1) {
                         Ok(total) => total,
                         Err(e) => {
                             elog!(error, format!("{e}"));
@@ -67,7 +67,7 @@ pub fn load_suggestions(
             }
         }
         Err(e) => {
-            log::error!("{e}");
+            elog!(error, e.to_string());
         }
     });
 }

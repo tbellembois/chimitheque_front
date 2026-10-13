@@ -1,5 +1,5 @@
 use crate::ui::widgets::size::Size;
-use egui::{CursorIcon, FontFamily, FontId, Pos2, RichText, Sense, Stroke};
+use egui::{CursorIcon, FontFamily, FontId, RichText, Sense};
 
 pub fn clickable_label_with_icon_and_text(
     ui: &mut egui::Ui,
@@ -8,9 +8,9 @@ pub fn clickable_label_with_icon_and_text(
     size: &Size,
 ) -> egui::Response {
     let widgets = &ui.visuals().widgets;
-    let hovered_stroke = widgets.hovered.fg_stroke;
-
     let frame = egui::Frame::new().inner_margin(size.inner_margin());
+
+    let hovered_stroke = widgets.hovered.fg_stroke;
 
     // 1. Draw the frame layout content
     let inner = frame.show(ui, |ui| {
@@ -36,12 +36,12 @@ pub fn clickable_label_with_icon_and_text(
     if response.hovered() {
         let rect = response.rect;
 
-        ui.painter().line_segment(
-            [
-                Pos2::new(rect.left(), rect.bottom()),
-                Pos2::new(rect.right(), rect.bottom()),
-            ],
-            Stroke::new(2.0, hovered_stroke.color),
+        // Draw a rounded border around the entire frame
+        ui.painter().rect_stroke(
+            rect,
+            egui::CornerRadius::same(5),
+            hovered_stroke,
+            egui::StrokeKind::Inside,
         );
 
         // This will change the cursor seamlessly for the entire button area

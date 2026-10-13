@@ -48,17 +48,6 @@ pub fn log(msg: LogMessage) {
     }
 }
 
-// #[macro_export]
-// macro_rules! elog {
-//     ($msg:expr) => {
-//         $crate::logger::log($msg)
-//     };
-
-//     ($fmt:expr, $($arg:tt)*) => {
-//         $crate::logger::log(format!($fmt, $($arg)*))
-//     };
-// }
-
 #[macro_export]
 macro_rules! elog {
     (debug, $msg:expr) => {

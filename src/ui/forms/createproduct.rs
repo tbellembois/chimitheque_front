@@ -7,23 +7,23 @@ use rust_i18n::t;
 use std::sync::{Arc, Mutex};
 
 use crate::{
+    config::{
+        CREATE_PRODUCT_FORM_CORNER_RADIUS, CREATE_PRODUCT_FORM_DESIRED_WIDTH,
+        CREATE_PRODUCT_FORM_INNER_MARGIN, CREATE_PRODUCT_FORM_WIDGET_HORIZONTAL_SPACING,
+        CREATE_PRODUCT_FORM_WIDGET_VERTICAL_SPACING, FAINT_BG_COLOR,
+        SELECT2_BORDER_WHEN_SELECTED_CORNER_RADIUS, SELECT2_BORDER_WHEN_SELECTED_MARGIN,
+        SELECT2_BORDER_WHEN_SELECTED_STROKE,
+    },
     elog,
     types::ProductType,
     ui::{
         state::ApplicationState,
-        visual::ApplicationVisual,
         widgets::{
             buttonwithiconandtext::button_with_icon_and_text, icon::icon,
             invalidinputlabel::invalid_input_label, size::Size,
         },
     },
 };
-
-const CREATE_PRODUCT_FORM_DESIRED_WIDTH: f32 = 925.0;
-const CREATE_PRODUCT_FORM_INNER_MARGIN: egui::Margin = egui::Margin::symmetric(20, 20);
-const CREATE_PRODUCT_FORM_CORNER_RADIUS: f32 = 8.0;
-const WIDGET_HORIZONTAL_SPACING: f32 = 10.0;
-const WIDGET_VERTICAL_SPACING: f32 = 20.0;
 
 #[derive(Default)]
 pub struct CreateProductForm {
@@ -51,6 +51,7 @@ pub struct CreateProductForm {
     pub create_product_producer_sheet: String,
     pub create_product_physical_state_widget: EguiSelect2,
     pub create_product_class_of_compound_widget: EguiSelect2,
+
     pub create_product_signal_word_widget: EguiSelect2,
     pub create_product_symbol_widget: EguiSelect2,
     pub create_product_hazard_statement_widget: EguiSelect2,
@@ -66,30 +67,6 @@ pub struct CreateProductForm {
 }
 
 impl CreateProductForm {
-    /// Apply theme-dependent visual settings to all select2 widgets.
-    /// Must be called once after the egui visuals are available (i.e. from the first `ui()` frame).
-    pub fn apply_visual(&mut self, visual: &ApplicationVisual) {
-        let layout = visual.select2_border_when_selected.clone();
-        self.create_product_tag_widget.selected_layout = layout.clone();
-        self.create_product_category_widget.selected_layout = layout.clone();
-        self.create_product_name_widget.selected_layout = layout.clone();
-        self.create_product_synonym_widget.selected_layout = layout.clone();
-        self.create_product_empirical_formula_widget.selected_layout = layout.clone();
-        self.create_product_linear_formula_widget.selected_layout = layout.clone();
-        self.create_product_cas_number_widget.selected_layout = layout.clone();
-        self.create_product_ce_number_widget.selected_layout = layout.clone();
-        self.create_product_unit_molecular_weight_widget
-            .selected_layout = layout.clone();
-        self.create_product_unit_temperature_widget.selected_layout = layout.clone();
-        self.create_product_physical_state_widget.selected_layout = layout.clone();
-        self.create_product_class_of_compound_widget.selected_layout = layout.clone();
-        self.create_product_signal_word_widget.selected_layout = layout.clone();
-        self.create_product_symbol_widget.selected_layout = layout.clone();
-        self.create_product_hazard_statement_widget.selected_layout = layout.clone();
-        self.create_product_precautionary_statement_widget
-            .selected_layout = layout;
-    }
-
     pub fn new() -> Self {
         let translations = egui_select2::select2::Translations {
             loading: t!("select2_loading").to_string(),
@@ -98,7 +75,17 @@ impl CreateProductForm {
             new: t!("select2_new").to_string(),
             clear_all: t!("select2_clear_all").to_string(),
             load_more: t!("select2_load_more").to_string(),
+            multi_valued: t!("select2_multi_valued").to_string(),
             ..Default::default()
+        };
+
+        let select2_layout = egui_select2::select2::SelectedLayout {
+            show_border_when_selected: true,
+            border_when_selected_stroke: *SELECT2_BORDER_WHEN_SELECTED_STROKE.get().unwrap(),
+            border_when_selected_margin: *SELECT2_BORDER_WHEN_SELECTED_MARGIN.get().unwrap(),
+            border_when_selected_corner_radius: *SELECT2_BORDER_WHEN_SELECTED_CORNER_RADIUS
+                .get()
+                .unwrap(),
         };
 
         let create_product_form = Self {
@@ -113,7 +100,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_category_widget: EguiSelect2::new(
                 Arc::new(crate::api::category::load_suggestions),
@@ -126,7 +113,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_name_widget: EguiSelect2::new(
                 Arc::new(crate::api::name::load_suggestions),
@@ -139,7 +126,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_synonym_widget: EguiSelect2::new(
                 Arc::new(crate::api::name::load_suggestions),
@@ -152,7 +139,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_empirical_formula_widget: EguiSelect2::new(
                 Arc::new(crate::api::empiricalformula::load_suggestions),
@@ -165,7 +152,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_linear_formula_widget: EguiSelect2::new(
                 Arc::new(crate::api::linearformula::load_suggestions),
@@ -178,7 +165,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_cas_number_widget: EguiSelect2::new(
                 Arc::new(crate::api::casnumber::load_suggestions),
@@ -191,7 +178,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_ce_number_widget: EguiSelect2::new(
                 Arc::new(crate::api::cenumber::load_suggestions),
@@ -204,7 +191,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_unit_molecular_weight_widget: EguiSelect2::new(
                 Arc::new(crate::api::unitmolecularweight::load_suggestions),
@@ -217,7 +204,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_unit_temperature_widget: EguiSelect2::new(
                 Arc::new(crate::api::unittemperature::load_suggestions),
@@ -230,7 +217,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_physical_state_widget: EguiSelect2::new(
                 Arc::new(crate::api::physicalstate::load_suggestions),
@@ -243,7 +230,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_class_of_compound_widget: EguiSelect2::new(
                 Arc::new(crate::api::classofcompound::load_suggestions),
@@ -256,7 +243,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_signal_word_widget: EguiSelect2::new(
                 Arc::new(crate::api::signalword::load_suggestions),
@@ -269,7 +256,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_symbol_widget: EguiSelect2::new(
                 Arc::new(crate::api::symbol::load_suggestions),
@@ -282,7 +269,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_hazard_statement_widget: EguiSelect2::new(
                 Arc::new(crate::api::hazardstatement::load_suggestions),
@@ -295,7 +282,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout.clone()),
             ),
             create_product_precautionary_statement_widget: EguiSelect2::new(
                 Arc::new(crate::api::precautionarystatement::load_suggestions),
@@ -308,7 +295,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                None,
+                Some(select2_layout),
             ),
 
             // Initialize all remaining fields
@@ -337,26 +324,48 @@ impl CreateProductForm {
         create_product_form
     }
 
+    /// Renders the complete create product form UI component.
+    /// This function is responsible for:
+    /// 1. Calculating and positioning the form container within the application window
+    /// 2. Rendering all form widgets including:
+    ///    - Product type selection (Chemical/Biological/Consumable)
+    ///    - Tag, category, and name selection fields
+    ///    - Chemical identifiers (InChI, InChIKey, SMILES)
+    ///    - Molecular properties (weight, temperature)
+    ///    - File upload for molecule images
+    ///    - Action buttons (Cancel/Create)
+    /// 3. Handling user interactions and validation states
+    /// 4. Returning the egui Response for event handling by the caller
+    ///
+    /// The form is rendered as a vertically centered panel with a light background
+    /// and rounded corners, following the application's visual theme.
     pub fn render(
         &mut self,
         ui: &mut egui::Ui,
         application_state: &mut ApplicationState,
-        application_visual: &ApplicationVisual,
     ) -> Response {
-        let top_panel_height = application_state.top_panel_rect.height();
+        // Get config values from static OnceLock variables
+        let create_product_form_desired_width = *CREATE_PRODUCT_FORM_DESIRED_WIDTH.get().unwrap();
+        let create_product_form_inner_margin = *CREATE_PRODUCT_FORM_INNER_MARGIN.get().unwrap();
+        let create_product_form_corner_radius = *CREATE_PRODUCT_FORM_CORNER_RADIUS.get().unwrap();
+        let create_product_form_widget_horizontal_spacing =
+            *CREATE_PRODUCT_FORM_WIDGET_HORIZONTAL_SPACING.get().unwrap();
+        let create_product_form_widget_vertical_spacing =
+            *CREATE_PRODUCT_FORM_WIDGET_VERTICAL_SPACING.get().unwrap();
+        let faint_bg_color = *FAINT_BG_COLOR.get().unwrap();
 
-        let window_available_rect = application_state.window_available_rect;
-        let window_available_width = window_available_rect.width();
-        let create_product_form_outer_x_margin =
-            (window_available_width - CREATE_PRODUCT_FORM_DESIRED_WIDTH) / 2.0;
+        // Calculate create product form outer x margin to center it horizontally.
+        let create_product_form_outer_x_margin = (application_state.central_panel_rect.width()
+            - create_product_form_desired_width)
+            / 2.0;
 
         let widgets = &ui.visuals().widgets;
         let normal_stroke = widgets.noninteractive.bg_stroke;
 
         // Calculate search form size and position (ie. rect).
-        let create_product_form_top_left = window_available_rect.left_top()
-            + egui::vec2(create_product_form_outer_x_margin, top_panel_height);
-        let create_product_form_bottom_right = window_available_rect.right_bottom()
+        let create_product_form_top_left = application_state.central_panel_rect.left_top()
+            + egui::vec2(create_product_form_outer_x_margin, 0.0);
+        let create_product_form_bottom_right = application_state.central_panel_rect.right_bottom()
             - egui::vec2(create_product_form_outer_x_margin, 0.0);
         let create_product_form_rec = egui::Rect::from_two_pos(
             create_product_form_top_left,
@@ -374,201 +383,234 @@ impl CreateProductForm {
 
                     // egui's ui.group does not support margins, so we use a custom frame instead.
                     let custom_group_frame = egui::Frame::new()
-                        .fill(application_visual.faint_bg_color)
-                        .inner_margin(CREATE_PRODUCT_FORM_INNER_MARGIN)
-                        .corner_radius(CREATE_PRODUCT_FORM_CORNER_RADIUS)
+                        .fill(faint_bg_color)
+                        .inner_margin(create_product_form_inner_margin)
+                        .corner_radius(create_product_form_corner_radius)
                         .stroke(normal_stroke);
 
                     custom_group_frame.show(ui, |ui| {
-                        egui::Grid::new("create_product_form_product_type_grid")
-                            .min_col_width(
-                                (CREATE_PRODUCT_FORM_DESIRED_WIDTH
-                                    - (2.0 * CREATE_PRODUCT_FORM_INNER_MARGIN.leftf())
-                                    - (4.0 * WIDGET_HORIZONTAL_SPACING))
-                                    / 3.0,
-                            )
-                            .num_columns(3)
-                            .spacing([WIDGET_HORIZONTAL_SPACING, WIDGET_VERTICAL_SPACING])
-                            .striped(false)
+                        egui::ScrollArea::vertical()
+                            .id_salt("product_create")
                             .show(ui, |ui| {
-                                ui.radio_value(
-                                    &mut self.create_product_type,
-                                    ProductType::Chemical,
-                                    format!(
-                                        "{} {}",
-                                        egui_phosphor::fill::ATOM,
-                                        t!("create_product_form_product_type_chemical")
-                                    ),
-                                );
-                                ui.radio_value(
-                                    &mut self.create_product_type,
-                                    ProductType::Biological,
-                                    format!(
-                                        "{} {}",
-                                        egui_phosphor::fill::DNA,
-                                        t!("create_product_form_product_type_biological")
-                                    ),
-                                );
-                                ui.radio_value(
-                                    &mut self.create_product_type,
-                                    ProductType::Consumable,
-                                    format!(
-                                        "{} {}",
-                                        egui_phosphor::fill::PACKAGE,
-                                        t!("create_product_form_product_type_consumable")
-                                    ),
-                                );
-
-                                ui.end_row();
-                            });
-
-                        ui.add_space(WIDGET_VERTICAL_SPACING);
-
-                        egui::Grid::new("create_product_form_grid")
-                            .min_col_width(
-                                (CREATE_PRODUCT_FORM_DESIRED_WIDTH
-                                    - (2.0 * CREATE_PRODUCT_FORM_INNER_MARGIN.leftf())
-                                    - (3.0 * WIDGET_HORIZONTAL_SPACING))
-                                    / 2.0,
-                            )
-                            .num_columns(2)
-                            .spacing([WIDGET_HORIZONTAL_SPACING, WIDGET_VERTICAL_SPACING])
-                            .striped(false)
-                            .show(ui, |ui| {
-                                self.create_product_tag_widget.ui(ui);
-                                self.create_product_category_widget.ui(ui);
-                                ui.end_row();
-
-                                // ui.horizontal() destroys the layout with select2
-                                egui::Frame::group(ui.style())
-                                    .stroke(egui::Stroke::NONE)
-                                    .show(ui, |ui| {
-                                        icon(ui, egui_phosphor::regular::ASTERISK, &Size::Small);
-                                        self.create_product_name_widget.ui(ui);
-                                    });
-
-                                self.create_product_synonym_widget.ui(ui);
-                                ui.end_row();
-
-                                self.create_product_empirical_formula_widget.ui(ui);
-                                self.create_product_linear_formula_widget.ui(ui);
-                                ui.end_row();
-
-                                self.create_product_cas_number_widget.ui(ui);
-                                self.create_product_ce_number_widget.ui(ui);
-                                ui.end_row();
-
-                                ui.add(
-                                    egui::TextEdit::singleline(
-                                        &mut self.create_product_specificity,
+                                // ===== PRODUCT TYPE SELECTION SECTION =====
+                                // Radio buttons for selecting the product type (Chemical/Biological/Consumable)
+                                egui::Grid::new("create_product_form_product_type_grid")
+                                    .min_col_width(
+                                        (create_product_form_desired_width
+                                            - (2.0 * create_product_form_inner_margin.leftf())
+                                            - (4.0
+                                                * create_product_form_widget_horizontal_spacing))
+                                            / 3.0,
                                     )
-                                    .hint_text(t!("create_product_form_specificity")),
-                                );
-                                ui.end_row();
-
-                                // inchi input and validation.
-                                egui::Frame::group(ui.style())
-                                    .stroke(egui::Stroke::NONE)
+                                    .num_columns(3)
+                                    .spacing([
+                                        create_product_form_widget_horizontal_spacing,
+                                        create_product_form_widget_vertical_spacing,
+                                    ])
+                                    .striped(false)
                                     .show(ui, |ui| {
-                                        let response = ui.add(
-                                            egui::TextEdit::singleline(
-                                                &mut self.create_product_inchi,
-                                            )
-                                            .hint_text(t!("create_product_form_inchi")),
+                                        ui.radio_value(
+                                            &mut self.create_product_type,
+                                            ProductType::Chemical,
+                                            format!(
+                                                "{} {}",
+                                                egui_phosphor::fill::ATOM,
+                                                t!("create_product_form_product_type_chemical")
+                                            ),
                                         );
-                                        if response.changed() {
-                                            self.inchi_is_valid =
-                                                is_inchi(self.create_product_inchi.as_str());
-                                        }
-                                        if !self.inchi_is_valid {
-                                            invalid_input_label(
-                                                ui,
-                                                t!("create_product_form_inchi_invalid").to_string(),
-                                            );
-                                        }
+                                        ui.radio_value(
+                                            &mut self.create_product_type,
+                                            ProductType::Biological,
+                                            format!(
+                                                "{} {}",
+                                                egui_phosphor::fill::DNA,
+                                                t!("create_product_form_product_type_biological")
+                                            ),
+                                        );
+                                        ui.radio_value(
+                                            &mut self.create_product_type,
+                                            ProductType::Consumable,
+                                            format!(
+                                                "{} {}",
+                                                egui_phosphor::fill::PACKAGE,
+                                                t!("create_product_form_product_type_consumable")
+                                            ),
+                                        );
+
+                                        ui.end_row();
                                     });
 
-                                // inchi key input and validation.
-                                egui::Frame::group(ui.style())
-                                    .stroke(egui::Stroke::NONE)
-                                    .show(ui, |ui| {
-                                        let response = ui.add(
-                                            egui::TextEdit::singleline(
-                                                &mut self.create_product_inchikey,
-                                            )
-                                            .hint_text(t!("create_product_form_inchikey")),
-                                        );
-                                        if response.changed() {
-                                            self.inchikey_is_valid =
-                                                is_inchi(self.create_product_inchikey.as_str());
-                                        }
-                                        if !self.inchikey_is_valid {
-                                            invalid_input_label(
-                                                ui,
-                                                t!("create_product_form_inchikey_invalid")
-                                                    .to_string(),
-                                            );
-                                        }
-                                    });
-                                ui.end_row();
+                                ui.add_space(create_product_form_widget_vertical_spacing);
 
-                                // smiles input and validation.
-                                egui::Frame::group(ui.style())
-                                    .stroke(egui::Stroke::NONE)
-                                    .show(ui, |ui| {
-                                        let response = ui.add(
-                                            egui::TextEdit::singleline(
-                                                &mut self.create_product_smiles,
-                                            )
-                                            .hint_text(t!("create_product_form_smiles")),
-                                        );
-                                        if response.changed() {
-                                            self.smiles_is_valid =
-                                                is_inchi(self.create_product_smiles.as_str());
-                                        }
-                                        if !self.smiles_is_valid {
-                                            invalid_input_label(
-                                                ui,
-                                                t!("create_product_form_smiles_invalid")
-                                                    .to_string(),
-                                            );
-                                        }
-                                    });
-                                ui.end_row();
-
-                                egui::Frame::group(ui.style())
-                                    .stroke(egui::Stroke::NONE)
-                                    .show(ui, |ui| {
-                                        ui.label(t!("create_product_form_molecular_weight"));
-                                        ui.add(
-                                            egui::DragValue::new(
-                                                &mut self.create_product_molecular_weight,
-                                            )
-                                            .speed(0.1),
-                                        );
-                                        self.create_product_unit_molecular_weight_widget.ui(ui);
-                                    });
-                                egui::Frame::group(ui.style())
-                                    .stroke(egui::Stroke::NONE)
-                                    .show(ui, |ui| {
-                                        ui.label(t!("create_product_form_temperature"));
-                                        ui.add(
-                                            egui::DragValue::new(
-                                                &mut self.create_product_temperature,
-                                            )
-                                            .speed(0.1),
-                                        );
-                                        self.create_product_unit_temperature_widget.ui(ui);
-                                    });
-                                ui.end_row();
-
-                                ui.add(
-                                    egui::TextEdit::singleline(
-                                        &mut self.create_product_3d_formula_link,
+                                // ===== MAIN FORM FIELDS SECTION =====
+                                // Grid layout for the main form fields (2 columns)
+                                egui::Grid::new("create_product_form_grid")
+                                    .min_col_width(
+                                        (create_product_form_desired_width
+                                            - (2.0 * create_product_form_inner_margin.leftf())
+                                            - (3.0
+                                                * create_product_form_widget_horizontal_spacing))
+                                            / 2.0,
                                     )
-                                    .hint_text(t!("create_product_form_3d_formula_link")),
-                                );
-                                egui::Frame::group(ui.style())
+                                    .num_columns(2)
+                                    .spacing([
+                                        create_product_form_widget_horizontal_spacing,
+                                        create_product_form_widget_vertical_spacing,
+                                    ])
+                                    .striped(false)
+                                    .show(ui, |ui| {
+                                        // Left column form fields
+                                        self.create_product_tag_widget.ui(ui);
+                                        self.create_product_category_widget.ui(ui);
+                                        ui.end_row();
+
+                                        // Special layout for name field with asterisk icon
+                                        egui::Frame::group(ui.style())
+                                            .stroke(egui::Stroke::NONE)
+                                            .show(ui, |ui| {
+                                                icon(
+                                                    ui,
+                                                    egui_phosphor::regular::ASTERISK,
+                                                    &Size::Small,
+                                                );
+                                                self.create_product_name_widget.ui(ui);
+                                            });
+
+                                        self.create_product_synonym_widget.ui(ui);
+                                        ui.end_row();
+
+                                        // Chemical identifier fields
+                                        self.create_product_empirical_formula_widget.ui(ui);
+                                        self.create_product_linear_formula_widget.ui(ui);
+                                        ui.end_row();
+
+                                        self.create_product_cas_number_widget.ui(ui);
+                                        self.create_product_ce_number_widget.ui(ui);
+                                        ui.end_row();
+
+                                        // Specificity text field
+                                        ui.add(
+                                            egui::TextEdit::singleline(
+                                                &mut self.create_product_specificity,
+                                            )
+                                            .hint_text(t!("create_product_form_specificity")),
+                                        );
+                                        ui.end_row();
+
+                                        // InChI chemical identifier field with validation
+                                        egui::Frame::group(ui.style())
+                                            .stroke(egui::Stroke::NONE)
+                                            .show(ui, |ui| {
+                                                let response = ui.add(
+                                                    egui::TextEdit::singleline(
+                                                        &mut self.create_product_inchi,
+                                                    )
+                                                    .hint_text(t!("create_product_form_inchi")),
+                                                );
+                                                if response.changed() {
+                                                    self.inchi_is_valid = is_inchi(
+                                                        self.create_product_inchi.as_str(),
+                                                    );
+                                                }
+                                                if !self.inchi_is_valid {
+                                                    invalid_input_label(
+                                                        ui,
+                                                        t!("create_product_form_inchi_invalid")
+                                                            .to_string(),
+                                                    );
+                                                }
+                                            });
+
+                                        // InChIKey chemical identifier field with validation
+                                        egui::Frame::group(ui.style())
+                                            .stroke(egui::Stroke::NONE)
+                                            .show(ui, |ui| {
+                                                let response = ui.add(
+                                                    egui::TextEdit::singleline(
+                                                        &mut self.create_product_inchikey,
+                                                    )
+                                                    .hint_text(t!("create_product_form_inchikey")),
+                                                );
+                                                if response.changed() {
+                                                    self.inchikey_is_valid = is_inchi(
+                                                        self.create_product_inchikey.as_str(),
+                                                    );
+                                                }
+                                                if !self.inchikey_is_valid {
+                                                    invalid_input_label(
+                                                        ui,
+                                                        t!("create_product_form_inchikey_invalid")
+                                                            .to_string(),
+                                                    );
+                                                }
+                                            });
+                                        ui.end_row();
+
+                                        // SMILES chemical identifier field with validation
+                                        egui::Frame::group(ui.style())
+                                            .stroke(egui::Stroke::NONE)
+                                            .show(ui, |ui| {
+                                                let response = ui.add(
+                                                    egui::TextEdit::singleline(
+                                                        &mut self.create_product_smiles,
+                                                    )
+                                                    .hint_text(t!("create_product_form_smiles")),
+                                                );
+                                                if response.changed() {
+                                                    self.smiles_is_valid = is_inchi(
+                                                        self.create_product_smiles.as_str(),
+                                                    );
+                                                }
+                                                if !self.smiles_is_valid {
+                                                    invalid_input_label(
+                                                        ui,
+                                                        t!("create_product_form_smiles_invalid")
+                                                            .to_string(),
+                                                    );
+                                                }
+                                            });
+                                        ui.end_row();
+
+                                        // Molecular weight field with unit selector
+                                        egui::Frame::group(ui.style())
+                                            .stroke(egui::Stroke::NONE)
+                                            .show(ui, |ui| {
+                                                ui.label(t!(
+                                                    "create_product_form_molecular_weight"
+                                                ));
+                                                ui.add(
+                                                    egui::DragValue::new(
+                                                        &mut self.create_product_molecular_weight,
+                                                    )
+                                                    .speed(0.1),
+                                                );
+                                                self.create_product_unit_molecular_weight_widget
+                                                    .ui(ui);
+                                            });
+                                        // Temperature field with unit selector
+                                        egui::Frame::group(ui.style())
+                                            .stroke(egui::Stroke::NONE)
+                                            .show(ui, |ui| {
+                                                ui.label(t!("create_product_form_temperature"));
+                                                ui.add(
+                                                    egui::DragValue::new(
+                                                        &mut self.create_product_temperature,
+                                                    )
+                                                    .speed(0.1),
+                                                );
+                                                self.create_product_unit_temperature_widget.ui(ui);
+                                            });
+                                        ui.end_row();
+
+                                        // 3D formula link field
+                                        ui.add(
+                                            egui::TextEdit::singleline(
+                                                &mut self.create_product_3d_formula_link,
+                                            )
+                                            .hint_text(t!("create_product_form_3d_formula_link")),
+                                        );
+                                        // File upload for molecule picture
+                                        egui::Frame::group(ui.style())
                                     .stroke(egui::Stroke::NONE)
                                     .show(ui, |ui| {
                                         ui.label(t!("create_product_form_molecule_picture"));
@@ -614,64 +656,129 @@ impl CreateProductForm {
                                             }
                                         }
                                     });
-                                ui.end_row();
+                                        ui.end_row();
 
-                                ui.label("");
-                                match self.create_product_molecule_picture.lock() {
-                                    Ok(data) => {
-                                        let maybe_image_bytes = data.clone();
+                                        // Molecule picture display area (empty label + image preview)
+                                        ui.label("");
+                                        match self.create_product_molecule_picture.lock() {
+                                            Ok(data) => {
+                                                let maybe_image_bytes = data.clone();
 
-                                        if let Some(image_bytes) = maybe_image_bytes {
-                                            // Encode image bytes to Base64
-                                            let base64_encoded =
-                                                general_purpose::STANDARD.encode(&image_bytes);
+                                                if let Some(image_bytes) = maybe_image_bytes {
+                                                    // Encode image bytes to Base64
+                                                    let base64_encoded = general_purpose::STANDARD
+                                                        .encode(&image_bytes);
 
-                                            // Format image data URL
-                                            let image_data_url =
-                                                format!("data:image/png;base64,{}", base64_encoded);
+                                                    // Format image data URL
+                                                    let image_data_url = format!(
+                                                        "data:image/png;base64,{}",
+                                                        base64_encoded
+                                                    );
 
-                                            // Set the base64 picture URL
-                                            self.create_product_molecule_base64_picture =
-                                                Some(image_data_url);
+                                                    // Set the base64 picture URL
+                                                    self.create_product_molecule_base64_picture =
+                                                        Some(image_data_url);
 
-                                            // Display the image from image_bytes
-                                            // Use a unique URI string so egui can cache the image texture internally
-                                            ui.add(
+                                                    // Display the image from image_bytes
+                                                    // Use a unique URI string so egui can cache the image texture internally
+                                                    ui.add(
                                                 egui::Image::from_bytes(
                                                     "bytes://product_image.png",
                                                     image_bytes,
                                                 )
                                                 .fit_to_exact_size(egui::vec2(150.0, 150.0)),
                                             );
+                                                }
+                                            }
+                                            Err(e) => {
+                                                elog!(error, e.to_string());
+                                            }
                                         }
-                                    }
-                                    Err(e) => {
-                                        elog!(error, e.to_string());
-                                    }
-                                }
-                                ui.end_row();
+                                        ui.end_row();
+
+                                        // MSDS link field
+                                        ui.add(
+                                            egui::TextEdit::singleline(
+                                                &mut self.create_product_msds_link,
+                                            )
+                                            .hint_text(t!("create_product_form_msds_link")),
+                                        );
+
+                                        // Producer sheet field
+                                        ui.add(
+                                            egui::TextEdit::singleline(
+                                                &mut self.create_product_producer_sheet,
+                                            )
+                                            .hint_text(t!("create_product_form_producer_sheet")),
+                                        );
+                                        ui.end_row();
+
+                                        // Physical state widget
+                                        self.create_product_physical_state_widget.ui(ui);
+
+                                        // Class of compound widget
+                                        self.create_product_class_of_compound_widget.ui(ui);
+                                        ui.end_row();
+
+                                        // Signal word widget
+                                        self.create_product_signal_word_widget.ui(ui);
+
+                                        // Symbol widget
+                                        self.create_product_symbol_widget.ui(ui);
+                                        ui.end_row();
+
+                                        // Hazard statement widget
+                                        self.create_product_hazard_statement_widget.ui(ui);
+
+                                        // Precautionary statement widget
+                                        self.create_product_precautionary_statement_widget.ui(ui);
+                                        ui.end_row();
+
+                                        // Disposal comment widget
+                                        ui.add(
+                                            egui::TextEdit::multiline(
+                                                &mut self.create_product_disposal_comment,
+                                            )
+                                            .hint_text(t!("create_product_form_disposal_comment")),
+                                        );
+
+                                        // Remark widget
+                                        ui.add(
+                                            egui::TextEdit::multiline(
+                                                &mut self.create_product_remark,
+                                            )
+                                            .hint_text(t!("create_product_form_remark")),
+                                        );
+                                        ui.end_row();
+                                    });
+
+                                ui.add_space(create_product_form_widget_vertical_spacing);
+
+                                // ===== ACTION BUTTONS SECTION =====
+                                // Layout for action buttons (Cancel/Create) aligned to the right
+                                ui.with_layout(
+                                    egui::Layout::right_to_left(egui::Align::TOP),
+                                    |ui| {
+                                        if button_with_icon_and_text(
+                                            ui,
+                                            t!("create_product_form_action_cancel").to_string(),
+                                            egui_phosphor::fill::MAGIC_WAND,
+                                            &Size::Medium,
+                                        )
+                                        .clicked()
+                                        {}
+
+                                        if button_with_icon_and_text(
+                                            ui,
+                                            t!("create_product_form_action_create").to_string(),
+                                            egui_phosphor::fill::ERASER,
+                                            &Size::Medium,
+                                        )
+                                        .clicked()
+                                        {}
+                                    },
+                                );
                             });
-                        ui.add_space(WIDGET_VERTICAL_SPACING);
-
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
-                            if button_with_icon_and_text(
-                                ui,
-                                t!("create_product_form_action_cancel").to_string(),
-                                egui_phosphor::fill::MAGIC_WAND,
-                                &Size::Medium,
-                            )
-                            .clicked()
-                            {}
-
-                            if button_with_icon_and_text(
-                                ui,
-                                t!("create_product_form_action_create").to_string(),
-                                egui_phosphor::fill::ERASER,
-                                &Size::Medium,
-                            )
-                            .clicked()
-                            {}
-                        });
                     });
                 },
             );

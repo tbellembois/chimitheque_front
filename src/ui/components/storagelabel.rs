@@ -3,8 +3,13 @@ use egui::{RichText, TextBuffer};
 use egui_extras::{Column, TableBuilder};
 use rust_i18n::t;
 
+use crate::config::{
+    APP_CORNER_RADIUS, NORMAL_STROKE, STORAGE_LABEL_ACTION_WIDTH, STORAGE_LABEL_INNER_MARGIN,
+    STORAGE_LABEL_OUTER_MARGIN, STORAGE_LABEL_PLUS_WIDTH,
+};
 use crate::ui::app::App;
 use crate::ui::widgets::buttonwithicon::button_with_icon;
+use crate::ui::widgets::size::Size;
 
 pub fn render_storage_label(
     app: &mut App,
@@ -12,23 +17,27 @@ pub fn render_storage_label(
     _frame: &mut eframe::Frame,
     storage: Storage,
 ) {
-    let window_available_width = app.state.window_available_rect.width();
+    let storage_label_outer_margin = *STORAGE_LABEL_OUTER_MARGIN.get().unwrap();
+    let storage_label_inner_margin = *STORAGE_LABEL_INNER_MARGIN.get().unwrap();
+    let storage_label_plus_width = *STORAGE_LABEL_PLUS_WIDTH.get().unwrap();
+    let storage_label_action_width = *STORAGE_LABEL_ACTION_WIDTH.get().unwrap();
+    let app_corner_radius = *APP_CORNER_RADIUS.get().unwrap();
+    let normal_stroke = *NORMAL_STROKE.get().unwrap();
 
-    let label_width =
-        window_available_width - (2.0 * app.visual.storage_label_outer_margin.leftf());
-    let available_space_for_cols =
-        label_width - (2.0 * app.visual.storage_label_inner_margin.leftf());
-    let available_space_for_dyn_cols = available_space_for_cols
-        - app.visual.storage_label_plus_width
-        - app.visual.storage_label_action_width;
+    let window_available_width = app.state.central_panel_rect.width();
+
+    let label_width = window_available_width - (2.0 * storage_label_outer_margin.leftf());
+    let available_space_for_cols = label_width - (2.0 * storage_label_inner_margin.leftf());
+    let available_space_for_dyn_cols =
+        available_space_for_cols - storage_label_plus_width - storage_label_action_width;
     let available_space_for_dyn_cols_in_percent = available_space_for_dyn_cols / 100.0;
 
     // egui's ui.group does not support margins, so we use a custom frame instead.
     let custom_group_frame = egui::Frame::new()
-        .inner_margin(app.visual.storage_label_inner_margin)
-        .outer_margin(app.visual.storage_label_outer_margin)
-        .corner_radius(app.visual.app_corner_radius)
-        .stroke(app.visual.normal_stroke);
+        .inner_margin(storage_label_inner_margin)
+        .outer_margin(storage_label_outer_margin)
+        .corner_radius(app_corner_radius)
+        .stroke(normal_stroke);
 
     let storage_card_shown = app
         .storage_state
@@ -47,7 +56,7 @@ pub fn render_storage_label(
 
     custom_group_frame.show(ui, |ui| {
         TableBuilder::new(ui)
-            .column(Column::exact(app.visual.storage_label_plus_width))
+            .column(Column::exact(storage_label_plus_width))
             .column(Column::exact(
                 available_space_for_dyn_cols_in_percent * 40.0,
             ))
@@ -60,7 +69,7 @@ pub fn render_storage_label(
             .column(Column::exact(
                 available_space_for_dyn_cols_in_percent * 10.0,
             ))
-            .column(Column::exact(app.visual.storage_label_action_width))
+            .column(Column::exact(storage_label_action_width))
             .id_salt(format!(
                 "{}_storage_label",
                 storage.storage_id.unwrap_or_default()
@@ -69,12 +78,16 @@ pub fn render_storage_label(
                 body.row(70.0, |mut row| {
                     row.col(|ui| {
                         if storage_card_shown {
-                            if button_with_icon(ui, egui_phosphor::regular::MINUS).clicked() {
+                            if button_with_icon(ui, egui_phosphor::regular::MINUS, &Size::Medium)
+                                .clicked()
+                            {
                                 app.storage_state
                                     .storage_cards_shown
                                     .retain(|id| *id != storage.storage_id.unwrap_or_default());
                             }
-                        } else if button_with_icon(ui, egui_phosphor::regular::PLUS).clicked() {
+                        } else if button_with_icon(ui, egui_phosphor::regular::PLUS, &Size::Medium)
+                            .clicked()
+                        {
                             app.storage_state
                                 .storage_cards_shown
                                 .push(storage.storage_id.unwrap_or_default());
@@ -150,8 +163,12 @@ pub fn render_storage_label(
 
                     row.col(|ui| {
                         if storage_card_actions_shown {
-                            if button_with_icon(ui, egui_phosphor::regular::DOTS_THREE_CIRCLE)
-                                .clicked()
+                            if button_with_icon(
+                                ui,
+                                egui_phosphor::regular::DOTS_THREE_CIRCLE,
+                                &Size::Medium,
+                            )
+                            .clicked()
                             {
                                 app.storage_state
                                     .storage_cards_actions_shown
@@ -160,6 +177,7 @@ pub fn render_storage_label(
                         } else if button_with_icon(
                             ui,
                             egui_phosphor::regular::DOTS_THREE_CIRCLE_VERTICAL,
+                            &Size::Medium,
                         )
                         .clicked()
                         {

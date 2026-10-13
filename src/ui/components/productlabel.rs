@@ -5,9 +5,13 @@ use egui::{FontFamily, FontId, RichText};
 use egui_extras::{Column, TableBuilder};
 use rust_i18n::t;
 
+use crate::config::{
+    APP_CORNER_RADIUS, NORMAL_STROKE, PRODUCT_LABEL_ACTION_WIDTH, PRODUCT_LABEL_INNER_MARGIN,
+    PRODUCT_LABEL_OUTER_MARGIN, PRODUCT_LABEL_PLUS_WIDTH,
+};
 use crate::ui::app::App;
-use crate::ui::widgets::buttonwithicon::button_with_icon;
 use crate::ui::widgets::buttonwithiconandtext::button_with_icon_and_text;
+use crate::ui::widgets::clickablelabelwithicon::clickable_label_with_icon;
 use crate::ui::widgets::size::Size;
 
 pub fn render_product_label(
@@ -16,29 +20,27 @@ pub fn render_product_label(
     _frame: &mut eframe::Frame,
     product: Product,
 ) {
-    let window_available_width = app.state.window_available_rect.width();
-
-    // let product_label_outer_margin = if window_available_width > 1024.0 {
-    //     egui::Margin::symmetric(40, 5)
-    // } else {
-    //     egui::Margin::symmetric(5, 5)
-    // };
+    let product_label_outer_margin = *PRODUCT_LABEL_OUTER_MARGIN.get().unwrap();
+    let product_label_inner_margin = *PRODUCT_LABEL_INNER_MARGIN.get().unwrap();
+    let product_label_plus_width = *PRODUCT_LABEL_PLUS_WIDTH.get().unwrap();
+    let product_label_action_width = *PRODUCT_LABEL_ACTION_WIDTH.get().unwrap();
+    let app_corner_radius = *APP_CORNER_RADIUS.get().unwrap();
+    let normal_stroke = *NORMAL_STROKE.get().unwrap();
 
     let label_width =
-        window_available_width - (2.0 * app.visual.product_label_outer_margin.leftf());
-    let available_space_for_cols =
-        label_width - (2.0 * app.visual.product_label_inner_margin.leftf());
-    let available_space_for_dyn_cols = available_space_for_cols
-        - app.visual.product_label_plus_width
-        - app.visual.product_label_action_width;
-    let available_space_for_dyn_cols_in_percent = available_space_for_dyn_cols / 100.0;
+        app.state.central_panel_rect.width() - (2.0 * product_label_outer_margin.leftf());
+    let available_space_for_cols = label_width - (2.0 * product_label_inner_margin.leftf());
+    let available_space_for_dyn_cols_in_percent =
+        (available_space_for_cols - product_label_plus_width - product_label_action_width) / 100.0;
+
+    ui.label(format!("label_width: {:?}", label_width));
 
     // egui's ui.group does not support margins, so we use a custom frame instead.
     let custom_group_frame = egui::Frame::new()
-        .inner_margin(app.visual.product_label_inner_margin)
-        .outer_margin(app.visual.product_label_outer_margin)
-        .corner_radius(app.visual.app_corner_radius)
-        .stroke(app.visual.normal_stroke);
+        .inner_margin(product_label_inner_margin)
+        .outer_margin(product_label_outer_margin)
+        .corner_radius(app_corner_radius)
+        .stroke(normal_stroke);
 
     let product_card_shown = app
         .product_state
@@ -58,7 +60,7 @@ pub fn render_product_label(
     custom_group_frame.show(ui, |ui| {
         TableBuilder::new(ui)
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::exact(app.visual.product_label_plus_width))
+            .column(Column::exact(product_label_plus_width))
             .column(Column::exact(
                 available_space_for_dyn_cols_in_percent * 60.0,
             ))
@@ -68,7 +70,7 @@ pub fn render_product_label(
             .column(Column::exact(
                 available_space_for_dyn_cols_in_percent * 20.0,
             ))
-            .column(Column::exact(app.visual.product_label_action_width))
+            .column(Column::exact(product_label_action_width))
             .id_salt(format!(
                 "{}_{}_product_label",
                 product.product_id.unwrap_or_default(),
@@ -78,12 +80,24 @@ pub fn render_product_label(
                 body.row(50.0, |mut row| {
                     row.col(|ui| {
                         if product_card_shown {
-                            if button_with_icon(ui, egui_phosphor::regular::MINUS).clicked() {
+                            if clickable_label_with_icon(
+                                ui,
+                                egui_phosphor::regular::MINUS,
+                                &Size::Medium,
+                            )
+                            .clicked()
+                            {
                                 app.product_state
                                     .product_cards_shown
                                     .retain(|id| *id != product.product_id.unwrap_or_default());
                             }
-                        } else if button_with_icon(ui, egui_phosphor::regular::PLUS).clicked() {
+                        } else if clickable_label_with_icon(
+                            ui,
+                            egui_phosphor::regular::PLUS,
+                            &Size::Medium,
+                        )
+                        .clicked()
+                        {
                             app.product_state
                                 .product_cards_shown
                                 .push(product.product_id.unwrap_or_default());
@@ -166,16 +180,21 @@ pub fn render_product_label(
 
                     row.col(|ui| {
                         if product_card_actions_shown {
-                            if button_with_icon(ui, egui_phosphor::regular::DOTS_THREE_CIRCLE)
-                                .clicked()
+                            if clickable_label_with_icon(
+                                ui,
+                                egui_phosphor::regular::DOTS_THREE_CIRCLE,
+                                &Size::Medium,
+                            )
+                            .clicked()
                             {
                                 app.product_state
                                     .product_cards_actions_shown
                                     .retain(|id| *id != product.product_id.unwrap_or_default());
                             }
-                        } else if button_with_icon(
+                        } else if clickable_label_with_icon(
                             ui,
                             egui_phosphor::regular::DOTS_THREE_CIRCLE_VERTICAL,
+                            &Size::Medium,
                         )
                         .clicked()
                         {

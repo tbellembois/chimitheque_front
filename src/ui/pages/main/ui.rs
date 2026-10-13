@@ -1,4 +1,8 @@
 use crate::{
+    config::{
+        APP_FONT_SIZE, APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN, ERROR_COLOR,
+        NORMAL_BG_COLOR,
+    },
     logger::{LOGS, LogMessage},
     ui::{
         app::App,
@@ -11,20 +15,36 @@ use crate::{
         },
     },
 };
-use egui::{Margin, Popup, Pos2, Rect, RichText, TextBuffer};
+use egui::{Margin, Popup, Rect, RichText, TextBuffer};
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
-    let panel_response = egui::Panel::top("top_panel")
+    ui.label(format!(
+        "central_panel_rect: {:?}",
+        app.state.central_panel_rect
+    ));
+    ui.label(format!("top_panel_rect: {:?}", app.state.top_panel_rect));
+    ui.label(format!(
+        "bottom_panel_rect: {:?}",
+        app.state.bottom_panel_rect
+    ));
+
+    let app_top_margin = *APP_TOP_MARGIN.get().unwrap();
+    let app_left_margin = *APP_LEFT_MARGIN.get().unwrap();
+    let app_right_margin = *APP_RIGHT_MARGIN.get().unwrap();
+    let normal_bg_color = *NORMAL_BG_COLOR.get().unwrap();
+    let error_color = *ERROR_COLOR.get().unwrap();
+
+    let top_panel_response = egui::Panel::top("top_panel")
         .frame(
             egui::Frame::NONE
                 .inner_margin(Margin {
-                    top: app.visual.app_top_margin,
-                    bottom: app.visual.app_bottom_margin,
-                    left: app.visual.app_left_margin,
-                    right: app.visual.app_right_margin,
+                    top: app_top_margin,
+                    bottom: 0,
+                    left: app_left_margin,
+                    right: app_right_margin,
                 })
-                .fill(app.visual.normal_bg_color),
+                .fill(normal_bg_color),
         )
         .show_separator_line(false)
         .show(ui, |ui| {
@@ -54,8 +74,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     )
                     .clicked()
                     {
-                        if app.visual.app_font_size > 13.0 {
-                            app.visual.app_font_size -= 1.0;
+                        if app.state.font_size > 13.0 {
+                            app.state.font_size -= 1.0;
                         }
                     }
                     if clickable_label_with_icon(
@@ -65,14 +85,14 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     )
                     .clicked()
                     {
-                        if app.visual.app_font_size < 23.0 {
-                            app.visual.app_font_size += 1.0;
+                        if app.state.font_size < 23.0 {
+                            app.state.font_size += 1.0;
                         }
                     }
 
                     // This scales fonts, spacing and widgets.✅
                     let ctx = ui.ctx();
-                    ctx.set_pixels_per_point(app.visual.app_font_size / 16.0);
+                    ctx.set_pixels_per_point(app.state.font_size / 16.0);
 
                     ui.add_space(10.0);
 
@@ -85,10 +105,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     if ui.checkbox(&mut app.state.darkmode, "").changed() {
                         if app.state.darkmode {
                             ui.ctx().set_theme(egui::Theme::Dark);
-                            app.visual_needs_init = true;
                         } else {
                             ui.ctx().set_theme(egui::Theme::Light);
-                            app.visual_needs_init = true;
                         }
                     }
                 });
@@ -126,7 +144,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 });
             });
 
-            ui.add_space(10.0);
+            ui.add_space(5.0);
 
             // Render logo and menu.
             ui.horizontal(|ui| {
@@ -215,23 +233,13 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             });
         });
 
-    // Update app rects.
-    app.state.top_panel_rect = panel_response.response.rect;
-    app.state.window_available_rect = Rect {
-        min: Pos2 {
-            x: app.state.top_panel_rect.min.x + f32::from(app.visual.app_left_margin),
-            y: app.state.top_panel_rect.min.y + f32::from(app.visual.app_top_margin),
-        },
-        max: Pos2 {
-            x: app.state.top_panel_rect.max.x - f32::from(app.visual.app_right_margin),
-            y: app.state.top_panel_rect.max.y - f32::from(app.visual.app_bottom_margin),
-        },
-    };
+    // Update top panel rect.
+    app.state.top_panel_rect = top_panel_response.response.rect;
 
     //
     // Footer bar
     //
-    egui::Panel::bottom("footer").show(ui, |ui| {
+    let bottom_panel_response = egui::Panel::bottom("bottom_panel").show(ui, |ui| {
         ui.horizontal(|ui| {
             ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
                 ui.label("© 2026 Chimithèque, released under the GPL-3.0 license.");
@@ -247,7 +255,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                             ui.label(RichText::new(text));
                         }
                         LogMessage::Error(text) => {
-                            ui.label(RichText::new(text).color(app.visual.error_color));
+                            ui.label(RichText::new(text).color(error_color));
                         }
                         LogMessage::Debug(_) => (),
                     }
@@ -256,6 +264,9 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         });
     });
 
+    // Update bottom panel rect.
+    app.state.bottom_panel_rect = bottom_panel_response.response.rect;
+
     //
     // Render active page.
     //
@@ -263,27 +274,24 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         .frame(
             egui::Frame::NONE
                 .inner_margin(Margin {
-                    top: 10,
-                    bottom: 10,
-                    left: 25,
-                    right: 25,
+                    // margins are managed by inner content
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
                 })
-                .fill(app.visual.normal_bg_color),
+                .fill(normal_bg_color),
         )
         .show(ui, |ui| match app.state.active_page {
             Page::ProductList => {
                 let state = &mut app.state;
-                app.search_form.render(ui, state, &app.visual);
-
-                ui.add_space(20.0);
+                app.search_form.render(ui, state);
 
                 product::list::update(app, ui, frame);
             }
             Page::StorageList => {
                 let state = &mut app.state;
-                app.search_form.render(ui, state, &app.visual);
-
-                ui.add_space(20.0);
+                app.search_form.render(ui, state);
 
                 storage::list::update(app, ui, frame);
             }
@@ -301,7 +309,13 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             }
             Page::ProductCreate => {
                 let state = &mut app.state;
-                app.create_product_form.render(ui, state, &app.visual);
+                app.create_product_form.render(ui, state);
             }
         });
+
+    // Update central panel rect.
+    app.state.central_panel_rect = Rect::from_points(&[
+        app.state.top_panel_rect.left_bottom(),
+        app.state.bottom_panel_rect.right_top(),
+    ]);
 }

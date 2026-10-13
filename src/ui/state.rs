@@ -2,6 +2,8 @@ use std::collections::VecDeque;
 
 use egui::{Pos2, Rect};
 
+use crate::config::APP_FONT_SIZE;
+
 // Applications pages.
 #[derive(Debug, Default)]
 pub enum Page {
@@ -38,18 +40,22 @@ pub struct ApplicationState {
     pub active_page: Page,
     // The active locale.
     pub active_locale: String,
-    // Window size and position.
+    // Full window size and position.
     pub window_rect: Rect,
-    // Window availablesize and position (without margin and padding).
-    pub window_available_rect: Rect,
+    // Top panel size and position.
+    pub top_panel_rect: Rect,
+    // Bottom panel size and position.
+    pub bottom_panel_rect: Rect,
+    // Central panel (ie. window minus top and bottombar) available size and position (without margin and padding).
+    pub central_panel_rect: Rect,
     // Search form size and position.
     pub search_rect: Rect,
     // Advanced search size and position.
     pub advanced_search_rect: Rect,
-    // Top panel size and position.
-    pub top_panel_rect: Rect,
-    // Whether the scroll area was near the bottom.
+    // Whether the scroll area (product and storage lists) was near the bottom.
     pub scrollarea_was_near_bottom: bool,
+    // Font size.
+    pub font_size: f32,
     // The current action.
     pub action: VecDeque<Action>,
     // Whether dark mode is enabled.
@@ -65,11 +71,15 @@ impl Default for ApplicationState {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
-            window_available_rect: Rect {
+            central_panel_rect: Rect {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
             advanced_search_rect: Rect {
+                min: Pos2 { x: 0.0, y: 0.0 },
+                max: Pos2 { x: 0.0, y: 0.0 },
+            },
+            bottom_panel_rect: Rect {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },
             },
@@ -84,6 +94,7 @@ impl Default for ApplicationState {
             scrollarea_was_near_bottom: false,
             action: VecDeque::new(),
             darkmode: false,
+            font_size: *APP_FONT_SIZE.get().unwrap(),
         }
     }
 }

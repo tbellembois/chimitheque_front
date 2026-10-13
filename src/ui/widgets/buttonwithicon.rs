@@ -1,9 +1,11 @@
 use egui::{CursorIcon, FontFamily, FontId, RichText, Sense};
 
+use crate::ui::widgets::size::Size;
+
 const CORNER_RADIUS: f32 = 5.0;
 const INNER_MARGIN: egui::Margin = egui::Margin::symmetric(10, 10);
 
-pub fn button_with_icon(ui: &mut egui::Ui, icon: &str) -> egui::Response {
+pub fn button_with_icon(ui: &mut egui::Ui, icon: &str, size: &Size) -> egui::Response {
     //let visuals = ui.visuals();
     let widgets = &ui.visuals().widgets;
 
@@ -21,7 +23,7 @@ pub fn button_with_icon(ui: &mut egui::Ui, icon: &str) -> egui::Response {
     // 1. Draw the frame layout content
     let inner = frame.show(ui, |ui| {
         ui.label(RichText::new(icon).font(FontId {
-            size: 20.0,
+            size: size.icon_size(),
             family: FontFamily::Name("phosphor".into()),
         }))
         .on_hover_cursor(CursorIcon::PointingHand);

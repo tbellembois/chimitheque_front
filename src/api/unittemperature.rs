@@ -38,7 +38,7 @@ pub fn load_suggestions(
             let mut maybe_current_suggestions = match shared_suggestions.lock() {
                 Ok(locked) => locked,
                 Err(e) => {
-                    log::error!("{e}");
+                    elog!(error, e.to_string());
                     return;
                 }
             };
@@ -68,7 +68,7 @@ pub fn load_suggestions(
             }
         }
         Err(e) => {
-            log::error!("{e}");
+            elog!(error, e.to_string());
         }
     });
 }
