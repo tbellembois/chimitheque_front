@@ -18,6 +18,7 @@ pub fn button_with_icon(ui: &mut egui::Ui, icon: &str, size: &Size) -> egui::Res
         .fill(normal_bg)
         .corner_radius(CORNER_RADIUS)
         .inner_margin(INNER_MARGIN)
+        .outer_margin(0.0)
         .stroke(normal_stroke);
 
     // 1. Draw the frame layout content

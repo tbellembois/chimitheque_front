@@ -16,10 +16,12 @@ use crate::config::{
     CREATE_PRODUCT_FORM_WIDGET_VERTICAL_SPACING, ERROR_COLOR, FAINT_BG_COLOR, HOVERED_BG_COLOR,
     HOVERED_STROKE, INFO_COLOR, INPUT_FILLED_STROKE, NORMAL_BG_COLOR, NORMAL_STROKE,
     PRODUCT_LABEL_ACTION_WIDTH, PRODUCT_LABEL_INNER_MARGIN, PRODUCT_LABEL_OUTER_MARGIN,
-    PRODUCT_LABEL_PLUS_WIDTH, SELECT2_BORDER_WHEN_SELECTED_CORNER_RADIUS,
-    SELECT2_BORDER_WHEN_SELECTED_MARGIN, SELECT2_BORDER_WHEN_SELECTED_STROKE, SELECTED_BG_COLOR,
-    SELECTED_STROKE, STORAGE_LABEL_ACTION_WIDTH, STORAGE_LABEL_INNER_MARGIN,
-    STORAGE_LABEL_OUTER_MARGIN, STORAGE_LABEL_PLUS_WIDTH,
+    PRODUCT_LABEL_PLUS_WIDTH, SEARCH_FORM_INNER_MARGIN, SEARCH_FORM_WIDGET_HORIZONTAL_SPACING,
+    SEARCH_FORM_WIDGET_VERTICAL_SPACING, SEARCH_FORM_WIDTH,
+    SELECT2_BORDER_WHEN_SELECTED_CORNER_RADIUS, SELECT2_BORDER_WHEN_SELECTED_MARGIN,
+    SELECT2_BORDER_WHEN_SELECTED_STROKE, SELECTED_BG_COLOR, SELECTED_STROKE,
+    STORAGE_LABEL_ACTION_WIDTH, STORAGE_LABEL_INNER_MARGIN, STORAGE_LABEL_OUTER_MARGIN,
+    STORAGE_LABEL_PLUS_WIDTH, WEAK_TEXT_COLOR,
 };
 use crate::download::download_csv;
 use crate::types::{
@@ -537,6 +539,7 @@ impl eframe::App for App {
             SELECTED_BG_COLOR.get_or_init(|| visual.selection.bg_fill);
             NORMAL_BG_COLOR.get_or_init(|| visual.window_fill);
             FAINT_BG_COLOR.get_or_init(|| visual.faint_bg_color);
+            WEAK_TEXT_COLOR.get_or_init(|| visual.weak_text_color.unwrap_or_default());
             NORMAL_STROKE.get_or_init(|| widgets.noninteractive.bg_stroke);
             HOVERED_STROKE.get_or_init(|| widgets.hovered.fg_stroke);
             SELECTED_STROKE.get_or_init(|| selection.stroke);
@@ -548,13 +551,17 @@ impl eframe::App for App {
             APP_RIGHT_MARGIN.get_or_init(|| 50);
             APP_CORNER_RADIUS.get_or_init(|| CornerRadius::same(5));
             PRODUCT_LABEL_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 10));
-            PRODUCT_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 10));
+            PRODUCT_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(50, 10));
             PRODUCT_LABEL_PLUS_WIDTH.get_or_init(|| 50.0);
             PRODUCT_LABEL_ACTION_WIDTH.get_or_init(|| 50.0);
             STORAGE_LABEL_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 10));
-            STORAGE_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(40, 5));
+            STORAGE_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(50, 10));
             STORAGE_LABEL_PLUS_WIDTH.get_or_init(|| 50.0);
             STORAGE_LABEL_ACTION_WIDTH.get_or_init(|| 50.0);
+            SEARCH_FORM_WIDTH.get_or_init(|| 925.0);
+            SEARCH_FORM_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 20));
+            SEARCH_FORM_WIDGET_HORIZONTAL_SPACING.get_or_init(|| 20.0);
+            SEARCH_FORM_WIDGET_VERTICAL_SPACING.get_or_init(|| 20.0);
             CREATE_PRODUCT_FORM_DESIRED_WIDTH.get_or_init(|| 925.0);
             CREATE_PRODUCT_FORM_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 20));
             CREATE_PRODUCT_FORM_CORNER_RADIUS.get_or_init(|| 5.0);

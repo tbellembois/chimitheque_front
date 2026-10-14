@@ -1,8 +1,5 @@
 use crate::{
-    config::{
-        APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN, ERROR_COLOR,
-        NORMAL_BG_COLOR,
-    },
+    config::{APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN, ERROR_COLOR, NORMAL_BG_COLOR},
     logger::{LOGS, LogMessage},
     ui::{
         app::App,
@@ -19,15 +16,15 @@ use egui::{Margin, Popup, Rect, RichText, TextBuffer};
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
-    ui.label(format!(
-        "central_panel_rect: {:?}",
-        app.state.central_panel_rect
-    ));
-    ui.label(format!("top_panel_rect: {:?}", app.state.top_panel_rect));
-    ui.label(format!(
-        "bottom_panel_rect: {:?}",
-        app.state.bottom_panel_rect
-    ));
+    // ui.label(format!(
+    //     "central_panel_rect: {:?}",
+    //     app.state.central_panel_rect
+    // ));
+    // ui.label(format!("top_panel_rect: {:?}", app.state.top_panel_rect));
+    // ui.label(format!(
+    //     "bottom_panel_rect: {:?}",
+    //     app.state.bottom_panel_rect
+    // ));
 
     let app_top_margin = *APP_TOP_MARGIN.get().unwrap();
     let app_left_margin = *APP_LEFT_MARGIN.get().unwrap();
@@ -73,18 +70,20 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                         &Size::Medium,
                     )
                     .clicked()
-                        && app.state.font_size > 13.0 {
-                            app.state.font_size -= 1.0;
-                        }
+                        && app.state.font_size > 13.0
+                    {
+                        app.state.font_size -= 1.0;
+                    }
                     if clickable_label_with_icon(
                         ui,
                         egui_phosphor::regular::PLUS_CIRCLE,
                         &Size::Medium,
                     )
                     .clicked()
-                        && app.state.font_size < 23.0 {
-                            app.state.font_size += 1.0;
-                        }
+                        && app.state.font_size < 23.0
+                    {
+                        app.state.font_size += 1.0;
+                    }
 
                     // This scales fonts, spacing and widgets.✅
                     let ctx = ui.ctx();

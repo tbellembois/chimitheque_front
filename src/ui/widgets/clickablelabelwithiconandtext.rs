@@ -17,7 +17,7 @@ pub fn clickable_label_with_icon_and_text(
         egui::Frame::group(ui.style())
             .stroke(egui::Stroke::NONE)
             .inner_margin(0.0)
-            .inner_margin(0.0)
+            .outer_margin(0.0)
             .show(ui, |ui| {
                 ui.label(RichText::new(icon).font(FontId {
                     size: size.icon_size(),

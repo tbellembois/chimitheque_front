@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use egui::{Response, Stroke, TextBuffer};
+use egui::{Color32, Margin, Response, Stroke, TextBuffer};
 use egui_select2::select2::EguiSelect2;
 use rust_i18n::t;
 
@@ -60,14 +60,24 @@ impl SearchForm {
 
         let select2_layout = egui_select2::select2::SelectedLayout {
             show_border_when_selected: true,
-            border_when_selected_stroke: *SELECT2_BORDER_WHEN_SELECTED_STROKE.get().unwrap(),
-            border_when_selected_margin: *SELECT2_BORDER_WHEN_SELECTED_MARGIN.get().unwrap(),
+            border_when_selected_stroke: *SELECT2_BORDER_WHEN_SELECTED_STROKE.get().unwrap_or(
+                &Stroke {
+                    width: 0.0,
+                    color: Color32::TRANSPARENT,
+                },
+            ),
+            border_when_selected_margin: *SELECT2_BORDER_WHEN_SELECTED_MARGIN.get().unwrap_or(
+                &Margin {
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                },
+            ),
             border_when_selected_corner_radius: *SELECT2_BORDER_WHEN_SELECTED_CORNER_RADIUS
                 .get()
-                .unwrap(),
+                .unwrap_or(&0.0f32),
         };
-
-        
 
         SearchForm {
             search_store_location_widget: EguiSelect2::new(

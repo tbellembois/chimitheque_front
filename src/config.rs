@@ -10,6 +10,7 @@ pub static HOVERED_BG_COLOR: OnceLock<egui::Color32> = OnceLock::new();
 pub static SELECTED_BG_COLOR: OnceLock<egui::Color32> = OnceLock::new();
 pub static NORMAL_BG_COLOR: OnceLock<egui::Color32> = OnceLock::new();
 pub static FAINT_BG_COLOR: OnceLock<egui::Color32> = OnceLock::new();
+pub static WEAK_TEXT_COLOR: OnceLock<egui::Color32> = OnceLock::new();
 
 pub static NORMAL_STROKE: OnceLock<egui::Stroke> = OnceLock::new();
 pub static HOVERED_STROKE: OnceLock<egui::Stroke> = OnceLock::new();

@@ -17,6 +17,7 @@ pub fn button_with_image(ui: &mut egui::Ui, image: &TextureHandle) -> egui::Resp
         .fill(normal_bg)
         .corner_radius(CORNER_RADIUS)
         .inner_margin(INNER_MARGIN)
+        .outer_margin(0.0)
         .stroke(normal_stroke);
 
     let inner = frame.show(ui, |ui| {

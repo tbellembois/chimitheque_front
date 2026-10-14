@@ -7,7 +7,7 @@ use rust_i18n::t;
 
 use crate::config::{
     APP_CORNER_RADIUS, NORMAL_STROKE, PRODUCT_LABEL_ACTION_WIDTH, PRODUCT_LABEL_INNER_MARGIN,
-    PRODUCT_LABEL_OUTER_MARGIN, PRODUCT_LABEL_PLUS_WIDTH,
+    PRODUCT_LABEL_OUTER_MARGIN, PRODUCT_LABEL_PLUS_WIDTH, WEAK_TEXT_COLOR,
 };
 use crate::ui::app::App;
 use crate::ui::widgets::buttonwithiconandtext::button_with_icon_and_text;
@@ -26,19 +26,40 @@ pub fn render_product_label(
     let product_label_action_width = *PRODUCT_LABEL_ACTION_WIDTH.get().unwrap();
     let app_corner_radius = *APP_CORNER_RADIUS.get().unwrap();
     let normal_stroke = *NORMAL_STROKE.get().unwrap();
+    let weak_text_color = *WEAK_TEXT_COLOR.get().unwrap();
 
-    let label_width =
-        app.state.central_panel_rect.width() - (2.0 * product_label_outer_margin.leftf());
+    let label_width = app.state.central_panel_rect.width()
+        - (2.0 * product_label_outer_margin.leftf())
+        - (2.0 * product_label_inner_margin.leftf());
     let available_space_for_cols = label_width - (2.0 * product_label_inner_margin.leftf());
     let available_space_for_dyn_cols_in_percent =
         (available_space_for_cols - product_label_plus_width - product_label_action_width) / 100.0;
 
-    ui.label(format!("label_width: {label_width:?}"));
+    // ui.label(format!("label_width: {label_width:?}"));
+    // ui.label(format!(
+    //     "app.state.central_panel_rect.width(): {:?}",
+    //     app.state.central_panel_rect.width()
+    // ));
+    // ui.label(format!(
+    //     "available_space_for_cols: {available_space_for_cols:?}"
+    // ));
+    // ui.label(format!(
+    //     "product_label_plus_width: {product_label_plus_width:?}"
+    // ));
+    // ui.label(format!(
+    //     "product_label_action_width: {product_label_action_width:?}"
+    // ));
+    // ui.label(format!(
+    //     "available_space_for_dyn_cols_in_percent: {available_space_for_dyn_cols_in_percent:?}"
+    // ));
+    // ui.label(format!(
+    //     "product_label_outer_margin: {product_label_outer_margin:?}"
+    // ));
 
     // egui's ui.group does not support margins, so we use a custom frame instead.
     let custom_group_frame = egui::Frame::new()
-        .inner_margin(product_label_inner_margin)
         .outer_margin(product_label_outer_margin)
+        .inner_margin(product_label_inner_margin)
         .corner_radius(app_corner_radius)
         .stroke(normal_stroke);
 
@@ -51,11 +72,6 @@ pub fn render_product_label(
         .product_state
         .product_cards_actions_shown
         .contains(&product.product_id.unwrap_or_default());
-
-    let hint_color = ui.visuals().weak_text_color.unwrap_or_else(|| {
-        let text_color = ui.visuals().text_color();
-        text_color.gamma_multiply(ui.visuals().weak_text_alpha)
-    });
 
     custom_group_frame.show(ui, |ui| {
         TableBuilder::new(ui)
@@ -107,27 +123,23 @@ pub fn render_product_label(
                     row.col(|ui| {
                         ui.label(product.name.clone().name_label);
 
-                        ui.horizontal(|ui| {
-                            if let Some(product_sl) = product.product_sl {
-                                ui.label(RichText::new(egui_phosphor::fill::DRESSER).font(
-                                    FontId {
-                                        family: FontFamily::Name("phosphor".into()),
-                                        size: 20.0,
-                                    },
-                                ));
-                                ui.label(product_sl);
-                            }
+                        if let Some(product_sl) = product.product_sl {
+                            ui.label(RichText::new(egui_phosphor::fill::DRESSER).font(FontId {
+                                family: FontFamily::Name("phosphor".into()),
+                                size: 20.0,
+                            }));
+                            ui.label(product_sl);
+                        }
 
-                            if let Some(product_sc) = product.product_sc {
-                                ui.label(
-                                    RichText::new(format!(
-                                        "[ {}: {product_sc} ]",
-                                        t!("product_label_storages")
-                                    ))
-                                    .color(hint_color),
-                                );
-                            }
-                        });
+                        if let Some(product_sc) = product.product_sc {
+                            ui.label(
+                                RichText::new(format!(
+                                    "[ {}: {product_sc} ]",
+                                    t!("product_label_storages")
+                                ))
+                                .color(weak_text_color),
+                            );
+                        }
                     });
 
                     row.col(|ui| {
@@ -163,19 +175,17 @@ pub fn render_product_label(
                         }
 
                         // Show inflammable symbol.
-                        ui.horizontal(|ui| {
-                            if let Some(hs_cmr) = product.product_hs_cmr {
-                                ui.label(hs_cmr);
-                            }
+                        if let Some(hs_cmr) = product.product_hs_cmr {
+                            ui.label(hs_cmr);
+                        }
 
-                            if let Some(symbols) = product.symbols {
-                                for symbol in symbols {
-                                    if symbol.symbol_label == "GHS02" {
-                                        ui.add(egui::Image::new("file://assets/GHS02.svg"));
-                                    }
+                        if let Some(symbols) = product.symbols {
+                            for symbol in symbols {
+                                if symbol.symbol_label == "GHS02" {
+                                    ui.add(egui::Image::new("file://assets/GHS02.svg"));
                                 }
                             }
-                        });
+                        }
                     });
 
                     row.col(|ui| {
@@ -340,10 +350,8 @@ pub fn render_product_label(
                     });
                 }
                 if let Some(ce_number) = product.ce_number {
-                    ui.horizontal(|ui| {
-                        ui.label(RichText::new(t!("product_card_ce_number")).italics());
-                        ui.label(ce_number.ce_number_label);
-                    });
+                    ui.label(RichText::new(t!("product_card_ce_number")).italics());
+                    ui.label(ce_number.ce_number_label);
                 }
             });
         }

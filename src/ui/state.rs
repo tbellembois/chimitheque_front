@@ -94,7 +94,7 @@ impl Default for ApplicationState {
             scrollarea_was_near_bottom: false,
             action: VecDeque::new(),
             darkmode: false,
-            font_size: *APP_FONT_SIZE.get().unwrap(),
+            font_size: *APP_FONT_SIZE.get().unwrap_or(&16.0),
         }
     }
 }
