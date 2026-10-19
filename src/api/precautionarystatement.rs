@@ -51,7 +51,11 @@ pub fn load_suggestions(
                         .into_iter()
                         .map(|precautionary_statement| SelectItem {
                             id: precautionary_statement.precautionary_statement_id,
-                            label: precautionary_statement.precautionary_statement_label,
+                            label: format!(
+                                "[ {} ] {}",
+                                precautionary_statement.precautionary_statement_reference,
+                                precautionary_statement.precautionary_statement_label
+                            ),
                         })
                         .collect();
                     let total = match usize::try_from(response_precautionary_statements_and_count.1)

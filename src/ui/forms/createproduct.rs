@@ -67,19 +67,8 @@ pub struct CreateProductForm {
 }
 
 impl CreateProductForm {
-    pub fn new() -> Self {
-        let translations = egui_select2::select2::Translations {
-            loading: t!("select2_loading").to_string(),
-            no_results: t!("select2_no_results").to_string(),
-            add: t!("select2_add").to_string(),
-            new: t!("select2_new").to_string(),
-            clear_all: t!("select2_clear_all").to_string(),
-            load_more: t!("select2_load_more").to_string(),
-            multi_valued: t!("select2_multi_valued").to_string(),
-            ..Default::default()
-        };
-
-        let select2_layout = egui_select2::select2::SelectedLayout {
+    pub fn apply_layout(&mut self) {
+        let layout = egui_select2::select2::SelectedLayout {
             show_border_when_selected: true,
             border_when_selected_stroke: *SELECT2_BORDER_WHEN_SELECTED_STROKE.get().unwrap_or(
                 &Stroke {
@@ -100,7 +89,40 @@ impl CreateProductForm {
                 .unwrap_or(&0.0f32),
         };
 
-        Self {
+        self.create_product_tag_widget.selected_layout = layout.clone();
+        self.create_product_category_widget.selected_layout = layout.clone();
+        self.create_product_name_widget.selected_layout = layout.clone();
+        self.create_product_synonym_widget.selected_layout = layout.clone();
+        self.create_product_empirical_formula_widget.selected_layout = layout.clone();
+        self.create_product_linear_formula_widget.selected_layout = layout.clone();
+        self.create_product_cas_number_widget.selected_layout = layout.clone();
+        self.create_product_ce_number_widget.selected_layout = layout.clone();
+        self.create_product_unit_molecular_weight_widget
+            .selected_layout = layout.clone();
+        self.create_product_unit_temperature_widget.selected_layout = layout.clone();
+        self.create_product_physical_state_widget.selected_layout = layout.clone();
+        self.create_product_class_of_compound_widget.selected_layout = layout.clone();
+        self.create_product_signal_word_widget.selected_layout = layout.clone();
+        self.create_product_symbol_widget.selected_layout = layout.clone();
+        self.create_product_hazard_statement_widget.selected_layout = layout.clone();
+        self.create_product_precautionary_statement_widget
+            .selected_layout = layout;
+    }
+
+    pub fn new() -> Self {
+        let translations = egui_select2::select2::Translations {
+            loading: t!("select2_loading").to_string(),
+            no_results: t!("select2_no_results").to_string(),
+            add: t!("select2_add").to_string(),
+            new: t!("select2_new").to_string(),
+            clear_all: t!("select2_clear_all").to_string(),
+            load_more: t!("select2_load_more").to_string(),
+            multi_valued: t!("select2_multi_valued").to_string(),
+            ..Default::default()
+        };
+
+        // We can not set selected_layout as when new is called statics (in config.rs) have not been initialized yet.
+        CreateProductForm {
             create_product_tag_widget: EguiSelect2::new(
                 Arc::new(crate::api::tag::load_suggestions),
                 t!("select2_hint_tag").as_str(),
@@ -112,7 +134,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_category_widget: EguiSelect2::new(
                 Arc::new(crate::api::category::load_suggestions),
@@ -125,7 +147,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_name_widget: EguiSelect2::new(
                 Arc::new(crate::api::name::load_suggestions),
@@ -138,7 +160,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_synonym_widget: EguiSelect2::new(
                 Arc::new(crate::api::name::load_suggestions),
@@ -151,7 +173,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_empirical_formula_widget: EguiSelect2::new(
                 Arc::new(crate::api::empiricalformula::load_suggestions),
@@ -164,7 +186,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_linear_formula_widget: EguiSelect2::new(
                 Arc::new(crate::api::linearformula::load_suggestions),
@@ -177,7 +199,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_cas_number_widget: EguiSelect2::new(
                 Arc::new(crate::api::casnumber::load_suggestions),
@@ -190,7 +212,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_ce_number_widget: EguiSelect2::new(
                 Arc::new(crate::api::cenumber::load_suggestions),
@@ -203,7 +225,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_unit_molecular_weight_widget: EguiSelect2::new(
                 Arc::new(crate::api::unitmolecularweight::load_suggestions),
@@ -216,7 +238,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_unit_temperature_widget: EguiSelect2::new(
                 Arc::new(crate::api::unittemperature::load_suggestions),
@@ -229,7 +251,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_physical_state_widget: EguiSelect2::new(
                 Arc::new(crate::api::physicalstate::load_suggestions),
@@ -242,7 +264,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_class_of_compound_widget: EguiSelect2::new(
                 Arc::new(crate::api::classofcompound::load_suggestions),
@@ -255,7 +277,7 @@ impl CreateProductForm {
                     read_only: false,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_signal_word_widget: EguiSelect2::new(
                 Arc::new(crate::api::signalword::load_suggestions),
@@ -268,7 +290,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_symbol_widget: EguiSelect2::new(
                 Arc::new(crate::api::symbol::load_suggestions),
@@ -281,7 +303,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_hazard_statement_widget: EguiSelect2::new(
                 Arc::new(crate::api::hazardstatement::load_suggestions),
@@ -294,7 +316,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                Some(select2_layout.clone()),
+                None,
             ),
             create_product_precautionary_statement_widget: EguiSelect2::new(
                 Arc::new(crate::api::precautionarystatement::load_suggestions),
@@ -307,7 +329,7 @@ impl CreateProductForm {
                     read_only: true,
                     ..Default::default()
                 }),
-                Some(select2_layout),
+                None,
             ),
 
             // Initialize all remaining fields

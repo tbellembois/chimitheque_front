@@ -578,6 +578,10 @@ impl eframe::App for App {
                 color: selection.bg_fill,
             });
 
+            // Set forms layout.
+            self.search_form.apply_layout();
+            self.create_product_form.apply_layout();
+
             // Get connected user.
             get_connected_user(Arc::clone(&self.connected_user), self.sender());
 

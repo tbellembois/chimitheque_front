@@ -13,9 +13,8 @@ pub fn get_token() -> Option<String> {
 }
 
 pub fn get_base_url() -> String {
-    let window = match window() {
-        Some(w) => w,
-        None => return "https://localhost:8443".to_string(),
+    let Some(window) = window() else {
+        return "https://localhost:8443".to_string();
     };
 
     let value = js_sys::Reflect::get(&window, &JsValue::from_str("chimitheque_base_url"))

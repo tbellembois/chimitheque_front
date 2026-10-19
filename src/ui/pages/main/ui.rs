@@ -1,5 +1,8 @@
 use crate::{
-    config::{APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN, ERROR_COLOR, NORMAL_BG_COLOR},
+    config::{
+        APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN, ERROR_COLOR, NORMAL_BG_COLOR,
+        SELECT2_BORDER_WHEN_SELECTED_STROKE,
+    },
     logger::{LOGS, LogMessage},
     ui::{
         app::App,

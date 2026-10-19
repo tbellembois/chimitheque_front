@@ -5,6 +5,7 @@ use egui_select2::select2::EguiSelect2;
 use rust_i18n::t;
 
 use crate::{
+    api::symbol::format_suggestion,
     config::{
         APP_CORNER_RADIUS, FAINT_BG_COLOR, INPUT_FILLED_STROKE, NORMAL_STROKE,
         SEARCH_FORM_INNER_MARGIN, SEARCH_FORM_WIDGET_HORIZONTAL_SPACING,
@@ -47,18 +48,8 @@ pub struct SearchForm {
 }
 
 impl SearchForm {
-    pub fn new() -> Self {
-        let translations = egui_select2::select2::Translations {
-            loading: t!("select2_loading").to_string(),
-            no_results: t!("select2_no_results").to_string(),
-            add: t!("select2_add").to_string(),
-            new: t!("select2_new").to_string(),
-            clear_all: t!("select2_clear_all").to_string(),
-            load_more: t!("select2_load_more").to_string(),
-            ..Default::default()
-        };
-
-        let select2_layout = egui_select2::select2::SelectedLayout {
+    pub fn apply_layout(&mut self) {
+        let layout = egui_select2::select2::SelectedLayout {
             show_border_when_selected: true,
             border_when_selected_stroke: *SELECT2_BORDER_WHEN_SELECTED_STROKE.get().unwrap_or(
                 &Stroke {
@@ -79,6 +70,32 @@ impl SearchForm {
                 .unwrap_or(&0.0f32),
         };
 
+        self.search_store_location_widget.selected_layout = layout.clone();
+        self.search_name_widget.selected_layout = layout.clone();
+        self.search_entity_widget.selected_layout = layout.clone();
+        self.search_producer_ref_widget.selected_layout = layout.clone();
+        self.search_signal_word_widget.selected_layout = layout.clone();
+        self.search_category_widget.selected_layout = layout.clone();
+        self.search_cas_number_widget.selected_layout = layout.clone();
+        self.search_empirical_formula_widget.selected_layout = layout.clone();
+        self.search_hazard_statement_widget.selected_layout = layout.clone();
+        self.search_precautionary_statement_widget.selected_layout = layout.clone();
+        self.search_symbol_widget.selected_layout = layout.clone();
+        self.search_tag_widget.selected_layout = layout;
+    }
+
+    pub fn new() -> Self {
+        let translations = egui_select2::select2::Translations {
+            loading: t!("select2_loading").to_string(),
+            no_results: t!("select2_no_results").to_string(),
+            add: t!("select2_add").to_string(),
+            new: t!("select2_new").to_string(),
+            clear_all: t!("select2_clear_all").to_string(),
+            load_more: t!("select2_load_more").to_string(),
+            ..Default::default()
+        };
+
+        // We can not set selected_layout as when new is called statics (in config.rs) have not been initialized yet.
         SearchForm {
             search_store_location_widget: EguiSelect2::new(
                 Arc::new(crate::api::storelocation::load_suggestions),
@@ -87,7 +104,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
+                None,
             ),
             search_name_widget: EguiSelect2::new(
                 Arc::new(crate::api::name::load_suggestions),
@@ -96,7 +113,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
+                None,
             ),
             search_entity_widget: EguiSelect2::new(
                 Arc::new(crate::api::entity::load_suggestions),
@@ -105,7 +122,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
+                None,
             ),
             search_producer_ref_widget: EguiSelect2::new(
                 Arc::new(crate::api::producerref::load_suggestions),
@@ -114,7 +131,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
+                None,
             ),
             search_signal_word_widget: EguiSelect2::new(
                 Arc::new(crate::api::signalword::load_suggestions),
@@ -123,7 +140,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
+                None,
             ),
             search_category_widget: EguiSelect2::new(
                 Arc::new(crate::api::category::load_suggestions),
@@ -132,7 +149,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
+                None,
             ),
             search_cas_number_widget: EguiSelect2::new(
                 Arc::new(crate::api::casnumber::load_suggestions),
@@ -141,7 +158,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
+                None,
             ),
             search_empirical_formula_widget: EguiSelect2::new(
                 Arc::new(crate::api::empiricalformula::load_suggestions),
@@ -150,7 +167,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
+                None,
             ),
             search_hazard_statement_widget: EguiSelect2::new(
                 Arc::new(crate::api::hazardstatement::load_suggestions),
@@ -159,7 +176,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
+                None,
             ),
             search_precautionary_statement_widget: EguiSelect2::new(
                 Arc::new(crate::api::precautionarystatement::load_suggestions),
@@ -168,16 +185,16 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
+                None,
             ),
             search_symbol_widget: EguiSelect2::new(
                 Arc::new(crate::api::symbol::load_suggestions),
                 t!("select2_hint_symbol").as_str(),
                 Some(translations.clone()),
+                Some(Box::new(format_suggestion)),
                 None,
                 None,
                 None,
-                Some(select2_layout.clone()),
             ),
             search_tag_widget: EguiSelect2::new(
                 Arc::new(crate::api::tag::load_suggestions),
@@ -186,7 +203,7 @@ impl SearchForm {
                 None,
                 None,
                 None,
-                Some(select2_layout),
+                None,
             ),
 
             is_expanded: false,
