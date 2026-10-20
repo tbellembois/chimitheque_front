@@ -95,18 +95,18 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     ui.add_space(10.0);
 
                     // Theme switch.
-                    if app.state.darkmode {
-                        icon(ui, egui_phosphor::regular::SUN, &Size::Medium);
-                    } else {
-                        icon(ui, egui_phosphor::regular::MOON, &Size::Medium);
-                    }
-                    if ui.checkbox(&mut app.state.darkmode, "").changed() {
-                        if app.state.darkmode {
-                            ui.ctx().set_theme(egui::Theme::Dark);
-                        } else {
-                            ui.ctx().set_theme(egui::Theme::Light);
-                        }
-                    }
+                    // if app.state.darkmode {
+                    //     icon(ui, egui_phosphor::regular::SUN, &Size::Medium);
+                    // } else {
+                    //     icon(ui, egui_phosphor::regular::MOON, &Size::Medium);
+                    // }
+                    // if ui.checkbox(&mut app.state.darkmode, "").changed() {
+                    //     if app.state.darkmode {
+                    //         ui.ctx().set_theme(egui::Theme::Dark);
+                    //     } else {
+                    //         ui.ctx().set_theme(egui::Theme::Light);
+                    //     }
+                    // }
                 });
 
                 // User info and version info.
