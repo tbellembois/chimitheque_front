@@ -1,6 +1,7 @@
 use chimitheque_types::storage::Storage;
 use egui::{RichText, TextBuffer};
 use egui_extras::{Column, TableBuilder};
+use egui_phosphor_icons::icons;
 use rust_i18n::t;
 
 use crate::config::{
@@ -78,14 +79,14 @@ pub fn render_storage_label(
                 body.row(70.0, |mut row| {
                     row.col(|ui| {
                         if storage_card_shown {
-                            if button_with_icon(ui, egui_phosphor::regular::MINUS, &Size::Medium)
+                            if button_with_icon(ui, icons::MINUS.regular().text(), &Size::Medium)
                                 .clicked()
                             {
                                 app.storage_state
                                     .storage_cards_shown
                                     .retain(|id| *id != storage.storage_id.unwrap_or_default());
                             }
-                        } else if button_with_icon(ui, egui_phosphor::regular::PLUS, &Size::Medium)
+                        } else if button_with_icon(ui, icons::PLUS.regular().text(), &Size::Medium)
                             .clicked()
                         {
                             app.storage_state
@@ -102,7 +103,7 @@ pub fn render_storage_label(
                                 ui.label(
                                     RichText::new(format!(
                                         "{} {}",
-                                        egui_phosphor::fill::ARCHIVE,
+                                        icons::ARCHIVE.fill().text(),
                                         t!("storage_card_archive")
                                     ))
                                     .color(hint_color),
@@ -165,7 +166,7 @@ pub fn render_storage_label(
                         if storage_card_actions_shown {
                             if button_with_icon(
                                 ui,
-                                egui_phosphor::regular::DOTS_THREE_CIRCLE,
+                                icons::DOTS_THREE_CIRCLE.regular().text(),
                                 &Size::Medium,
                             )
                             .clicked()
@@ -176,7 +177,7 @@ pub fn render_storage_label(
                             }
                         } else if button_with_icon(
                             ui,
-                            egui_phosphor::regular::DOTS_THREE_CIRCLE_VERTICAL,
+                            icons::DOTS_THREE_CIRCLE_VERTICAL.regular().text(),
                             &Size::Medium,
                         )
                         .clicked()

@@ -77,10 +77,7 @@ pub fn get_store_locations(
 
         elog!(
             info,
-            format!(
-                "getting store locations (offset: {offset}) {} done",
-                egui_phosphor::fill::ARROW_RIGHT
-            )
+            format!("getting store locations (offset: {offset}) \u{E06C} done")
         );
     });
 }

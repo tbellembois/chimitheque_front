@@ -2,6 +2,7 @@
 use base64::{Engine, engine::general_purpose};
 use chimitheque_utils::inchi::is_inchi;
 use egui::{Color32, Margin, Response, Stroke, TextBuffer};
+use egui_phosphor_icons::icons;
 use egui_select2::select2::{Configuration, EguiSelect2};
 use rust_i18n::t;
 use std::sync::{Arc, Mutex};
@@ -415,7 +416,7 @@ impl CreateProductForm {
 
                     // egui's ui.group does not support margins, so we use a custom frame instead.
                     let custom_group_frame = egui::Frame::new()
-                        .fill(faint_bg_color)
+                        // .fill(faint_bg_color)
                         .inner_margin(create_product_form_inner_margin)
                         .corner_radius(create_product_form_corner_radius)
                         .stroke(normal_stroke);
@@ -446,7 +447,7 @@ impl CreateProductForm {
                                             ProductType::Chemical,
                                             format!(
                                                 "{} {}",
-                                                egui_phosphor::fill::ATOM,
+                                                icons::ATOM.fill().text(),
                                                 t!("create_product_form_product_type_chemical")
                                             ),
                                         );
@@ -455,7 +456,7 @@ impl CreateProductForm {
                                             ProductType::Biological,
                                             format!(
                                                 "{} {}",
-                                                egui_phosphor::fill::DNA,
+                                                icons::DNA.fill().text(),
                                                 t!("create_product_form_product_type_biological")
                                             ),
                                         );
@@ -464,7 +465,7 @@ impl CreateProductForm {
                                             ProductType::Consumable,
                                             format!(
                                                 "{} {}",
-                                                egui_phosphor::fill::PACKAGE,
+                                                icons::PACKAGE.fill().text(),
                                                 t!("create_product_form_product_type_consumable")
                                             ),
                                         );
@@ -502,7 +503,7 @@ impl CreateProductForm {
                                             .show(ui, |ui| {
                                                 icon(
                                                     ui,
-                                                    egui_phosphor::regular::ASTERISK,
+                                                    icons::ASTERISK.regular().text(),
                                                     &Size::Small,
                                                 );
                                                 self.create_product_name_widget.ui(ui);
@@ -793,7 +794,7 @@ impl CreateProductForm {
                                         button_with_icon_and_text(
                                             ui,
                                             t!("create_product_form_action_cancel").to_string(),
-                                            egui_phosphor::fill::MAGIC_WAND,
+                                            icons::MAGIC_WAND.fill().text(),
                                             &Size::Medium,
                                         )
                                         .clicked();
@@ -801,7 +802,7 @@ impl CreateProductForm {
                                         if button_with_icon_and_text(
                                             ui,
                                             t!("create_product_form_action_create").to_string(),
-                                            egui_phosphor::fill::ERASER,
+                                            icons::ERASER.fill().text(),
                                             &Size::Medium,
                                         )
                                         .clicked()

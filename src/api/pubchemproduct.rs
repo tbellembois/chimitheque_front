@@ -58,10 +58,7 @@ pub fn get_pubchem_product(
 
         elog!(
             info,
-            format!(
-                "getting pubchem product with {name_clone} {} done",
-                egui_phosphor::fill::ARROW_RIGHT
-            )
+            format!("getting pubchem product with {name_clone} \u{E06C} done")
         );
     });
 }

@@ -1,8 +1,9 @@
-use std::sync::Arc;
-
 use egui::{Color32, Margin, Response, Stroke, TextBuffer};
+use egui_phosphor_icons::icons;
 use egui_select2::select2::EguiSelect2;
+use elegance::{Button, Card, SegmentedControl, SegmentedSize};
 use rust_i18n::t;
+use std::sync::Arc;
 
 use crate::{
     api::symbol::format_suggestion,
@@ -45,6 +46,7 @@ pub struct SearchForm {
     pub search_product_to_destroy: bool,
     pub search_product_borrowed: bool,
     pub search_product_type: ProductType,
+    pub search_product_type_index: usize,
 }
 
 impl SearchForm {
@@ -215,6 +217,7 @@ impl SearchForm {
             search_product_to_destroy: Default::default(),
             search_product_borrowed: Default::default(),
             search_product_type: Default::default(),
+            search_product_type_index: 0,
         }
     }
 
@@ -253,74 +256,24 @@ impl SearchForm {
 
         let response = ui.vertical(|ui| {
             ui.scope_builder(egui::UiBuilder::new().max_rect(search_form_rec), |ui| {
-                // egui's ui.group does not support margins, so we use a custom frame instead.
-                let custom_group_frame = egui::Frame::new()
-                    .inner_margin(search_form_inner_margin)
-                    .corner_radius(app_corner_radius)
-                    .fill(faint_bg_color)
-                    .stroke(normal_stroke);
-
                 if self.is_expanded {
-                    custom_group_frame.show(ui, |ui| {
-                        egui::Grid::new("search_form_product_type_grid")
-                            .min_col_width(
-                                (SEARCH_FORM_WIDTH.get().unwrap()
-                                    - (2.0 * search_form_inner_margin.leftf())
-                                    - (5.0 * search_form_widget_horizontal_spacing))
-                                    / 4.0,
-                            )
-                            .max_col_width(
-                                (SEARCH_FORM_WIDTH.get().unwrap()
-                                    - (2.0 * search_form_inner_margin.leftf())
-                                    - (5.0 * search_form_widget_horizontal_spacing))
-                                    / 4.0,
-                            )
-                            .num_columns(4)
-                            .spacing([
-                                search_form_widget_horizontal_spacing,
-                                search_form_widget_vertical_spacing,
-                            ])
-                            .striped(false)
-                            .show(ui, |ui| {
-                                ui.radio_value(
-                                    &mut self.search_product_type,
-                                    ProductType::Chemical,
-                                    format!(
-                                        "{} {}",
-                                        egui_phosphor::fill::ATOM,
-                                        t!("search_form_product_type_chemical")
-                                    ),
+                    Card::new().show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.centered_and_justified(|ui| {
+                                ui.add(
+                                    SegmentedControl::new(
+                                        &mut self.search_product_type_index,
+                                        [
+                                            t!("search_form_product_type_all"),
+                                            t!("search_form_product_type_chemical"),
+                                            t!("search_form_product_type_biological"),
+                                            t!("search_form_product_type_consumable"),
+                                        ],
+                                    )
+                                    .size(SegmentedSize::Medium),
                                 );
-                                ui.radio_value(
-                                    &mut self.search_product_type,
-                                    ProductType::Biological,
-                                    format!(
-                                        "{} {}",
-                                        egui_phosphor::fill::DNA,
-                                        t!("search_form_product_type_biological")
-                                    ),
-                                );
-                                ui.radio_value(
-                                    &mut self.search_product_type,
-                                    ProductType::Consumable,
-                                    format!(
-                                        "{} {}",
-                                        egui_phosphor::fill::PACKAGE,
-                                        t!("search_form_product_type_consumable")
-                                    ),
-                                );
-                                ui.radio_value(
-                                    &mut self.search_product_type,
-                                    ProductType::All,
-                                    format!(
-                                        "{} {}",
-                                        egui_phosphor::fill::CIRCLE,
-                                        t!("search_form_product_type_all")
-                                    ),
-                                );
-
-                                ui.end_row();
                             });
+                        });
 
                         ui.add_space(search_form_widget_vertical_spacing);
 
@@ -362,11 +315,14 @@ impl SearchForm {
                                 frame.show(ui, |ui| {
                                     ui.add(
                                         egui::TextEdit::singleline(&mut self.search_part_of_name)
-                                            .hint_text(t!("search_input_part_of_name")),
+                                            .hint_text(t!("search_input_part_of_name"))
+                                            .min_size(egui::vec2(ui.available_width(), 0.0)),
                                     );
                                 });
 
                                 // name
+                                self.search_name_widget.configuration.min_size =
+                                    egui::vec2(ui.available_width(), 0.0);
                                 self.search_name_widget.ui(ui);
 
                                 // barecode
@@ -394,12 +350,18 @@ impl SearchForm {
                                 ui.end_row();
 
                                 // cas number
+                                self.search_cas_number_widget.configuration.min_size =
+                                    egui::vec2(ui.available_width(), 0.0);
                                 self.search_cas_number_widget.ui(ui);
 
                                 // empirical formula
+                                self.search_empirical_formula_widget.configuration.min_size =
+                                    egui::vec2(ui.available_width(), 0.0);
                                 self.search_empirical_formula_widget.ui(ui);
 
                                 // producer ref
+                                self.search_producer_ref_widget.configuration.min_size =
+                                    egui::vec2(ui.available_width(), 0.0);
                                 self.search_producer_ref_widget.ui(ui);
 
                                 ui.end_row();
@@ -432,23 +394,36 @@ impl SearchForm {
                                 .striped(false)
                                 .show(ui, |ui| {
                                     // entity
+                                    self.search_entity_widget.configuration.min_size =
+                                        egui::vec2(ui.available_width(), 0.0);
                                     self.search_entity_widget.ui(ui);
 
                                     // store location
+                                    self.search_store_location_widget.configuration.min_size =
+                                        egui::vec2(ui.available_width(), 0.0);
                                     self.search_store_location_widget.ui(ui);
 
                                     // signal word
+                                    self.search_signal_word_widget.configuration.min_size =
+                                        egui::vec2(ui.available_width(), 0.0);
                                     self.search_signal_word_widget.ui(ui);
 
                                     ui.end_row();
 
                                     // symbol
+                                    self.search_symbol_widget.configuration.min_size =
+                                        egui::vec2(ui.available_width(), 0.0);
                                     self.search_symbol_widget.ui(ui);
 
                                     // hazard statement
+                                    self.search_hazard_statement_widget.configuration.min_size =
+                                        egui::vec2(ui.available_width(), 0.0);
                                     self.search_hazard_statement_widget.ui(ui);
 
                                     // precautionary statement
+                                    self.search_precautionary_statement_widget
+                                        .configuration
+                                        .min_size = egui::vec2(ui.available_width(), 0.0);
                                     self.search_precautionary_statement_widget.ui(ui);
 
                                     ui.end_row();
@@ -529,13 +504,17 @@ impl SearchForm {
                         }
 
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
-                            if button_with_icon_and_text(
-                                ui,
-                                t!("search_form_action_search").to_string(),
-                                egui_phosphor::fill::LIST_MAGNIFYING_GLASS,
-                                &Size::Medium,
-                            )
-                            .clicked()
+                            if ui
+                                .add(Button::icon_text(
+                                    icons::LIST_MAGNIFYING_GLASS
+                                        .fill()
+                                        .text()
+                                        .chars()
+                                        .next()
+                                        .unwrap_or_default(),
+                                    t!("search_form_action_search").to_string(),
+                                ))
+                                .clicked()
                             {
                                 self.is_expanded = false;
                                 self.search_offset = 0;
@@ -543,15 +522,19 @@ impl SearchForm {
                                     .action
                                     .push_back(Action::GetProducts(false));
                                 application_state.active_page = Page::ProductList;
-                            }
+                            };
 
-                            if button_with_icon_and_text(
-                                ui,
-                                t!("search_form_action_reset_filter").to_string(),
-                                egui_phosphor::fill::ERASER,
-                                &Size::Medium,
-                            )
-                            .clicked()
+                            if ui
+                                .add(Button::icon_text(
+                                    icons::ERASER
+                                        .fill()
+                                        .text()
+                                        .chars()
+                                        .next()
+                                        .unwrap_or_default(),
+                                    t!("search_form_action_reset_filter").to_string(),
+                                ))
+                                .clicked()
                             {
                                 self.search_offset = 0;
 
@@ -574,29 +557,23 @@ impl SearchForm {
                                 self.search_product_cmr = false;
                             }
 
-                            if button_with_icon_and_text(
-                                ui,
-                                t!("search_form_shrink").to_string(),
-                                egui_phosphor::fill::ARROWS_IN,
-                                &Size::Medium,
-                            )
-                            .clicked()
+                            if ui
+                                .add(Button::icon_text(
+                                    icons::ARROWS_IN
+                                        .fill()
+                                        .text()
+                                        .chars()
+                                        .next()
+                                        .unwrap_or_default(),
+                                    t!("search_form_shrink").to_string(),
+                                ))
+                                .clicked()
                             {
                                 self.is_expanded = false;
                             }
                         });
                     });
                 }
-                // } else if clickable_label_with_icon_and_text(
-                //     ui,
-                //     t!("search_form_expand").as_str(),
-                //     egui_phosphor::regular::ARROWS_OUT,
-                //     &Size::Medium,
-                // )
-                // .clicked()
-                // {
-                //     self.is_expanded = true;
-                // }
             });
         });
 

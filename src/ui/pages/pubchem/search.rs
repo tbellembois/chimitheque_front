@@ -8,6 +8,7 @@ use crate::ui::widgets::{
 };
 use crate::utils::base64_to_egui_texture;
 use egui::{RichText, TextBuffer};
+use egui_phosphor_icons::icons;
 use rust_i18n::t;
 
 const PRODUCT_LABEL_INNER_MARGIN: egui::Margin = egui::Margin::symmetric(20, 10);
@@ -42,7 +43,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
             if button_with_icon_and_text(
                 ui,
                 t!("pubchem_action_search").to_string(),
-                egui_phosphor::fill::MAGNIFYING_GLASS,
+                icons::MAGNIFYING_GLASS.regular().text(),
                 &Size::Small,
             )
             .clicked()
@@ -74,7 +75,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
             && clickable_label_with_icon_and_text(
                 ui,
                 t!("search_pubchem_results_expand").as_str(),
-                egui_phosphor::regular::MAGNIFYING_GLASS,
+                icons::MAGNIFYING_GLASS.regular().text(),
                 &Size::Small,
             )
             .clicked()

@@ -9,6 +9,7 @@ use crate::{
 };
 use egui::{FontFamily, FontId, RichText};
 use egui_extras::{Column, TableBuilder};
+use egui_phosphor_icons::icons;
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
@@ -29,7 +30,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
             ) && button_with_icon_and_text(
                 ui,
                 t!("storelocation_create").to_string(),
-                egui_phosphor::fill::MAGIC_WAND,
+                icons::MAGIC_WAND.regular().text(),
                 &Size::Medium,
             )
             .clicked()
@@ -59,7 +60,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 if button_with_icon_and_text(
                     ui,
                     t!("search_form_action_reset_filter").to_string(),
-                    egui_phosphor::fill::ERASER,
+                    icons::ERASER.regular().text(),
                     &Size::Small,
                 )
                 .clicked()
@@ -173,7 +174,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                                             let color =
                                                 html_color_to_egui(color).unwrap_or_default();
                                             ui.label(
-                                                RichText::new(egui_phosphor::fill::PAINT_BUCKET)
+                                                RichText::new(icons::PAINT_BUCKET.fill().text())
                                                     .color(color),
                                             );
                                         }
@@ -209,17 +210,11 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                                         }
 
                                         if !store_location.store_location_can_store {
-                                            ui.label(
-                                                RichText::new(format!(
-                                                    "{}{}",
-                                                    egui_phosphor::fill::X,
-                                                    t!("storelocation_cannotstore"),
-                                                ))
-                                                .font(FontId {
-                                                    family: FontFamily::Name("phosphor".into()),
-                                                    size: 20.0,
-                                                }),
-                                            );
+                                            ui.label(RichText::new(format!(
+                                                "{}{}",
+                                                icons::X.fill().text(),
+                                                t!("storelocation_cannotstore"),
+                                            )));
                                         }
                                     });
                                 });

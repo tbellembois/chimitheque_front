@@ -4,6 +4,12 @@ date_format: "%Y-%m-%d %H:%M"
 
 version: "version"
 
+locale: "language"
+theme: "theme"
+interface_size: "size"
+interface_size_minus: "smaller"
+interface_size_plus: "larger"
+
 list: "list"
 total: "total: %{total}"
 wait_user_info: "waiting for user authentication"
@@ -49,8 +55,8 @@ entity_store_locations: "store locations"
 
 entity_create: "create a new entity"
 
-search_form_shrink: "shrink search form"
-search_form_expand: "expand search form"
+search_form_shrink: "hide search form"
+search_form_expand: "show search form"
 search_pubchem_results_expand: "expand pubchem results"
 
 search_input_name: "exact name"

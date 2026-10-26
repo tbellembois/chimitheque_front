@@ -1,21 +1,19 @@
 use crate::{
     config::{
-        APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN, ERROR_COLOR, NORMAL_BG_COLOR,
-        SELECT2_BORDER_WHEN_SELECTED_STROKE,
+        APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN, ERROR_COLOR, HEADER_BOTTOM_MARGIN,
     },
     logger::{LOGS, LogMessage},
     ui::{
         app::App,
         pages::{entity, person, product, pubchem, storage, storelocation},
         state::{Action, Page},
-        widgets::{
-            buttonwithimage::button_with_image, clickablelabelwithicon::clickable_label_with_icon,
-            clickablelabelwithiconandtext::clickable_label_with_icon_and_text, icon::icon,
-            size::Size,
-        },
     },
 };
-use egui::{Margin, Popup, Rect, RichText, TextBuffer};
+use egui::{Margin, Rect, RichText, TextBuffer};
+use egui_phosphor_icons::icons;
+use elegance::{
+    Badge, BadgeTone, Button, Card, Popover, PopoverSide, TabBar, Theme, ThemeSwitcher,
+};
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
@@ -28,66 +26,55 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     //     "bottom_panel_rect: {:?}",
     //     app.state.bottom_panel_rect
     // ));
+    let viewport_rect = ui.viewport_rect();
+    ui.label(format!("viewport_rect: {:?}", viewport_rect));
 
     let app_top_margin = *APP_TOP_MARGIN.get().unwrap();
     let app_left_margin = *APP_LEFT_MARGIN.get().unwrap();
     let app_right_margin = *APP_RIGHT_MARGIN.get().unwrap();
-    let normal_bg_color = *NORMAL_BG_COLOR.get().unwrap();
+    let header_bottom_margin = *HEADER_BOTTOM_MARGIN.get().unwrap();
     let error_color = *ERROR_COLOR.get().unwrap();
 
     let top_panel_response = egui::Panel::top("top_panel")
         .frame(
-            egui::Frame::NONE
+            egui::Frame::new()
+                .fill(Theme::current(ui.ctx()).palette.bg)
                 .inner_margin(Margin {
-                    top: app_top_margin,
-                    bottom: 0,
                     left: app_left_margin,
                     right: app_right_margin,
-                })
-                .fill(normal_bg_color),
+                    top: app_top_margin,
+                    bottom: header_bottom_margin,
+                }),
         )
         .show_separator_line(false)
         .show(ui, |ui| {
             ui.horizontal(|ui| {
-                // Switch locale, theme.
-                ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                // Switch locale.
+                Card::new().heading(t!("locale")).show(ui, |ui| {
                     // Switch locale.
-                    if let Some(fr_locale_icon) = app.textures.get("flag_fr")
-                        && button_with_image(ui, fr_locale_icon).clicked()
-                    {
+                    if ui.add(Button::new("Fr")).clicked() {
                         rust_i18n::set_locale("fr-FR");
-                    }
-                    if let Some(en_locale_icon) = app.textures.get("flag_gb")
-                        && button_with_image(ui, en_locale_icon).clicked()
-                    {
+                    };
+                    if ui.add(Button::new("En")).clicked() {
                         rust_i18n::set_locale("en-GB");
                     }
+                });
 
-                    ui.add_space(30.0);
-
-                    // Font size.
-
-                    if clickable_label_with_icon(
-                        ui,
-                        egui_phosphor::regular::MINUS_CIRCLE,
-                        &Size::Medium,
-                    )
-                    .clicked()
+                // Interface size.
+                Card::new().heading(t!("interface_size")).show(ui, |ui| {
+                    if ui.add(Button::new(icons::MINUS.regular())).clicked()
                         && app.state.font_size > 13.0
                     {
                         app.state.font_size -= 1.0;
                     }
-                    if clickable_label_with_icon(
-                        ui,
-                        egui_phosphor::regular::PLUS_CIRCLE,
-                        &Size::Medium,
-                    )
-                    .clicked()
+                    if ui.add(Button::new(icons::PLUS.regular())).clicked()
                         && app.state.font_size < 23.0
                     {
                         app.state.font_size += 1.0;
                     }
+                });
 
+                Card::new().heading(t!("theme")).show(ui, |ui| {
                     // This scales fonts, spacing and widgets.✅
                     let ctx = ui.ctx();
                     ctx.set_pixels_per_point(app.state.font_size / 16.0);
@@ -95,18 +82,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     ui.add_space(10.0);
 
                     // Theme switch.
-                    // if app.state.darkmode {
-                    //     icon(ui, egui_phosphor::regular::SUN, &Size::Medium);
-                    // } else {
-                    //     icon(ui, egui_phosphor::regular::MOON, &Size::Medium);
-                    // }
-                    // if ui.checkbox(&mut app.state.darkmode, "").changed() {
-                    //     if app.state.darkmode {
-                    //         ui.ctx().set_theme(egui::Theme::Dark);
-                    //     } else {
-                    //         ui.ctx().set_theme(egui::Theme::Light);
-                    //     }
-                    // }
+                    ui.add(ThemeSwitcher::new(&mut app.state.active_theme));
                 });
 
                 // User info and version info.
@@ -115,21 +91,24 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     if let Ok(maybe_version_info) = &app.get_version_info()
                         && let Some(version_info) = maybe_version_info
                     {
-                        let button_response = clickable_label_with_icon_and_text(
-                            ui,
-                            t!("version").as_str(),
-                            egui_phosphor::regular::INFO,
-                            &Size::Medium,
-                        );
-                        let popup = Popup::menu(&button_response);
-                        popup.show(|ui| {
-                            ui.label(version_info.clone().build_time);
-                            ui.label(version_info.clone().git_commit.unwrap_or_default());
-                            ui.label(version_info.clone().git_commit_hash.unwrap_or_default());
-                            ui.label(version_info.clone().rustc);
-                            ui.label(version_info.clone().target);
-                            ui.label(version_info.clone().version);
-                        });
+                        let trigger = ui.add(Button::new(icons::INFO.regular()));
+
+                        Popover::new(t!("version"))
+                            .side(PopoverSide::Left)
+                            .title("Chimithèque")
+                            .show(&trigger, |ui| {
+                                ui.label(format!("version: {}", version_info.clone().version));
+                                ui.label(format!(
+                                    "build time: {}",
+                                    version_info.clone().build_time
+                                ));
+                                ui.label(format!(
+                                    "commit: {}",
+                                    version_info.clone().git_commit.unwrap_or_default()
+                                ));
+                                ui.label(format!("rustc: {}", version_info.clone().rustc));
+                                ui.label(format!("target: {}", version_info.clone().target));
+                            });
                     }
 
                     // User info.
@@ -137,97 +116,158 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                         && let Some(connected_user) = maybe_connected_user
                     {
                         ui.label(connected_user.person_email.clone());
-                        icon(ui, egui_phosphor::regular::USER, &Size::Medium);
+                        // icon(ui, egui_phosphor::regular::USER, &Size::Medium);
                     }
                 });
             });
 
-            ui.add_space(5.0);
+            ui.add_space(20.0);
 
             // Render logo and menu.
             ui.horizontal(|ui| {
                 // Logo.
-                if app.state.darkmode {
-                    if let Some(chimitheque_logo) = app.textures.get("chimitheque_logo_dark") {
-                        ui.image(chimitheque_logo);
-                    }
-                } else if let Some(chimitheque_logo) = app.textures.get("chimitheque_logo_light") {
-                    ui.image(chimitheque_logo);
-                }
+                ui.add(egui::Label::new(
+                    icons::COPYRIGHT
+                        .regular()
+                        .color(app.state.active_theme.theme().palette.focus)
+                        .size(26.0)
+                        .strong(),
+                ));
+                ui.add(egui::Label::new(
+                    egui::RichText::new("Chimithèque")
+                        .color(app.state.active_theme.theme().palette.focus)
+                        .size(26.0)
+                        .strong(),
+                ));
 
-                ui.add_space(20.0);
+                // let chimitheque_logo = match app.state.active_theme {
+                //     BuiltInTheme::Slate | BuiltInTheme::Charcoal => {
+                //         app.textures.get("chimitheque_logo_light")
+                //     }
+                //     _ => app.textures.get("chimitheque_logo_dark"),
+                // };
+                // if let Some(chimitheque_logo) = chimitheque_logo {
+                //     ui.image(chimitheque_logo);
+                // }
+
+                ui.add_space(40.0);
 
                 // Menu.
-                if clickable_label_with_icon_and_text(
-                    ui,
-                    t!("menu_bookmarks").as_str(),
-                    egui_phosphor::regular::BOOKMARK,
-                    &Size::Medium,
-                )
-                .clicked()
-                {
-                    //functionality
+                ui.add(TabBar::new(
+                    &mut app.state.active_tab,
+                    [
+                        t!("menu_bookmarks").as_str(),
+                        t!("menu_products").as_str(),
+                        t!("menu_pubchem").as_str(),
+                        t!("menu_storelocations").as_str(),
+                        t!("menu_entities").as_str(),
+                        t!("menu_people").as_str(),
+                    ],
+                ));
+
+                if app.state.active_tab != app.state.previous_tab {
+                    match app.state.active_tab {
+                        0 => {
+                            todo!()
+                        }
+                        1 => {
+                            app.search_form.is_expanded = false;
+                            app.state.action.push_back(Action::GetProducts(false));
+                            app.state.active_page = Page::ProductList;
+                        }
+                        2 => {
+                            app.state.active_page = Page::Pubchem;
+                        }
+                        3 => {
+                            app.state.action.push_back(Action::GetStorelocations);
+                            app.state.active_page = Page::StorelocationList;
+                        }
+                        4 => {
+                            app.state.action.push_back(Action::GetEntities);
+                            app.state.active_page = Page::EntityList;
+                        }
+                        5 => {
+                            app.state.action.push_back(Action::GetPeople);
+                            app.state.active_page = Page::PeopleList;
+                        }
+                        _ => {
+                            unreachable!()
+                        }
+                    }
+
+                    app.state.previous_tab = app.state.active_tab;
                 }
 
-                if clickable_label_with_icon_and_text(
-                    ui,
-                    t!("menu_products").as_str(),
-                    egui_phosphor::regular::TAG,
-                    &Size::Medium,
-                )
-                .clicked()
-                {
-                    app.search_form.is_expanded = false;
-                    app.state.action.push_back(Action::GetProducts(false));
-                    app.state.active_page = Page::ProductList;
-                }
-
-                if clickable_label_with_icon_and_text(
-                    ui,
-                    t!("menu_pubchem").as_str(),
-                    egui_phosphor::regular::LETTER_CIRCLE_P,
-                    &Size::Medium,
-                )
-                .clicked()
-                {
-                    app.state.active_page = Page::Pubchem;
-                }
-
-                if clickable_label_with_icon_and_text(
-                    ui,
-                    t!("menu_storelocations").as_str(),
-                    egui_phosphor::regular::DRESSER,
-                    &Size::Medium,
-                )
-                .clicked()
-                {
-                    app.state.action.push_back(Action::GetStorelocations);
-                    app.state.active_page = Page::StorelocationList;
-                }
-
-                if clickable_label_with_icon_and_text(
-                    ui,
-                    t!("menu_entities").as_str(),
-                    egui_phosphor::regular::WAREHOUSE,
-                    &Size::Medium,
-                )
-                .clicked()
-                {
-                    app.state.action.push_back(Action::GetEntities);
-                    app.state.active_page = Page::EntityList;
-                }
-
-                if clickable_label_with_icon_and_text(
-                    ui,
-                    t!("menu_people").as_str(),
-                    egui_phosphor::regular::PERSON,
-                    &Size::Medium,
-                )
-                .clicked()
-                {
-                    app.state.action.push_back(Action::GetPeople);
-                    app.state.active_page = Page::PeopleList;
-                }
+                //                 if clickable_label_with_icon_and_text(
+                //                     ui,
+                //                     t!("menu_bookmarks").as_str(),
+                //                     icons::BOOKMARK.regular().text(),
+                //                     &Size::Medium,
+                //                 )
+                //                 .clicked()
+                //                 {
+                //                     //functionality
+                //                 }
+                //
+                //                 if clickable_label_with_icon_and_text(
+                //                     ui,
+                //                     t!("menu_products").as_str(),
+                //                     icons::TAG.regular().text(),
+                //                     &Size::Medium,
+                //                 )
+                //                 .clicked()
+                //                 {
+                //                     app.search_form.is_expanded = false;
+                //                     app.state.action.push_back(Action::GetProducts(false));
+                //                     app.state.active_page = Page::ProductList;
+                //                 }
+                //
+                //                 if clickable_label_with_icon_and_text(
+                //                     ui,
+                //                     t!("menu_pubchem").as_str(),
+                //                     icons::LETTER_CIRCLE_P.regular().text(),
+                //                     &Size::Medium,
+                //                 )
+                //                 .clicked()
+                //                 {
+                //                     app.state.active_page = Page::Pubchem;
+                //                 }
+                //
+                //                 if clickable_label_with_icon_and_text(
+                //                     ui,
+                //                     t!("menu_storelocations").as_str(),
+                //                     icons::DRESSER.regular().text(),
+                //                     &Size::Medium,
+                //                 )
+                //                 .clicked()
+                //                 {
+                //                     app.state.action.push_back(Action::GetStorelocations);
+                //                     app.state.active_page = Page::StorelocationList;
+                //                 }
+                //
+                //                 if clickable_label_with_icon_and_text(
+                //                     ui,
+                //                     t!("menu_entities").as_str(),
+                //                     icons::WAREHOUSE.regular().text(),
+                //                     &Size::Medium,
+                //                 )
+                //                 .clicked()
+                //                 {
+                //                     app.state.action.push_back(Action::GetEntities);
+                //                     app.state.active_page = Page::EntityList;
+                //                 }
+                //
+                //                 if clickable_label_with_icon_and_text(
+                //                     ui,
+                //                     t!("menu_people").as_str(),
+                //                     icons::PERSON.regular().text(),
+                //                     &Size::Medium,
+                //                 )
+                //                 .clicked()
+                //                 {
+                //                     app.state.action.push_back(Action::GetPeople);
+                //                     app.state.active_page = Page::PeopleList;
+                //                 }
             });
         });
 
@@ -237,30 +277,36 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     //
     // Footer bar
     //
-    let bottom_panel_response = egui::Panel::bottom("bottom_panel").show(ui, |ui| {
-        ui.horizontal(|ui| {
-            ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                ui.label("© 2026 Chimithèque, released under the GPL-3.0 license.");
-            });
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                let logs = LOGS
-                    .lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let bottom_panel_response = egui::Panel::bottom("bottom_panel")
+        .frame(
+            egui::Frame::new()
+                .fill(Theme::current(ui.ctx()).palette.bg)
+                .inner_margin(egui::Margin::symmetric(0, 0)),
+        )
+        .show(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                    ui.label("© 2026 Chimithèque, released under the GPL-3.0 license.");
+                });
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let logs = LOGS
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner);
 
-                if let Some(msg) = logs.back() {
-                    match msg {
-                        LogMessage::Info(text) => {
-                            ui.label(RichText::new(text));
+                    if let Some(msg) = logs.back() {
+                        match msg {
+                            LogMessage::Info(text) => {
+                                ui.label(RichText::new(text));
+                            }
+                            LogMessage::Error(text) => {
+                                ui.label(RichText::new(text).color(error_color));
+                            }
+                            LogMessage::Debug(_) => (),
                         }
-                        LogMessage::Error(text) => {
-                            ui.label(RichText::new(text).color(error_color));
-                        }
-                        LogMessage::Debug(_) => (),
                     }
-                }
+                });
             });
         });
-    });
 
     // Update bottom panel rect.
     app.state.bottom_panel_rect = bottom_panel_response.response.rect;
@@ -270,15 +316,14 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     //
     egui::CentralPanel::default()
         .frame(
-            egui::Frame::NONE
+            egui::Frame::new()
+                .fill(Theme::current(ui.ctx()).palette.bg)
                 .inner_margin(Margin {
-                    // margins are managed by inner content
+                    left: app_left_margin,
+                    right: app_right_margin,
                     top: 0,
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                })
-                .fill(normal_bg_color),
+                    bottom: header_bottom_margin,
+                }),
         )
         .show(ui, |ui| match app.state.active_page {
             Page::ProductList => {

@@ -13,11 +13,11 @@ use crate::config::{
     APP_BOTTOM_MARGIN, APP_CORNER_RADIUS, APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN,
     CREATE_PRODUCT_FORM_CORNER_RADIUS, CREATE_PRODUCT_FORM_DESIRED_WIDTH,
     CREATE_PRODUCT_FORM_INNER_MARGIN, CREATE_PRODUCT_FORM_WIDGET_HORIZONTAL_SPACING,
-    CREATE_PRODUCT_FORM_WIDGET_VERTICAL_SPACING, ERROR_COLOR, FAINT_BG_COLOR, HOVERED_BG_COLOR,
-    HOVERED_STROKE, INFO_COLOR, INPUT_FILLED_STROKE, NORMAL_BG_COLOR, NORMAL_STROKE,
-    PRODUCT_LABEL_ACTION_WIDTH, PRODUCT_LABEL_INNER_MARGIN, PRODUCT_LABEL_OUTER_MARGIN,
-    PRODUCT_LABEL_PLUS_WIDTH, SEARCH_FORM_INNER_MARGIN, SEARCH_FORM_WIDGET_HORIZONTAL_SPACING,
-    SEARCH_FORM_WIDGET_VERTICAL_SPACING, SEARCH_FORM_WIDTH,
+    CREATE_PRODUCT_FORM_WIDGET_VERTICAL_SPACING, ERROR_COLOR, FAINT_BG_COLOR, HEADER_BOTTOM_MARGIN,
+    HOVERED_BG_COLOR, HOVERED_STROKE, INFO_COLOR, INPUT_FILLED_STROKE, NORMAL_BG_COLOR,
+    NORMAL_STROKE, PRODUCT_LABEL_ACTION_WIDTH, PRODUCT_LABEL_INNER_MARGIN,
+    PRODUCT_LABEL_OUTER_MARGIN, PRODUCT_LABEL_PLUS_WIDTH, SEARCH_FORM_INNER_MARGIN,
+    SEARCH_FORM_WIDGET_HORIZONTAL_SPACING, SEARCH_FORM_WIDGET_VERTICAL_SPACING, SEARCH_FORM_WIDTH,
     SELECT2_BORDER_WHEN_SELECTED_CORNER_RADIUS, SELECT2_BORDER_WHEN_SELECTED_MARGIN,
     SELECT2_BORDER_WHEN_SELECTED_STROKE, SELECTED_BG_COLOR, SELECTED_STROKE,
     STORAGE_LABEL_ACTION_WIDTH, STORAGE_LABEL_INNER_MARGIN, STORAGE_LABEL_OUTER_MARGIN,
@@ -47,7 +47,8 @@ use chimitheque_types::storage::Storage;
 use chimitheque_types::storelocation::StoreLocation;
 use chimitheque_types::versioninfo::VersionInfo;
 use eframe::CreationContext;
-use egui::{CornerRadius, Stroke, TextureHandle};
+use egui::{CornerRadius, Id, Stroke, TextureHandle};
+use elegance::{BuiltInTheme, Theme};
 use rust_i18n::t;
 use std::collections::HashMap;
 use std::error::Error;
@@ -102,6 +103,24 @@ impl App {
     #[allow(clippy::unwrap_used)]
     #[must_use]
     pub fn new(cc: &CreationContext) -> Self {
+        // Setup custom fonts.
+        let mut fonts = egui::FontDefinitions::default();
+        egui_phosphor_icons::add_fonts(&mut fonts);
+        // make Phosphor available through the standard proportional family, this is required for egui icons to work
+        let proportional = fonts
+            .families
+            .get_mut(&egui::FontFamily::Proportional)
+            .unwrap();
+
+        proportional.extend([
+            "phosphor-icons".to_owned(),
+            "phosphor-icons-bold".to_owned(),
+            "phosphor-icons-fill".to_owned(),
+            "phosphor-icons-light".to_owned(),
+            "phosphor-icons-thin".to_owned(),
+        ]);
+        cc.egui_ctx.set_fonts(fonts);
+
         log::set_max_level(log::LevelFilter::Debug);
 
         // Create application channel.
@@ -110,10 +129,6 @@ impl App {
 
         // Create application state and visual.
         let state = ApplicationState::new(&rust_i18n::locale());
-
-        // Initialize the custom theme/styles for egui.
-        setup_custom_fonts(&cc.egui_ctx).unwrap();
-        egui_extras::install_image_loaders(&cc.egui_ctx);
 
         // Create search form.
         let search_form = SearchForm::new();
@@ -549,6 +564,7 @@ impl eframe::App for App {
             APP_BOTTOM_MARGIN.get_or_init(|| 10);
             APP_LEFT_MARGIN.get_or_init(|| 50);
             APP_RIGHT_MARGIN.get_or_init(|| 50);
+            HEADER_BOTTOM_MARGIN.get_or_init(|| 20);
             APP_CORNER_RADIUS.get_or_init(|| CornerRadius::same(5));
             PRODUCT_LABEL_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 10));
             PRODUCT_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(50, 10));
@@ -811,7 +827,7 @@ impl eframe::App for App {
             // keep repainting so spinner animates
             ctx.request_repaint_after(std::time::Duration::from_millis(16));
 
-            egui::Area::new("spinner_overlay".into())
+            egui::Area::new(Id::unique("spinner_overlay"))
                 .order(egui::Order::Foreground)
                 .fixed_pos(screen_rect.center() - egui::vec2(20.0, 20.0))
                 .interactable(false)
@@ -857,49 +873,4 @@ fn load_svg_texture(
     );
 
     Ok(ctx.load_texture(name, image, egui::TextureOptions::LINEAR))
-}
-
-fn setup_custom_fonts(ctx: &egui::Context) -> Result<(), Box<dyn Error>> {
-    let mut fonts = egui::FontDefinitions::default();
-
-    // Font data.
-    fonts.font_data.insert(
-        "B612".into(),
-        Arc::new(egui::FontData::from_static(include_bytes!(
-            "fonts/B612-Regular.ttf"
-        ))),
-    );
-
-    fonts.font_data.insert(
-        "phosphor-fill".into(),
-        Arc::new(egui_phosphor::Variant::Fill.font_data()),
-    );
-
-    fonts.font_data.insert(
-        "phosphor".into(),
-        Arc::new(egui_phosphor::Variant::Regular.font_data()),
-    );
-
-    // Proportional family
-    let proportional = fonts
-        .families
-        .get_mut(&egui::FontFamily::Proportional)
-        .ok_or("can not get font families")?;
-
-    // proportional.insert(0, "B612".into());
-    proportional.push("phosphor-fill".into());
-    proportional.push("phosphor".into());
-
-    fonts.families.insert(
-        egui::FontFamily::Name("phosphor-fill".into()),
-        vec!["phosphor-fill".into()],
-    );
-    fonts.families.insert(
-        egui::FontFamily::Name("phosphor".into()),
-        vec!["phosphor".into()],
-    );
-
-    ctx.set_fonts(fonts);
-
-    Ok(())
 }

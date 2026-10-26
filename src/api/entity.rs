@@ -76,10 +76,7 @@ pub fn get_entities(
 
         elog!(
             info,
-            format!(
-                "getting entities (offset: {offset}) {} done",
-                egui_phosphor::fill::ARROW_RIGHT
-            )
+            format!("getting entities (offset: {offset}) \u{E06C} done")
         );
     });
 }

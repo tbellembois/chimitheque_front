@@ -59,10 +59,7 @@ pub fn get_pubchem_autocomplete(
 
         elog!(
             info,
-            format!(
-                "getting pubchem autocomplete for {name_clone} {} done",
-                egui_phosphor::fill::ARROW_RIGHT
-            )
+            format!("getting pubchem autocomplete for {name_clone} \u{E06C} done")
         );
     });
 }

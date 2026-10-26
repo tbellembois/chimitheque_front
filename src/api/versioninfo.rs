@@ -47,12 +47,6 @@ pub fn get_version_info(shared_maybe_version_info: SharedVersionInfo, channel_se
 
         let _ = channel_sender.send(&(-1_i32));
 
-        elog!(
-            info,
-            format!(
-                "getting version info {} done",
-                egui_phosphor::fill::ARROW_RIGHT
-            )
-        );
+        elog!(info, "getting version info \u{E06C} done".to_string());
     });
 }

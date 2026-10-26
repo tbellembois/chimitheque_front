@@ -75,10 +75,7 @@ pub fn get_people(
 
         elog!(
             info,
-            format!(
-                "getting people (offset: {offset}) {} done",
-                egui_phosphor::fill::ARROW_RIGHT
-            )
+            format!("getting people (offset: {offset}) \u{E06C} done")
         );
     });
 }

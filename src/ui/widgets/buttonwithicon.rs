@@ -15,7 +15,7 @@ pub fn button_with_icon(ui: &mut egui::Ui, icon: &str, size: &Size) -> egui::Res
     let hovered_stroke = widgets.hovered.fg_stroke;
 
     let frame = egui::Frame::new()
-        .fill(normal_bg)
+        // .fill(normal_bg)
         .corner_radius(CORNER_RADIUS)
         .inner_margin(INNER_MARGIN)
         .outer_margin(0.0)
@@ -23,11 +23,8 @@ pub fn button_with_icon(ui: &mut egui::Ui, icon: &str, size: &Size) -> egui::Res
 
     // 1. Draw the frame layout content
     let inner = frame.show(ui, |ui| {
-        ui.label(RichText::new(icon).font(FontId {
-            size: size.icon_size(),
-            family: FontFamily::Name("phosphor".into()),
-        }))
-        .on_hover_cursor(CursorIcon::PointingHand);
+        ui.label(RichText::new(icon))
+            .on_hover_cursor(CursorIcon::PointingHand);
     });
 
     // 2. Allocate the entire frame area as a single interactive element

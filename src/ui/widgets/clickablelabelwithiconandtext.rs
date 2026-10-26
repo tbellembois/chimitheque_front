@@ -19,11 +19,8 @@ pub fn clickable_label_with_icon_and_text(
             .inner_margin(0.0)
             .outer_margin(0.0)
             .show(ui, |ui| {
-                ui.label(RichText::new(icon).font(FontId {
-                    size: size.icon_size(),
-                    family: FontFamily::Name("phosphor".into()),
-                }))
-                .on_hover_cursor(CursorIcon::PointingHand);
+                ui.label(RichText::new(icon))
+                    .on_hover_cursor(CursorIcon::PointingHand);
 
                 ui.label(RichText::new(text));
             });

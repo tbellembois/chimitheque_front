@@ -16,7 +16,7 @@ pub fn button_with_icon_and_text(
     let hovered_stroke = widgets.hovered.fg_stroke;
 
     let frame = egui::Frame::new()
-        .fill(normal_bg)
+        // .fill(normal_bg)
         .corner_radius(CORNER_RADIUS)
         .inner_margin(size.inner_margin())
         .outer_margin(0.0)
@@ -29,10 +29,7 @@ pub fn button_with_icon_and_text(
             .inner_margin(0.0)
             .inner_margin(0.0)
             .show(ui, |ui| {
-                ui.label(RichText::new(icon).font(FontId {
-                    size: size.icon_size(),
-                    family: FontFamily::Name("phosphor".into()),
-                }));
+                ui.label(RichText::new(icon));
 
                 ui.label(RichText::new(text));
             });

@@ -1,4 +1,6 @@
 use egui::{RichText, TextBuffer};
+use egui_phosphor_icons::icons;
+use elegance::{Button, ButtonSize};
 use rust_i18n::t;
 
 use crate::{
@@ -27,13 +29,20 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     None,
                     &ehttp::Method::POST,
                     &app.permissions.clone(),
-                ) && button_with_icon_and_text(
-                    ui,
-                    t!("product_create").to_string(),
-                    egui_phosphor::fill::MAGIC_WAND,
-                    &Size::Medium,
-                )
-                .clicked()
+                ) && ui
+                    .add(
+                        Button::icon_text(
+                            icons::MAGIC_WAND
+                                .fill()
+                                .text()
+                                .chars()
+                                .next()
+                                .unwrap_or_default(),
+                            t!("product_create").to_string(),
+                        )
+                        .size(ButtonSize::Medium),
+                    )
+                    .clicked()
                 {
                     app.state.active_page = Page::ProductCreate;
                 }
@@ -43,40 +52,61 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     None,
                     &ehttp::Method::GET,
                     &app.permissions.clone(),
-                ) && button_with_icon_and_text(
-                    ui,
-                    t!("switch_to_storage_view").to_string(),
-                    egui_phosphor::fill::PACKAGE,
-                    &Size::Medium,
-                )
-                .clicked()
+                ) && ui
+                    .add(
+                        Button::icon_text(
+                            icons::PACKAGE
+                                .fill()
+                                .text()
+                                .chars()
+                                .next()
+                                .unwrap_or_default(),
+                            t!("switch_to_storage_view").to_string(),
+                        )
+                        .size(ButtonSize::Medium),
+                    )
+                    .clicked()
                 {
                     app.state.action.push_back(Action::GetStorages(false));
                     app.state.active_page = Page::StorageList;
                 }
 
-                if button_with_icon_and_text(
-                    ui,
-                    t!("export").to_string(),
-                    egui_phosphor::fill::EXPORT,
-                    &Size::Medium,
-                )
-                .clicked()
+                if ui
+                    .add(
+                        Button::icon_text(
+                            icons::EXPORT
+                                .fill()
+                                .text()
+                                .chars()
+                                .next()
+                                .unwrap_or_default(),
+                            t!("export").to_string(),
+                        )
+                        .size(ButtonSize::Medium),
+                    )
+                    .clicked()
                 {
                     app.state.action.push_back(Action::ExportProducts);
                 }
 
                 if !app.search_form.is_expanded
-                    && clickable_label_with_icon_and_text(
-                        ui,
-                        t!("search_form_expand").as_str(),
-                        egui_phosphor::regular::ARROWS_OUT,
-                        &Size::Medium,
-                    )
-                    .clicked()
-                    {
-                        app.search_form.is_expanded = true;
-                    }
+                    && ui
+                        .add(
+                            Button::icon_text(
+                                icons::ARROWS_OUT
+                                    .fill()
+                                    .text()
+                                    .chars()
+                                    .next()
+                                    .unwrap_or_default(),
+                                t!("search_form_expand").to_string(),
+                            )
+                            .size(ButtonSize::Medium),
+                        )
+                        .clicked()
+                {
+                    app.search_form.is_expanded = true;
+                }
             },
         );
 
@@ -164,7 +194,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 }
             });
 
-        let offset = output.state.offset.y;
+        let offset = output.state.offset().y;
         let max_offset = output.content_size.y - output.inner_rect.height();
         let near_bottom = offset >= max_offset - 50.0;
 

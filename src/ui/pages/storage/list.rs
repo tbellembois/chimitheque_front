@@ -1,4 +1,5 @@
 use egui::{RichText, TextBuffer};
+use egui_phosphor_icons::icons;
 use rust_i18n::t;
 
 use crate::{
@@ -42,7 +43,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     && button_with_icon_and_text(
                         ui,
                         t!("storages_hide_archives").to_string(),
-                        egui_phosphor::fill::ARCHIVE,
+                        icons::ARCHIVE.regular().text(),
                         &Size::Medium,
                     )
                     .clicked()
@@ -55,7 +56,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     && button_with_icon_and_text(
                         ui,
                         t!("storages_show_archives").to_string(),
-                        egui_phosphor::fill::ARCHIVE,
+                        icons::ARCHIVE.regular().text(),
                         &Size::Medium,
                     )
                     .clicked()
@@ -72,7 +73,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 ) && button_with_icon_and_text(
                     ui,
                     t!("switch_to_product_view").to_string(),
-                    egui_phosphor::fill::TAG,
+                    icons::TAG.regular().text(),
                     &Size::Medium,
                 )
                 .clicked()
@@ -84,7 +85,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 if button_with_icon_and_text(
                     ui,
                     t!("export").to_string(),
-                    egui_phosphor::fill::EXPORT,
+                    icons::EXPORT.regular().text(),
                     &Size::Medium,
                 )
                 .clicked()
@@ -96,13 +97,13 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     && clickable_label_with_icon_and_text(
                         ui,
                         t!("search_form_expand").as_str(),
-                        egui_phosphor::regular::ARROWS_OUT,
+                        icons::ARROWS_OUT.regular().text(),
                         &Size::Medium,
                     )
                     .clicked()
-                    {
-                        app.search_form.is_expanded = true;
-                    }
+                {
+                    app.search_form.is_expanded = true;
+                }
             },
         );
 
@@ -201,7 +202,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 }
             });
 
-        let offset = output.state.offset.y;
+        let offset = output.state.offset().y;
         let max_offset = output.content_size.y - output.inner_rect.height();
         let near_bottom = offset >= max_offset - 50.0;
 

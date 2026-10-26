@@ -66,10 +66,10 @@ pub fn export_storages(
                         .text()
                         .map(std::string::ToString::to_string)
                         .ok_or(AppError::UnexpectedEmptyResponse),
-                    _ => Err(AppError::NotOkHTTPResponse(
-                        response
-                            .text().map_or_else(|| response.status.to_string(), std::string::ToString::to_string),
-                    )),
+                    _ => Err(AppError::NotOkHTTPResponse(response.text().map_or_else(
+                        || response.status.to_string(),
+                        std::string::ToString::to_string,
+                    ))),
                 } {
                     Ok(response_string) => {
                         *maybe_string = Some(response_string);
@@ -86,13 +86,7 @@ pub fn export_storages(
 
         let _ = channel_sender.send(&(-1_i32));
 
-        elog!(
-            info,
-            format!(
-                "exporting storages {} done",
-                egui_phosphor::fill::ARROW_RIGHT
-            )
-        );
+        elog!(info, "exporting storages \u{E06C} done".to_string());
     });
 }
 
@@ -153,10 +147,7 @@ pub fn get_storages(
 
         elog!(
             info,
-            format!(
-                "getting storages (offset: {offset}) {} done",
-                egui_phosphor::fill::ARROW_RIGHT
-            )
+            format!("getting storages (offset: {offset}) \u{E06C} done")
         );
     });
 }

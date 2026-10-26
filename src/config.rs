@@ -23,6 +23,7 @@ pub static APP_TOP_MARGIN: OnceLock<i8> = OnceLock::new();
 pub static APP_BOTTOM_MARGIN: OnceLock<i8> = OnceLock::new();
 pub static APP_LEFT_MARGIN: OnceLock<i8> = OnceLock::new();
 pub static APP_RIGHT_MARGIN: OnceLock<i8> = OnceLock::new();
+pub static HEADER_BOTTOM_MARGIN: OnceLock<i8> = OnceLock::new();
 
 pub static APP_FONT_SIZE: OnceLock<f32> = OnceLock::new();
 

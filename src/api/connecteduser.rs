@@ -1,5 +1,6 @@
 use crate::{elog, keycloak::get_token, types::SharedPerson};
 use chimitheque_types::person::Person;
+use egui_phosphor_icons::icons;
 use wasm_rs_shared_channel::spsc::Sender;
 
 pub fn get_connected_user(shared_maybe_person: SharedPerson, channel_sender: Sender<i32>) {
@@ -47,12 +48,6 @@ pub fn get_connected_user(shared_maybe_person: SharedPerson, channel_sender: Sen
 
         let _ = channel_sender.send(&(-1_i32));
 
-        elog!(
-            info,
-            format!(
-                "getting connected user {} done",
-                egui_phosphor::fill::ARROW_RIGHT
-            )
-        );
+        elog!(info, "getting connected user \u{E06C} done".to_string());
     });
 }

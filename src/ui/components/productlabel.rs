@@ -3,6 +3,8 @@ use chimitheque_types::empiricalformula::EmpiricalFormula;
 use chimitheque_types::product::Product;
 use egui::{FontFamily, FontId, RichText};
 use egui_extras::{Column, TableBuilder};
+use egui_phosphor_icons::icons;
+use elegance::Button;
 use rust_i18n::t;
 
 use crate::config::{
@@ -96,23 +98,34 @@ pub fn render_product_label(
                 body.row(50.0, |mut row| {
                     row.col(|ui| {
                         if product_card_shown {
-                            if clickable_label_with_icon(
-                                ui,
-                                egui_phosphor::regular::MINUS,
-                                &Size::Medium,
-                            )
-                            .clicked()
+                            if ui
+                                .add(
+                                    Button::icon(
+                                        icons::MINUS
+                                            .fill()
+                                            .text()
+                                            .chars()
+                                            .next()
+                                            .unwrap_or_default(),
+                                        "".to_string(),
+                                    )
+                                    .outline(),
+                                )
+                                .clicked()
                             {
                                 app.product_state
                                     .product_cards_shown
                                     .retain(|id| *id != product.product_id.unwrap_or_default());
                             }
-                        } else if clickable_label_with_icon(
-                            ui,
-                            egui_phosphor::regular::PLUS,
-                            &Size::Medium,
-                        )
-                        .clicked()
+                        } else if ui
+                            .add(
+                                Button::icon(
+                                    icons::PLUS.fill().text().chars().next().unwrap_or_default(),
+                                    "".to_string(),
+                                )
+                                .outline(),
+                            )
+                            .clicked()
                         {
                             app.product_state
                                 .product_cards_shown
@@ -124,10 +137,7 @@ pub fn render_product_label(
                         ui.label(product.name.clone().name_label);
 
                         if let Some(product_sl) = product.product_sl {
-                            ui.label(RichText::new(egui_phosphor::fill::DRESSER).font(FontId {
-                                family: FontFamily::Name("phosphor".into()),
-                                size: 20.0,
-                            }));
+                            ui.label(icons::DRESSER.regular());
                             ui.label(product_sl);
                         }
 
@@ -190,23 +200,39 @@ pub fn render_product_label(
 
                     row.col(|ui| {
                         if product_card_actions_shown {
-                            if clickable_label_with_icon(
-                                ui,
-                                egui_phosphor::regular::DOTS_THREE_CIRCLE,
-                                &Size::Medium,
-                            )
-                            .clicked()
+                            if ui
+                                .add(
+                                    Button::icon(
+                                        icons::DOTS_THREE
+                                            .fill()
+                                            .text()
+                                            .chars()
+                                            .next()
+                                            .unwrap_or_default(),
+                                        "".to_string(),
+                                    )
+                                    .outline(),
+                                )
+                                .clicked()
                             {
                                 app.product_state
                                     .product_cards_actions_shown
                                     .retain(|id| *id != product.product_id.unwrap_or_default());
                             }
-                        } else if clickable_label_with_icon(
-                            ui,
-                            egui_phosphor::regular::DOTS_THREE_CIRCLE_VERTICAL,
-                            &Size::Medium,
-                        )
-                        .clicked()
+                        } else if ui
+                            .add(
+                                Button::icon(
+                                    icons::DOTS_THREE
+                                        .fill()
+                                        .text()
+                                        .chars()
+                                        .next()
+                                        .unwrap_or_default(),
+                                    "".to_string(),
+                                )
+                                .outline(),
+                            )
+                            .clicked()
                         {
                             app.product_state
                                 .product_cards_actions_shown
@@ -225,13 +251,20 @@ pub fn render_product_label(
                     None,
                     &ehttp::Method::GET,
                     &app.permissions.clone(),
-                ) && button_with_icon_and_text(
-                    ui,
-                    t!("product_label_action_storages").to_string(),
-                    egui_phosphor::fill::PACKAGE,
-                    &Size::Small,
-                )
-                .clicked()
+                ) && ui
+                    .add(
+                        Button::icon_text(
+                            icons::PACKAGE
+                                .fill()
+                                .text()
+                                .chars()
+                                .next()
+                                .unwrap_or_default(),
+                            t!("product_label_action_storages").to_string(),
+                        )
+                        .outline(),
+                    )
+                    .clicked()
                 {
                     todo!()
                 }
@@ -241,13 +274,20 @@ pub fn render_product_label(
                     None,
                     &ehttp::Method::POST,
                     &app.permissions.clone(),
-                ) && button_with_icon_and_text(
-                    ui,
-                    t!("product_label_action_store").to_string(),
-                    egui_phosphor::fill::BOX_ARROW_DOWN,
-                    &Size::Small,
-                )
-                .clicked()
+                ) && ui
+                    .add(
+                        Button::icon_text(
+                            icons::BOX_ARROW_DOWN
+                                .fill()
+                                .text()
+                                .chars()
+                                .next()
+                                .unwrap_or_default(),
+                            t!("product_label_action_store").to_string(),
+                        )
+                        .outline(),
+                    )
+                    .clicked()
                 {
                     todo!()
                 }
@@ -257,13 +297,20 @@ pub fn render_product_label(
                     None,
                     &ehttp::Method::POST,
                     &app.permissions.clone(),
-                ) && button_with_icon_and_text(
-                    ui,
-                    t!("product_label_action_edit").to_string(),
-                    egui_phosphor::fill::PENCIL,
-                    &Size::Small,
-                )
-                .clicked()
+                ) && ui
+                    .add(
+                        Button::icon_text(
+                            icons::PENCIL
+                                .fill()
+                                .text()
+                                .chars()
+                                .next()
+                                .unwrap_or_default(),
+                            t!("product_label_action_edit").to_string(),
+                        )
+                        .outline(),
+                    )
+                    .clicked()
                 {
                     todo!()
                 }
@@ -273,13 +320,20 @@ pub fn render_product_label(
                     None,
                     &ehttp::Method::POST,
                     &app.permissions.clone(),
-                ) && button_with_icon_and_text(
-                    ui,
-                    t!("product_label_action_bookmark").to_string(),
-                    egui_phosphor::fill::BOOKMARK,
-                    &Size::Small,
-                )
-                .clicked()
+                ) && ui
+                    .add(
+                        Button::icon_text(
+                            icons::BOOKMARK
+                                .fill()
+                                .text()
+                                .chars()
+                                .next()
+                                .unwrap_or_default(),
+                            t!("product_label_action_bookmark").to_string(),
+                        )
+                        .outline(),
+                    )
+                    .clicked()
                 {
                     todo!()
                 }
@@ -289,13 +343,20 @@ pub fn render_product_label(
                     None,
                     &ehttp::Method::GET,
                     &app.permissions.clone(),
-                ) && button_with_icon_and_text(
-                    ui,
-                    t!("product_label_action_stock").to_string(),
-                    egui_phosphor::fill::STACK,
-                    &Size::Small,
-                )
-                .clicked()
+                ) && ui
+                    .add(
+                        Button::icon_text(
+                            icons::STACK
+                                .fill()
+                                .text()
+                                .chars()
+                                .next()
+                                .unwrap_or_default(),
+                            t!("product_label_action_stock").to_string(),
+                        )
+                        .outline(),
+                    )
+                    .clicked()
                 {
                     todo!()
                 }

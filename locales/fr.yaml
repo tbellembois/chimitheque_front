@@ -4,6 +4,12 @@ date_format: "%d/%m/%Y %H:%M"
 
 version: "version"
 
+locale: "langue"
+theme: "thème"
+interface_size: "taille"
+interface_size_minus: "plus petite"
+interface_size_plus: "plus grande"
+
 list: "lister"
 total: "total : %{total}"
 wait_user_info: "en attente d'authenfication utilisateur"

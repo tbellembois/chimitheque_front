@@ -1,6 +1,7 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, default};
 
 use egui::{Pos2, Rect};
+use elegance::BuiltInTheme;
 
 use crate::config::APP_FONT_SIZE;
 
@@ -40,6 +41,12 @@ pub struct ApplicationState {
     pub active_page: Page,
     // The active locale.
     pub active_locale: String,
+    // The active theme.
+    pub active_theme: BuiltInTheme,
+    // The active tab.
+    pub active_tab: usize,
+    // The previous tab.
+    pub previous_tab: usize,
     // Full window size and position.
     pub window_rect: Rect,
     // Top panel size and position.
@@ -67,6 +74,9 @@ impl Default for ApplicationState {
         Self {
             active_page: Page::ProductList,
             active_locale: String::from("fr-FR"),
+            active_theme: BuiltInTheme::Paper,
+            active_tab: 1,
+            previous_tab: 1,
             window_rect: Rect {
                 min: Pos2 { x: 0.0, y: 0.0 },
                 max: Pos2 { x: 0.0, y: 0.0 },

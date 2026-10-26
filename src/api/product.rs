@@ -73,10 +73,7 @@ pub fn get_products(
 
         elog!(
             info,
-            format!(
-                "getting products (offset: {offset}) {} done",
-                egui_phosphor::fill::ARROW_RIGHT
-            )
+            format!("getting products (offset: {offset}) \u{E06C} done")
         );
     });
 }

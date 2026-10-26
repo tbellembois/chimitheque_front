@@ -8,6 +8,7 @@ use crate::{
 };
 use egui::RichText;
 use egui_extras::{Column, TableBuilder};
+use egui_phosphor_icons::icons;
 use rust_i18n::t;
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
@@ -28,7 +29,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
             ) && button_with_icon_and_text(
                 ui,
                 t!("entity_create").to_string(),
-                egui_phosphor::fill::MAGIC_WAND,
+                icons::MAGIC_WAND.fill().text(),
                 &Size::Medium,
             )
             .clicked()
@@ -40,10 +41,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         if let Ok(maybe_entities_and_count) = app.get_entities_and_count()
             && let Some((entities, count)) = maybe_entities_and_count
         {
-            // let list_rec = app.state.search_rect;
             let list_rec = app.state.central_panel_rect;
 
-            // ui.scope_builder(egui::UiBuilder::new().max_rect(list_rec), |ui| {
             ui.horizontal(|ui| {
                 ui.label(t!("total", total = count));
 
@@ -56,7 +55,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                 if button_with_icon_and_text(
                     ui,
                     t!("search_form_action_reset_filter").to_string(),
-                    egui_phosphor::fill::ERASER,
+                    icons::ERASER.fill().text(),
                     &Size::Small,
                 )
                 .clicked()
@@ -192,7 +191,6 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
                         });
                     }
                 });
-            // });
         }
     });
 }

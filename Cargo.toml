@@ -10,15 +10,16 @@ homepage = "https://github.com/tbellembois/chimitheque_front"
 readme = "README.md"
 categories = ["database", "science"]
 keywords = ["chemistry", "biology", "database", "management"]
-rust-version = "1.95"
+rust-version = "1.95.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-eframe = { version = "0.36.2", default-features = false }
-egui = { version = "0.36.2", default-features = false }
-egui_extras = { version = "0.36.2", default-features = false, features = ["all_loaders"] }
-egui-phosphor = { version = "0.14", default-features = false, features = ["regular", "fill"] }
+eframe = { version = "0.37", default-features = false }
+egui = { version = "0.37", default-features = false }
+egui_extras = { version = "0.37", default-features = false, features = ["all_loaders"] }
+# egui_phosphor_icons = { version = "0.5.0", default-features = false, features = ["bold", "fill", "light", "thin"] }
+egui_phosphor_icons = { path = "../egui_phosphor_icons" }
 
 ehttp = { version = "0.7.1", default-features = false }
 log = { version = "0.4.29", default-features = false }
@@ -42,6 +43,7 @@ base64 = "0.22.1"
 hex = "0.4.3"
 once_cell = "1.21.4"
 rfd = "0.17.2"
+egui-elegance = "0.17.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4.79"
