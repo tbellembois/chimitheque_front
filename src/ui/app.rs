@@ -543,6 +543,10 @@ impl eframe::App for App {
         // Update window size.
         self.state.window_rect = ui.max_rect();
 
+        // Set zoom factor.
+        let ctx = ui.ctx();
+        ctx.set_zoom_factor(self.state.zoom_factor);
+
         // Do one time startup job.
         START.call_once(|| {
             // Init statics.
@@ -567,11 +571,11 @@ impl eframe::App for App {
             HEADER_BOTTOM_MARGIN.get_or_init(|| 20);
             APP_CORNER_RADIUS.get_or_init(|| CornerRadius::same(5));
             PRODUCT_LABEL_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 10));
-            PRODUCT_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(50, 10));
+            PRODUCT_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(50, 5));
             PRODUCT_LABEL_PLUS_WIDTH.get_or_init(|| 50.0);
             PRODUCT_LABEL_ACTION_WIDTH.get_or_init(|| 50.0);
             STORAGE_LABEL_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 10));
-            STORAGE_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(50, 10));
+            STORAGE_LABEL_OUTER_MARGIN.get_or_init(|| egui::Margin::symmetric(50, 5));
             STORAGE_LABEL_PLUS_WIDTH.get_or_init(|| 50.0);
             STORAGE_LABEL_ACTION_WIDTH.get_or_init(|| 50.0);
             SEARCH_FORM_WIDTH.get_or_init(|| 925.0);

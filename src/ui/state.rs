@@ -61,8 +61,8 @@ pub struct ApplicationState {
     pub advanced_search_rect: Rect,
     // Whether the scroll area (product and storage lists) was near the bottom.
     pub scrollarea_was_near_bottom: bool,
-    // Font size.
-    pub font_size: f32,
+    // Zoom factor.
+    pub zoom_factor: f32,
     // The current action.
     pub action: VecDeque<Action>,
     // Whether dark mode is enabled.
@@ -104,7 +104,7 @@ impl Default for ApplicationState {
             scrollarea_was_near_bottom: false,
             action: VecDeque::new(),
             darkmode: false,
-            font_size: *APP_FONT_SIZE.get().unwrap_or(&16.0),
+            zoom_factor: 1.0,
         }
     }
 }

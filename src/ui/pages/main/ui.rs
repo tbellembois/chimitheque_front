@@ -26,8 +26,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     //     "bottom_panel_rect: {:?}",
     //     app.state.bottom_panel_rect
     // ));
-    let viewport_rect = ui.viewport_rect();
-    ui.label(format!("viewport_rect: {:?}", viewport_rect));
+    // let viewport_rect = ui.viewport_rect();
+    // ui.label(format!("viewport_rect: {:?}", viewport_rect));
 
     let app_top_margin = *APP_TOP_MARGIN.get().unwrap();
     let app_left_margin = *APP_LEFT_MARGIN.get().unwrap();
@@ -62,22 +62,18 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
                 // Interface size.
                 Card::new().heading(t!("interface_size")).show(ui, |ui| {
-                    if ui.add(Button::new(icons::MINUS.regular())).clicked()
-                        && app.state.font_size > 13.0
-                    {
-                        app.state.font_size -= 1.0;
+                    if ui.add(Button::new(icons::MINUS.regular())).clicked() {
+                        app.state.zoom_factor -= 0.1;
                     }
-                    if ui.add(Button::new(icons::PLUS.regular())).clicked()
-                        && app.state.font_size < 23.0
-                    {
-                        app.state.font_size += 1.0;
+                    if ui.add(Button::new(icons::PLUS.regular())).clicked() {
+                        app.state.zoom_factor += 0.1;
                     }
                 });
 
                 Card::new().heading(t!("theme")).show(ui, |ui| {
                     // This scales fonts, spacing and widgets.✅
                     let ctx = ui.ctx();
-                    ctx.set_pixels_per_point(app.state.font_size / 16.0);
+                    // ctx.set_pixels_per_point(app.state.font_size / 16.0);
 
                     ui.add_space(10.0);
 

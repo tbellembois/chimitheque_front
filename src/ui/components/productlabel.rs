@@ -1,7 +1,7 @@
 use chimitheque_types::casnumber::CasNumber;
 use chimitheque_types::empiricalformula::EmpiricalFormula;
 use chimitheque_types::product::Product;
-use egui::{FontFamily, FontId, RichText};
+use egui::RichText;
 use egui_extras::{Column, TableBuilder};
 use egui_phosphor_icons::icons;
 use elegance::Button;
@@ -12,9 +12,6 @@ use crate::config::{
     PRODUCT_LABEL_OUTER_MARGIN, PRODUCT_LABEL_PLUS_WIDTH, WEAK_TEXT_COLOR,
 };
 use crate::ui::app::App;
-use crate::ui::widgets::buttonwithiconandtext::button_with_icon_and_text;
-use crate::ui::widgets::clickablelabelwithicon::clickable_label_with_icon;
-use crate::ui::widgets::size::Size;
 
 pub fn render_product_label(
     app: &mut App,
@@ -78,17 +75,11 @@ pub fn render_product_label(
     custom_group_frame.show(ui, |ui| {
         TableBuilder::new(ui)
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::exact(product_label_plus_width))
-            .column(Column::exact(
-                available_space_for_dyn_cols_in_percent * 60.0,
-            ))
-            .column(Column::exact(
-                available_space_for_dyn_cols_in_percent * 20.0,
-            ))
-            .column(Column::exact(
-                available_space_for_dyn_cols_in_percent * 20.0,
-            ))
-            .column(Column::exact(product_label_action_width))
+            .column(Column::auto())
+            .column(Column::remainder())
+            .column(Column::auto())
+            .column(Column::auto())
+            .column(Column::auto())
             .id_salt(format!(
                 "{}_{}_product_label",
                 product.product_id.unwrap_or_default(),
