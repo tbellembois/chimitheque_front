@@ -10,7 +10,7 @@ use crate::api::storage::{export_storages, get_storages};
 use crate::api::storelocation::get_store_locations;
 use crate::api::versioninfo::get_version_info;
 use crate::config::{
-    APP_BOTTOM_MARGIN, APP_CORNER_RADIUS, APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN,
+    APP_BOTTOM_MARGIN, APP_CORNER_RADIUS, APP_SIDE_MARGIN, APP_TOP_MARGIN,
     CREATE_PRODUCT_FORM_CORNER_RADIUS, CREATE_PRODUCT_FORM_DESIRED_WIDTH,
     CREATE_PRODUCT_FORM_INNER_MARGIN, CREATE_PRODUCT_FORM_WIDGET_HORIZONTAL_SPACING,
     CREATE_PRODUCT_FORM_WIDGET_VERTICAL_SPACING, ERROR_COLOR, FAINT_BG_COLOR, HEADER_BOTTOM_MARGIN,
@@ -566,8 +566,7 @@ impl eframe::App for App {
             ERROR_COLOR.get_or_init(|| egui::Color32::from_rgb(220, 70, 70));
             APP_TOP_MARGIN.get_or_init(|| 20);
             APP_BOTTOM_MARGIN.get_or_init(|| 10);
-            APP_LEFT_MARGIN.get_or_init(|| 50);
-            APP_RIGHT_MARGIN.get_or_init(|| 50);
+            APP_SIDE_MARGIN.get_or_init(|| 50);
             HEADER_BOTTOM_MARGIN.get_or_init(|| 20);
             APP_CORNER_RADIUS.get_or_init(|| CornerRadius::same(5));
             PRODUCT_LABEL_INNER_MARGIN.get_or_init(|| egui::Margin::symmetric(20, 10));

@@ -2,6 +2,7 @@ use std::error::Error;
 
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use egui::{Color32, ColorImage, TextureHandle, TextureOptions};
+use egui_phosphor_icons::Icon;
 use image::ImageFormat;
 
 pub fn base64_to_egui_texture(
@@ -40,4 +41,9 @@ pub fn html_color_to_egui(hex: &str) -> Option<Color32> {
     } else {
         None // Handle invalid length (e.g., RGBA or short hex)
     }
+}
+
+#[must_use]
+pub fn first_char(icon: &Icon) -> char {
+    icon.0.chars().next().unwrap_or_default()
 }

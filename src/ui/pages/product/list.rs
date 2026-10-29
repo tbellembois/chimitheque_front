@@ -1,18 +1,15 @@
 use egui::{RichText, TextBuffer};
 use egui_phosphor_icons::icons;
-use elegance::{Button, ButtonSize};
+use elegance::{Accent, Button, ButtonSize};
 use rust_i18n::t;
 
 use crate::{
+    config::APP_SIDE_MARGIN,
     types::ProductsOrderBy,
     ui::{
         app::App,
         components::productlabel::render_product_label,
         state::{Action, Page},
-        widgets::{
-            buttonwithiconandtext::button_with_icon_and_text,
-            clickablelabelwithiconandtext::clickable_label_with_icon_and_text, size::Size,
-        },
     },
 };
 
@@ -89,6 +86,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     app.state.action.push_back(Action::ExportProducts);
                 }
 
+                ui.add_space(20.0);
+
                 if !app.search_form.is_expanded
                     && ui
                         .add(
@@ -101,7 +100,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                                     .unwrap_or_default(),
                                 t!("search_form_expand").to_string(),
                             )
-                            .size(ButtonSize::Medium),
+                            .accent(Accent::Green)
+                            .size(ButtonSize::Large),
                         )
                         .clicked()
                 {
@@ -110,18 +110,20 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             },
         );
 
-        let showing_products = app.search_form.search_limit + app.search_form.search_offset;
-        let total_products = count;
-
-        ui.label(t!(
-            "search_results_showing",
-            showing = showing_products,
-            total = total_products,
-        ));
-
         ui.add_space(20.0);
 
         ui.horizontal(|ui| {
+            let showing_products = app.search_form.search_limit + app.search_form.search_offset;
+            let total_products = count;
+
+            ui.label(t!(
+                "search_results_showing",
+                showing = showing_products,
+                total = total_products,
+            ));
+
+            ui.add_space(20.0);
+
             ui.label(RichText::new(t!("order_by")).underline());
 
             ui.add_space(20.0);
@@ -186,14 +188,30 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
         ui.add_space(20.0);
 
+        let central_panel_width = app.state.central_panel_rect.width();
+        let col_width =
+            (central_panel_width / 2.0) - 10.0 - (*APP_SIDE_MARGIN.get().unwrap() as f32);
+
         let output = egui::ScrollArea::vertical()
             .id_salt("products_scrollarea")
             .show(ui, |ui| {
-                for product in products {
-                    render_product_label(app, ui, frame, product.clone());
-                }
+                egui::Grid::new("products_grid")
+                    .num_columns(2)
+                    .spacing([20.0, 10.0])
+                    .max_col_width(col_width)
+                    .min_col_width(col_width)
+                    .striped(false)
+                    .show(ui, |ui| {
+                        let mut count: usize = 0;
+                        for product in products {
+                            render_product_label(app, ui, frame, product.clone());
+                            count += 1;
+                            if count.is_multiple_of(2) {
+                                ui.end_row();
+                            }
+                        }
+                    });
             });
-
         let offset = output.state.offset().y;
         let max_offset = output.content_size.y - output.inner_rect.height();
         let near_bottom = offset >= max_offset - 50.0;

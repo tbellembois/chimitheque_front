@@ -1,7 +1,7 @@
 use egui::{Color32, Margin, Response, Stroke, TextBuffer};
 use egui_phosphor_icons::icons;
 use egui_select2::select2::EguiSelect2;
-use elegance::{Button, Card, SegmentedControl, SegmentedSize};
+use elegance::{Accent, Button, ButtonSize, Card, SegmentedControl, SegmentedSize};
 use rust_i18n::t;
 use std::sync::Arc;
 
@@ -557,16 +557,22 @@ impl SearchForm {
                                 self.search_product_cmr = false;
                             }
 
+                            ui.add_space(20.0);
+
                             if ui
-                                .add(Button::icon_text(
-                                    icons::ARROWS_IN
-                                        .fill()
-                                        .text()
-                                        .chars()
-                                        .next()
-                                        .unwrap_or_default(),
-                                    t!("search_form_shrink").to_string(),
-                                ))
+                                .add(
+                                    Button::icon_text(
+                                        icons::ARROWS_IN
+                                            .fill()
+                                            .text()
+                                            .chars()
+                                            .next()
+                                            .unwrap_or_default(),
+                                        t!("search_form_shrink").to_string(),
+                                    )
+                                    .accent(Accent::Green)
+                                    .size(ButtonSize::Large),
+                                )
                                 .clicked()
                             {
                                 self.is_expanded = false;

@@ -1,7 +1,5 @@
 use crate::{
-    config::{
-        APP_LEFT_MARGIN, APP_RIGHT_MARGIN, APP_TOP_MARGIN, ERROR_COLOR, HEADER_BOTTOM_MARGIN,
-    },
+    config::{APP_SIDE_MARGIN, APP_TOP_MARGIN, ERROR_COLOR, HEADER_BOTTOM_MARGIN},
     logger::{LOGS, LogMessage},
     ui::{
         app::App,
@@ -30,8 +28,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
     // ui.label(format!("viewport_rect: {:?}", viewport_rect));
 
     let app_top_margin = *APP_TOP_MARGIN.get().unwrap();
-    let app_left_margin = *APP_LEFT_MARGIN.get().unwrap();
-    let app_right_margin = *APP_RIGHT_MARGIN.get().unwrap();
+    let app_side_margin = *APP_SIDE_MARGIN.get().unwrap();
     let header_bottom_margin = *HEADER_BOTTOM_MARGIN.get().unwrap();
     let error_color = *ERROR_COLOR.get().unwrap();
 
@@ -40,8 +37,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             egui::Frame::new()
                 .fill(Theme::current(ui.ctx()).palette.bg)
                 .inner_margin(Margin {
-                    left: app_left_margin,
-                    right: app_right_margin,
+                    left: app_side_margin,
+                    right: app_side_margin,
                     top: app_top_margin,
                     bottom: header_bottom_margin,
                 }),
@@ -71,12 +68,6 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 });
 
                 Card::new().heading(t!("theme")).show(ui, |ui| {
-                    // This scales fonts, spacing and widgets.✅
-                    let ctx = ui.ctx();
-                    // ctx.set_pixels_per_point(app.state.font_size / 16.0);
-
-                    ui.add_space(10.0);
-
                     // Theme switch.
                     ui.add(ThemeSwitcher::new(&mut app.state.active_theme));
                 });
@@ -132,7 +123,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 ui.add(egui::Label::new(
                     egui::RichText::new("Chimithèque")
                         .color(app.state.active_theme.theme().palette.focus)
-                        .size(26.0)
+                        .size(22.0)
                         .strong(),
                 ));
 
@@ -315,8 +306,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             egui::Frame::new()
                 .fill(Theme::current(ui.ctx()).palette.bg)
                 .inner_margin(Margin {
-                    left: app_left_margin,
-                    right: app_right_margin,
+                    left: app_side_margin,
+                    right: app_side_margin,
                     top: 0,
                     bottom: header_bottom_margin,
                 }),
