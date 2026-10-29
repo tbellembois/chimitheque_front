@@ -385,7 +385,7 @@ impl CreateProductForm {
             *CREATE_PRODUCT_FORM_WIDGET_HORIZONTAL_SPACING.get().unwrap();
         let create_product_form_widget_vertical_spacing =
             *CREATE_PRODUCT_FORM_WIDGET_VERTICAL_SPACING.get().unwrap();
-        let faint_bg_color = *FAINT_BG_COLOR.get().unwrap();
+        let _faint_bg_color = *FAINT_BG_COLOR.get().unwrap();
 
         // Calculate create product form outer x margin to center it horizontally.
         let create_product_form_outer_x_margin = (application_state.central_panel_rect.width()

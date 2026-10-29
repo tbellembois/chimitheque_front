@@ -7,7 +7,7 @@ use crate::{
     },
     utils::html_color_to_egui,
 };
-use egui::{FontFamily, FontId, RichText};
+use egui::RichText;
 use egui_extras::{Column, TableBuilder};
 use egui_phosphor_icons::icons;
 use rust_i18n::t;

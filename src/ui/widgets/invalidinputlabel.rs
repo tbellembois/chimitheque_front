@@ -1,5 +1,4 @@
-use crate::ui::widgets::size::Size;
-use egui::{FontFamily, FontId, RichText};
+use egui::RichText;
 use egui_phosphor_icons::icons;
 
 pub fn invalid_input_label(ui: &mut egui::Ui, text: String) -> egui::Response {

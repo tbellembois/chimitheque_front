@@ -10,7 +10,7 @@ use crate::{
 use egui::{Margin, Rect, RichText, TextBuffer};
 use egui_phosphor_icons::icons;
 use elegance::{
-    Badge, BadgeTone, Button, Card, Popover, PopoverSide, TabBar, Theme, ThemeSwitcher,
+    Button, Card, Popover, PopoverSide, TabBar, Theme, ThemeSwitcher,
 };
 use rust_i18n::t;
 
@@ -51,7 +51,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     // Switch locale.
                     if ui.add(Button::new("Fr")).clicked() {
                         rust_i18n::set_locale("fr-FR");
-                    };
+                    }
                     if ui.add(Button::new("En")).clicked() {
                         rust_i18n::set_locale("en-GB");
                     }

@@ -48,7 +48,6 @@ use chimitheque_types::storelocation::StoreLocation;
 use chimitheque_types::versioninfo::VersionInfo;
 use eframe::CreationContext;
 use egui::{CornerRadius, Id, Stroke, TextureHandle};
-use elegance::{BuiltInTheme, Theme};
 use rust_i18n::t;
 use std::collections::HashMap;
 use std::error::Error;

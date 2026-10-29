@@ -15,10 +15,7 @@ use crate::{
         SELECT2_BORDER_WHEN_SELECTED_STROKE,
     },
     types::ProductType,
-    ui::{
-        state::{Action, ApplicationState, Page},
-        widgets::{buttonwithiconandtext::button_with_icon_and_text, size::Size},
-    },
+    ui::state::{Action, ApplicationState, Page},
 };
 
 #[derive(Default)]
@@ -234,8 +231,8 @@ impl SearchForm {
         let search_form_widget_vertical_spacing =
             *SEARCH_FORM_WIDGET_VERTICAL_SPACING.get().unwrap();
         let app_corner_radius = *APP_CORNER_RADIUS.get().unwrap();
-        let faint_bg_color = *FAINT_BG_COLOR.get().unwrap();
-        let normal_stroke = *NORMAL_STROKE.get().unwrap();
+        let _faint_bg_color = *FAINT_BG_COLOR.get().unwrap();
+        let _normal_stroke = *NORMAL_STROKE.get().unwrap();
         let input_filled_stroke = *INPUT_FILLED_STROKE.get().unwrap();
 
         // Calculate search form outer x margin to center it horizontally.
@@ -522,7 +519,7 @@ impl SearchForm {
                                     .action
                                     .push_back(Action::GetProducts(false));
                                 application_state.active_page = Page::ProductList;
-                            };
+                            }
 
                             if ui
                                 .add(Button::icon_text(

@@ -1,5 +1,5 @@
 use crate::ui::widgets::size::Size;
-use egui::{CursorIcon, FontFamily, FontId, RichText, Sense};
+use egui::{CursorIcon, RichText, Sense};
 
 const CORNER_RADIUS: f32 = 5.0;
 
@@ -11,7 +11,7 @@ pub fn button_with_icon_and_text(
 ) -> egui::Response {
     let widgets = &ui.visuals().widgets;
 
-    let normal_bg = widgets.inactive.bg_fill;
+    let _normal_bg = widgets.inactive.bg_fill;
     let normal_stroke = widgets.noninteractive.bg_stroke;
     let hovered_stroke = widgets.hovered.fg_stroke;
 

@@ -1,5 +1,5 @@
 use crate::ui::widgets::size::Size;
-use egui::{CursorIcon, FontFamily, FontId, RichText, Sense};
+use egui::{CursorIcon, RichText, Sense};
 
 pub fn clickable_label_with_icon(ui: &mut egui::Ui, icon: &str, size: &Size) -> egui::Response {
     let widgets = &ui.visuals().widgets;

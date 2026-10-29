@@ -1,7 +1,7 @@
 use crate::ui::widgets::size::Size;
-use egui::{FontFamily, FontId, RichText};
+use egui::RichText;
 
-pub fn icon(ui: &mut egui::Ui, icon: &str, size: &Size) -> egui::Response {
+pub fn icon(ui: &mut egui::Ui, icon: &str, _size: &Size) -> egui::Response {
     let frame = egui::Frame::new();
 
     let inner = frame.show(ui, |ui| {

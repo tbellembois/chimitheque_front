@@ -1,16 +1,16 @@
-use egui::{CursorIcon, FontFamily, FontId, RichText, Sense};
+use egui::{CursorIcon, RichText, Sense};
 
 use crate::ui::widgets::size::Size;
 
 const CORNER_RADIUS: f32 = 5.0;
 const INNER_MARGIN: egui::Margin = egui::Margin::symmetric(10, 10);
 
-pub fn button_with_icon(ui: &mut egui::Ui, icon: &str, size: &Size) -> egui::Response {
+pub fn button_with_icon(ui: &mut egui::Ui, icon: &str, _size: &Size) -> egui::Response {
     //let visuals = ui.visuals();
     let widgets = &ui.visuals().widgets;
 
     //let hovered_bg = widgets.hovered.bg_fill;
-    let normal_bg = widgets.inactive.bg_fill;
+    let _normal_bg = widgets.inactive.bg_fill;
     let normal_stroke = widgets.noninteractive.bg_stroke;
     let hovered_stroke = widgets.hovered.fg_stroke;
 

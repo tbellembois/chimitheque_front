@@ -1,8 +1,7 @@
 use chimitheque_types::product::Product;
 use egui::{RichText, Vec2};
-use egui_extras::{Column, TableBuilder};
 use egui_phosphor_icons::icons;
-use elegance::{Badge, BadgeTone, Button, Callout, CalloutTone, Card};
+use elegance::{Badge, BadgeTone, Button, Card};
 use rust_i18n::t;
 
 use crate::config::{
@@ -24,17 +23,17 @@ pub fn render_product_label(
     let product_label_action_width = *PRODUCT_LABEL_ACTION_WIDTH.get().unwrap();
     let app_corner_radius = *APP_CORNER_RADIUS.get().unwrap();
     let normal_stroke = *NORMAL_STROKE.get().unwrap();
-    let weak_text_color = *WEAK_TEXT_COLOR.get().unwrap();
+    let _weak_text_color = *WEAK_TEXT_COLOR.get().unwrap();
 
     let label_width = app.state.central_panel_rect.width()
         - (2.0 * product_label_outer_margin.leftf())
         - (2.0 * product_label_inner_margin.leftf());
     let available_space_for_cols = label_width - (2.0 * product_label_inner_margin.leftf());
-    let available_space_for_dyn_cols_in_percent =
+    let _available_space_for_dyn_cols_in_percent =
         (available_space_for_cols - product_label_plus_width - product_label_action_width) / 100.0;
 
     // egui's ui.group does not support margins, so we use a custom frame instead.
-    let custom_group_frame = egui::Frame::new()
+    let _custom_group_frame = egui::Frame::new()
         .outer_margin(product_label_outer_margin)
         .inner_margin(product_label_inner_margin)
         .corner_radius(app_corner_radius)
@@ -45,7 +44,7 @@ pub fn render_product_label(
         .product_cards_shown
         .contains(&product.product_id.unwrap_or_default());
 
-    let product_card_actions_shown = app
+    let _product_card_actions_shown = app
         .product_state
         .product_cards_actions_shown
         .contains(&product.product_id.unwrap_or_default());
@@ -272,8 +271,8 @@ pub fn render_product_label(
                         }
                     });
                 }
-                if let Some(specificity) = product.product_specificity {
-                    if !specificity.is_empty() {
+                if let Some(specificity) = product.product_specificity
+                    && !specificity.is_empty() {
                         ui.horizontal(|ui| {
                             ui.label(
                                 RichText::new(t!("product_card_product_specificity")).italics(),
@@ -281,7 +280,6 @@ pub fn render_product_label(
                             ui.label(specificity);
                         });
                     }
-                }
                 // if let Some(empirical_formula) = product.empirical_formula {
                 //     ui.horizontal(|ui| {
                 //         ui.label(RichText::new(t!("product_card_empirical_formula")).italics());

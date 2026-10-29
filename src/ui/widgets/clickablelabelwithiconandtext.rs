@@ -1,5 +1,5 @@
 use crate::ui::widgets::size::Size;
-use egui::{CursorIcon, FontFamily, FontId, RichText, Sense};
+use egui::{CursorIcon, RichText, Sense};
 
 pub fn clickable_label_with_icon_and_text(
     ui: &mut egui::Ui,

@@ -190,7 +190,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
         let central_panel_width = app.state.central_panel_rect.width();
         let col_width =
-            (central_panel_width / 2.0) - 10.0 - (*APP_SIDE_MARGIN.get().unwrap() as f32);
+            (central_panel_width / 2.0) - 10.0 - f32::from(*APP_SIDE_MARGIN.get().unwrap());
 
         let output = egui::ScrollArea::vertical()
             .id_salt("products_scrollarea")

@@ -1,9 +1,8 @@
-use std::{collections::VecDeque, default};
+use std::collections::VecDeque;
 
 use egui::{Pos2, Rect};
 use elegance::BuiltInTheme;
 
-use crate::config::APP_FONT_SIZE;
 
 // Applications pages.
 #[derive(Debug, Default)]

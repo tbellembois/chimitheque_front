@@ -8,7 +8,7 @@ pub fn button_with_image(ui: &mut egui::Ui, image: &TextureHandle) -> egui::Resp
     let widgets = &ui.visuals().widgets;
 
     //let hovered_bg = widgets.hovered.bg_fill;
-    let normal_bg = widgets.inactive.bg_fill;
+    let _normal_bg = widgets.inactive.bg_fill;
     let normal_stroke = widgets.noninteractive.bg_stroke;
     let hovered_stroke = widgets.hovered.fg_stroke;
 
