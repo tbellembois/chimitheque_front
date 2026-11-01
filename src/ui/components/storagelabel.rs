@@ -1,7 +1,8 @@
 use chimitheque_types::storage::Storage;
-use egui::{RichText, TextBuffer};
+use egui::{RichText, TextBuffer, Vec2};
 use egui_extras::{Column, TableBuilder};
 use egui_phosphor_icons::icons;
+use elegance::{Button, Card};
 use rust_i18n::t;
 
 use crate::config::{
@@ -11,6 +12,7 @@ use crate::config::{
 use crate::ui::app::App;
 use crate::ui::widgets::buttonwithicon::button_with_icon;
 use crate::ui::widgets::size::Size;
+use crate::utils::first_char;
 
 pub fn render_storage_label(
     app: &mut App,
@@ -55,139 +57,249 @@ pub fn render_storage_label(
         text_color.gamma_multiply(ui.visuals().weak_text_alpha)
     });
 
-    custom_group_frame.show(ui, |ui| {
-        TableBuilder::new(ui)
-            .column(Column::exact(storage_label_plus_width))
-            .column(Column::exact(
-                available_space_for_dyn_cols_in_percent * 40.0,
-            ))
-            .column(Column::exact(
-                available_space_for_dyn_cols_in_percent * 40.0,
-            ))
-            .column(Column::exact(
-                available_space_for_dyn_cols_in_percent * 10.0,
-            ))
-            .column(Column::exact(
-                available_space_for_dyn_cols_in_percent * 10.0,
-            ))
-            .column(Column::exact(storage_label_action_width))
-            .id_salt(format!(
-                "{}_storage_label",
+    Card::new().show(ui, |ui| {
+        ui.vertical(|ui| {
+            ui.horizontal(|ui| {
+                ui.add_sized(
+                    [ui.available_width(), 0.0],
+                    egui::Label::new(storage.product.name.name_label)
+                        .wrap_mode(egui::TextWrapMode::Truncate),
+                );
+
+                if storage.storage_archive {
+                    ui.label(
+                        RichText::new(format!(
+                            "{} {}",
+                            icons::ARCHIVE.fill().text(),
+                            t!("storage_card_archive")
+                        ))
+                        .color(hint_color),
+                    );
+                }
+            });
+
+            egui::Grid::new(format!(
+                "storage_label_grid_{}",
                 storage.storage_id.unwrap_or_default()
             ))
-            .body(|mut body| {
-                body.row(70.0, |mut row| {
-                    row.col(|ui| {
-                        if storage_card_shown {
-                            if button_with_icon(ui, icons::MINUS.regular().text(), &Size::Medium)
-                                .clicked()
-                            {
-                                app.storage_state
-                                    .storage_cards_shown
-                                    .retain(|id| *id != storage.storage_id.unwrap_or_default());
-                            }
-                        } else if button_with_icon(ui, icons::PLUS.regular().text(), &Size::Medium)
-                            .clicked()
-                        {
-                            app.storage_state
-                                .storage_cards_shown
-                                .push(storage.storage_id.unwrap_or_default());
-                        }
-                    });
-
-                    row.col(|ui| {
-                        ui.horizontal(|ui| {
-                            ui.label(storage.product.name.name_label);
-
-                            if storage.storage_archive {
-                                ui.label(
-                                    RichText::new(format!(
-                                        "{} {}",
-                                        icons::ARCHIVE.fill().text(),
-                                        t!("storage_card_archive")
-                                    ))
-                                    .color(hint_color),
-                                );
-                            }
-                        });
-
-                        ui.horizontal(|ui| {
-                            if let Some(storage_batch_number) = storage.storage_batch_number
-                                && !storage_batch_number.is_empty()
-                            {
-                                ui.label(
-                                    RichText::new(format!(
-                                        "{}: ",
-                                        t!("storage_label_batch_number")
-                                    ))
-                                    .italics(),
-                                );
-                                ui.label(RichText::new(storage_batch_number));
-                            }
-                        });
-
-                        ui.horizontal(|ui| {
-                            if let Some(storage_barecode) = storage.storage_barecode
-                                && !storage_barecode.is_empty()
-                            {
-                                ui.label(
-                                    RichText::new(format!("{}: ", t!("storage_label_barecode")))
-                                        .italics(),
-                                );
-                                ui.label(RichText::new(storage_barecode));
-                            }
-                        });
-                    });
-
-                    row.col(|ui| {
-                        ui.label(storage.store_location.store_location_name);
-                    });
-
-                    row.col(|ui| {
-                        if let Some(quantity) = storage.storage_quantity {
-                            ui.label(format!(
-                                "{} {}",
-                                quantity,
-                                storage.unit_quantity.unwrap_or_default().unit_label
-                            ));
-                        }
-                    });
-
-                    row.col(|ui| {
-                        ui.label(
-                            storage
-                                .storage_modification_date
-                                .format(t!("date_format").as_str())
-                                .to_string(),
-                        );
-                    });
-
-                    row.col(|ui| {
-                        if storage_card_actions_shown {
-                            if button_with_icon(
-                                ui,
-                                icons::DOTS_THREE_CIRCLE.regular().text(),
-                                &Size::Medium,
-                            )
-                            .clicked()
-                            {
-                                app.storage_state
-                                    .storage_cards_actions_shown
-                                    .retain(|id| *id != storage.storage_id.unwrap_or_default());
-                            }
-                        } else if button_with_icon(
-                            ui,
-                            icons::DOTS_THREE_CIRCLE_VERTICAL.regular().text(),
-                            &Size::Medium,
-                        )
+            .num_columns(6)
+            .striped(false)
+            .spacing(Vec2 { x: 40.0, y: 0.0 })
+            .show(ui, |ui| {
+                if storage_card_shown {
+                    if ui
+                        .add(Button::icon(first_char(&icons::MINUS), String::new()).outline())
                         .clicked()
-                        {
-                            app.storage_state
-                                .storage_cards_actions_shown
-                                .push(storage.storage_id.unwrap_or_default());
-                        }
-                    });
+                    {
+                        app.storage_state
+                            .storage_cards_shown
+                            .retain(|id| *id != storage.storage_id.unwrap_or_default());
+                    }
+                } else if ui
+                    .add(Button::icon(first_char(&icons::PLUS), String::new()).outline())
+                    .clicked()
+                {
+                    app.storage_state
+                        .storage_cards_shown
+                        .push(storage.storage_id.unwrap_or_default());
+                }
+
+                ui.horizontal(|ui| {
+                    if let Some(storage_batch_number) = storage.storage_batch_number
+                        && !storage_batch_number.is_empty()
+                    {
+                        ui.label(
+                            RichText::new(format!("{}: ", t!("storage_label_batch_number")))
+                                .italics(),
+                        );
+                        ui.label(RichText::new(storage_batch_number));
+                    } else {
+                        ui.label("");
+                    }
                 });
+
+                ui.horizontal(|ui| {
+                    if let Some(storage_barecode) = storage.storage_barecode
+                        && !storage_barecode.is_empty()
+                    {
+                        ui.label(
+                            RichText::new(format!("{}: ", t!("storage_label_barecode"))).italics(),
+                        );
+                        ui.label(RichText::new(storage_barecode));
+                    } else {
+                        ui.label("");
+                    }
+                });
+
+                ui.label(storage.store_location.store_location_name);
+
+                if let Some(quantity) = storage.storage_quantity {
+                    ui.label(format!(
+                        "{} {}",
+                        quantity,
+                        storage.unit_quantity.unwrap_or_default().unit_label
+                    ));
+                } else {
+                    ui.label("");
+                }
+
+                ui.label(
+                    storage
+                        .storage_modification_date
+                        .format(t!("date_format").as_str())
+                        .to_string(),
+                );
+
+                ui.end_row();
             });
+
+            if storage_card_shown {
+                ui.separator();
+
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.label("les actions");
+                });
+
+                ui.separator();
+
+                ui.label("les autres infos");
+            }
+        });
     });
+
+    //     custom_group_frame.show(ui, |ui| {
+    //         TableBuilder::new(ui)
+    //             .column(Column::exact(storage_label_plus_width))
+    //             .column(Column::exact(
+    //                 available_space_for_dyn_cols_in_percent * 40.0,
+    //             ))
+    //             .column(Column::exact(
+    //                 available_space_for_dyn_cols_in_percent * 40.0,
+    //             ))
+    //             .column(Column::exact(
+    //                 available_space_for_dyn_cols_in_percent * 10.0,
+    //             ))
+    //             .column(Column::exact(
+    //                 available_space_for_dyn_cols_in_percent * 10.0,
+    //             ))
+    //             .column(Column::exact(storage_label_action_width))
+    //             .id_salt(format!(
+    //                 "{}_storage_label",
+    //                 storage.storage_id.unwrap_or_default()
+    //             ))
+    //             .body(|mut body| {
+    //                 body.row(70.0, |mut row| {
+    //                     row.col(|ui| {
+    //                         if storage_card_shown {
+    //                             if button_with_icon(ui, icons::MINUS.regular().text(), &Size::Medium)
+    //                                 .clicked()
+    //                             {
+    //                                 app.storage_state
+    //                                     .storage_cards_shown
+    //                                     .retain(|id| *id != storage.storage_id.unwrap_or_default());
+    //                             }
+    //                         } else if button_with_icon(ui, icons::PLUS.regular().text(), &Size::Medium)
+    //                             .clicked()
+    //                         {
+    //                             app.storage_state
+    //                                 .storage_cards_shown
+    //                                 .push(storage.storage_id.unwrap_or_default());
+    //                         }
+    //                     });
+    //
+    //                     row.col(|ui| {
+    //                         ui.horizontal(|ui| {
+    //                             ui.label(storage.product.name.name_label);
+    //
+    //                             if storage.storage_archive {
+    //                                 ui.label(
+    //                                     RichText::new(format!(
+    //                                         "{} {}",
+    //                                         icons::ARCHIVE.fill().text(),
+    //                                         t!("storage_card_archive")
+    //                                     ))
+    //                                     .color(hint_color),
+    //                                 );
+    //                             }
+    //                         });
+    //
+    //                         ui.horizontal(|ui| {
+    //                             if let Some(storage_batch_number) = storage.storage_batch_number
+    //                                 && !storage_batch_number.is_empty()
+    //                             {
+    //                                 ui.label(
+    //                                     RichText::new(format!(
+    //                                         "{}: ",
+    //                                         t!("storage_label_batch_number")
+    //                                     ))
+    //                                     .italics(),
+    //                                 );
+    //                                 ui.label(RichText::new(storage_batch_number));
+    //                             }
+    //                         });
+    //
+    //                         ui.horizontal(|ui| {
+    //                             if let Some(storage_barecode) = storage.storage_barecode
+    //                                 && !storage_barecode.is_empty()
+    //                             {
+    //                                 ui.label(
+    //                                     RichText::new(format!("{}: ", t!("storage_label_barecode")))
+    //                                         .italics(),
+    //                                 );
+    //                                 ui.label(RichText::new(storage_barecode));
+    //                             }
+    //                         });
+    //                     });
+    //
+    //                     row.col(|ui| {
+    //                         ui.label(storage.store_location.store_location_name);
+    //                     });
+    //
+    //                     row.col(|ui| {
+    //                         if let Some(quantity) = storage.storage_quantity {
+    //                             ui.label(format!(
+    //                                 "{} {}",
+    //                                 quantity,
+    //                                 storage.unit_quantity.unwrap_or_default().unit_label
+    //                             ));
+    //                         }
+    //                     });
+    //
+    //                     row.col(|ui| {
+    //                         ui.label(
+    //                             storage
+    //                                 .storage_modification_date
+    //                                 .format(t!("date_format").as_str())
+    //                                 .to_string(),
+    //                         );
+    //                     });
+    //
+    //                     row.col(|ui| {
+    //                         if storage_card_actions_shown {
+    //                             if button_with_icon(
+    //                                 ui,
+    //                                 icons::DOTS_THREE_CIRCLE.regular().text(),
+    //                                 &Size::Medium,
+    //                             )
+    //                             .clicked()
+    //                             {
+    //                                 app.storage_state
+    //                                     .storage_cards_actions_shown
+    //                                     .retain(|id| *id != storage.storage_id.unwrap_or_default());
+    //                             }
+    //                         } else if button_with_icon(
+    //                             ui,
+    //                             icons::DOTS_THREE_CIRCLE_VERTICAL.regular().text(),
+    //                             &Size::Medium,
+    //                         )
+    //                         .clicked()
+    //                         {
+    //                             app.storage_state
+    //                                 .storage_cards_actions_shown
+    //                                 .push(storage.storage_id.unwrap_or_default());
+    //                         }
+    //                     });
+    //                 });
+    //             });
+    //     });
 }

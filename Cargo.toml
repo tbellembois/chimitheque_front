@@ -43,7 +43,7 @@ base64 = "0.22.1"
 hex = "0.4.3"
 once_cell = "1.21.4"
 rfd = "0.17.2"
-egui-elegance = "0.17.0"
+egui-elegance = "0.17.4"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4.79"

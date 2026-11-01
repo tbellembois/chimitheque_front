@@ -1139,9 +1139,9 @@ dependencies = [
 
 [[package]]
 name = "egui-elegance"
-version = "0.17.0"
+version = "0.17.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "298f385138a7c4f05cfda9889584fc407148ad34d421e35ee0ecb4a7a98b32d5"
+checksum = "93efde2b259013a99cd4e591f319b0d50a78b054fde7f8cefe046ecee962e768"
 dependencies = [
  "egui",
  "js-sys",
@@ -3142,7 +3142,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

@@ -11,6 +11,7 @@ use crate::{
         components::productlabel::render_product_label,
         state::{Action, Page},
     },
+    utils::first_char,
 };
 
 pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
@@ -52,12 +53,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 ) && ui
                     .add(
                         Button::icon_text(
-                            icons::PACKAGE
-                                .fill()
-                                .text()
-                                .chars()
-                                .next()
-                                .unwrap_or_default(),
+                            first_char(&icons::PACKAGE),
                             t!("switch_to_storage_view").to_string(),
                         )
                         .size(ButtonSize::Medium),
@@ -70,16 +66,8 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
 
                 if ui
                     .add(
-                        Button::icon_text(
-                            icons::EXPORT
-                                .fill()
-                                .text()
-                                .chars()
-                                .next()
-                                .unwrap_or_default(),
-                            t!("export").to_string(),
-                        )
-                        .size(ButtonSize::Medium),
+                        Button::icon_text(first_char(&icons::EXPORT), t!("export").to_string())
+                            .size(ButtonSize::Medium),
                     )
                     .clicked()
                 {
@@ -92,12 +80,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                     && ui
                         .add(
                             Button::icon_text(
-                                icons::ARROWS_OUT
-                                    .fill()
-                                    .text()
-                                    .chars()
-                                    .next()
-                                    .unwrap_or_default(),
+                                first_char(&icons::ARROWS_OUT),
                                 t!("search_form_expand").to_string(),
                             )
                             .accent(Accent::Green)

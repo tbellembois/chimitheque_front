@@ -17,36 +17,9 @@ pub fn render_product_label(
     _frame: &mut eframe::Frame,
     product: Product,
 ) {
-    let product_label_outer_margin = *PRODUCT_LABEL_OUTER_MARGIN.get().unwrap();
-    let product_label_inner_margin = *PRODUCT_LABEL_INNER_MARGIN.get().unwrap();
-    let product_label_plus_width = *PRODUCT_LABEL_PLUS_WIDTH.get().unwrap();
-    let product_label_action_width = *PRODUCT_LABEL_ACTION_WIDTH.get().unwrap();
-    let app_corner_radius = *APP_CORNER_RADIUS.get().unwrap();
-    let normal_stroke = *NORMAL_STROKE.get().unwrap();
-    let _weak_text_color = *WEAK_TEXT_COLOR.get().unwrap();
-
-    let label_width = app.state.central_panel_rect.width()
-        - (2.0 * product_label_outer_margin.leftf())
-        - (2.0 * product_label_inner_margin.leftf());
-    let available_space_for_cols = label_width - (2.0 * product_label_inner_margin.leftf());
-    let _available_space_for_dyn_cols_in_percent =
-        (available_space_for_cols - product_label_plus_width - product_label_action_width) / 100.0;
-
-    // egui's ui.group does not support margins, so we use a custom frame instead.
-    let _custom_group_frame = egui::Frame::new()
-        .outer_margin(product_label_outer_margin)
-        .inner_margin(product_label_inner_margin)
-        .corner_radius(app_corner_radius)
-        .stroke(normal_stroke);
-
     let product_card_shown = app
         .product_state
         .product_cards_shown
-        .contains(&product.product_id.unwrap_or_default());
-
-    let _product_card_actions_shown = app
-        .product_state
-        .product_cards_actions_shown
         .contains(&product.product_id.unwrap_or_default());
 
     Card::new().show(ui, |ui| {
@@ -134,125 +107,127 @@ pub fn render_product_label(
                 ui.end_row();
             });
 
-            //             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            //                 if app.has_permission(
-            //                     &chimitheque_types::permission::PermissionItem::Storages,
-            //                     None,
-            //                     &ehttp::Method::GET,
-            //                     &app.permissions.clone(),
-            //                 ) && ui
-            //                     .add(
-            //                         Button::icon_text(
-            //                             icons::PACKAGE
-            //                                 .fill()
-            //                                 .text()
-            //                                 .chars()
-            //                                 .next()
-            //                                 .unwrap_or_default(),
-            //                             t!("product_label_action_storages").to_string(),
-            //                         )
-            //                         .outline(),
-            //                     )
-            //                     .clicked()
-            //                 {
-            //                     todo!()
-            //                 }
-            //
-            //                 if app.has_permission(
-            //                     &chimitheque_types::permission::PermissionItem::Storages,
-            //                     None,
-            //                     &ehttp::Method::POST,
-            //                     &app.permissions.clone(),
-            //                 ) && ui
-            //                     .add(
-            //                         Button::icon_text(
-            //                             icons::BOX_ARROW_DOWN
-            //                                 .fill()
-            //                                 .text()
-            //                                 .chars()
-            //                                 .next()
-            //                                 .unwrap_or_default(),
-            //                             t!("product_label_action_store").to_string(),
-            //                         )
-            //                         .outline(),
-            //                     )
-            //                     .clicked()
-            //                 {
-            //                     todo!()
-            //                 }
-            //
-            //                 if app.has_permission(
-            //                     &chimitheque_types::permission::PermissionItem::Products,
-            //                     None,
-            //                     &ehttp::Method::POST,
-            //                     &app.permissions.clone(),
-            //                 ) && ui
-            //                     .add(
-            //                         Button::icon_text(
-            //                             icons::PENCIL
-            //                                 .fill()
-            //                                 .text()
-            //                                 .chars()
-            //                                 .next()
-            //                                 .unwrap_or_default(),
-            //                             t!("product_label_action_edit").to_string(),
-            //                         )
-            //                         .outline(),
-            //                     )
-            //                     .clicked()
-            //                 {
-            //                     todo!()
-            //                 }
-            //
-            //                 if app.has_permission(
-            //                     &chimitheque_types::permission::PermissionItem::Products,
-            //                     None,
-            //                     &ehttp::Method::POST,
-            //                     &app.permissions.clone(),
-            //                 ) && ui
-            //                     .add(
-            //                         Button::icon_text(
-            //                             icons::BOOKMARK
-            //                                 .fill()
-            //                                 .text()
-            //                                 .chars()
-            //                                 .next()
-            //                                 .unwrap_or_default(),
-            //                             t!("product_label_action_bookmark").to_string(),
-            //                         )
-            //                         .outline(),
-            //                     )
-            //                     .clicked()
-            //                 {
-            //                     todo!()
-            //                 }
-            //
-            //                 if app.has_permission(
-            //                     &chimitheque_types::permission::PermissionItem::Storages,
-            //                     None,
-            //                     &ehttp::Method::GET,
-            //                     &app.permissions.clone(),
-            //                 ) && ui
-            //                     .add(
-            //                         Button::icon_text(
-            //                             icons::STACK
-            //                                 .fill()
-            //                                 .text()
-            //                                 .chars()
-            //                                 .next()
-            //                                 .unwrap_or_default(),
-            //                             t!("product_label_action_stock").to_string(),
-            //                         )
-            //                         .outline(),
-            //                     )
-            //                     .clicked()
-            //                 {
-            //                     todo!()
-            //                 }
-            //             });
-
             if product_card_shown {
-                // ui.style_mut().spacing.item_spacing.y = 15.0;
+                ui.separator();
+
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    if app.has_permission(
+                        &chimitheque_types::permission::PermissionItem::Storages,
+                        None,
+                        &ehttp::Method::GET,
+                        &app.permissions.clone(),
+                    ) && ui
+                        .add(
+                            Button::icon_text(
+                                icons::PACKAGE
+                                    .fill()
+                                    .text()
+                                    .chars()
+                                    .next()
+                                    .unwrap_or_default(),
+                                t!("product_label_action_storages").to_string(),
+                            )
+                            .outline(),
+                        )
+                        .clicked()
+                    {
+                        todo!()
+                    }
+
+                    if app.has_permission(
+                        &chimitheque_types::permission::PermissionItem::Storages,
+                        None,
+                        &ehttp::Method::POST,
+                        &app.permissions.clone(),
+                    ) && ui
+                        .add(
+                            Button::icon_text(
+                                icons::BOX_ARROW_DOWN
+                                    .fill()
+                                    .text()
+                                    .chars()
+                                    .next()
+                                    .unwrap_or_default(),
+                                t!("product_label_action_store").to_string(),
+                            )
+                            .outline(),
+                        )
+                        .clicked()
+                    {
+                        todo!()
+                    }
+
+                    if app.has_permission(
+                        &chimitheque_types::permission::PermissionItem::Products,
+                        None,
+                        &ehttp::Method::POST,
+                        &app.permissions.clone(),
+                    ) && ui
+                        .add(
+                            Button::icon_text(
+                                icons::PENCIL
+                                    .fill()
+                                    .text()
+                                    .chars()
+                                    .next()
+                                    .unwrap_or_default(),
+                                t!("product_label_action_edit").to_string(),
+                            )
+                            .outline(),
+                        )
+                        .clicked()
+                    {
+                        todo!()
+                    }
+
+                    if app.has_permission(
+                        &chimitheque_types::permission::PermissionItem::Products,
+                        None,
+                        &ehttp::Method::POST,
+                        &app.permissions.clone(),
+                    ) && ui
+                        .add(
+                            Button::icon_text(
+                                icons::BOOKMARK
+                                    .fill()
+                                    .text()
+                                    .chars()
+                                    .next()
+                                    .unwrap_or_default(),
+                                t!("product_label_action_bookmark").to_string(),
+                            )
+                            .outline(),
+                        )
+                        .clicked()
+                    {
+                        todo!()
+                    }
+
+                    if app.has_permission(
+                        &chimitheque_types::permission::PermissionItem::Storages,
+                        None,
+                        &ehttp::Method::GET,
+                        &app.permissions.clone(),
+                    ) && ui
+                        .add(
+                            Button::icon_text(
+                                icons::STACK
+                                    .fill()
+                                    .text()
+                                    .chars()
+                                    .next()
+                                    .unwrap_or_default(),
+                                t!("product_label_action_stock").to_string(),
+                            )
+                            .outline(),
+                        )
+                        .clicked()
+                    {
+                        todo!()
+                    }
+                });
+
+                ui.separator();
 
                 ui.horizontal(|ui| {
                     ui.label(RichText::new(t!("product_card_product_id")).italics());
@@ -272,14 +247,13 @@ pub fn render_product_label(
                     });
                 }
                 if let Some(specificity) = product.product_specificity
-                    && !specificity.is_empty() {
-                        ui.horizontal(|ui| {
-                            ui.label(
-                                RichText::new(t!("product_card_product_specificity")).italics(),
-                            );
-                            ui.label(specificity);
-                        });
-                    }
+                    && !specificity.is_empty()
+                {
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new(t!("product_card_product_specificity")).italics());
+                        ui.label(specificity);
+                    });
+                }
                 // if let Some(empirical_formula) = product.empirical_formula {
                 //     ui.horizontal(|ui| {
                 //         ui.label(RichText::new(t!("product_card_empirical_formula")).italics());

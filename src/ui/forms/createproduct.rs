@@ -4,6 +4,7 @@ use chimitheque_utils::inchi::is_inchi;
 use egui::{Color32, Margin, Response, Stroke, TextBuffer};
 use egui_phosphor_icons::icons;
 use egui_select2::select2::{Configuration, EguiSelect2};
+use elegance::Card;
 use rust_i18n::t;
 use std::sync::{Arc, Mutex};
 
@@ -411,21 +412,12 @@ impl CreateProductForm {
             ui.scope_builder(
                 egui::UiBuilder::new().max_rect(create_product_form_rec),
                 |ui| {
-                    // Add some vertical spacing at the top
                     ui.add_space(20.0);
 
-                    // egui's ui.group does not support margins, so we use a custom frame instead.
-                    let custom_group_frame = egui::Frame::new()
-                        // .fill(faint_bg_color)
-                        .inner_margin(create_product_form_inner_margin)
-                        .corner_radius(create_product_form_corner_radius)
-                        .stroke(normal_stroke);
-
-                    custom_group_frame.show(ui, |ui| {
+                    Card::new().show(ui, |ui| {
                         egui::ScrollArea::vertical()
                             .id_salt("product_create")
                             .show(ui, |ui| {
-                                // ===== PRODUCT TYPE SELECTION SECTION =====
                                 // Radio buttons for selecting the product type (Chemical/Biological/Consumable)
                                 egui::Grid::new("create_product_form_product_type_grid")
                                     .min_col_width(
@@ -475,7 +467,6 @@ impl CreateProductForm {
 
                                 ui.add_space(create_product_form_widget_vertical_spacing);
 
-                                // ===== MAIN FORM FIELDS SECTION =====
                                 // Grid layout for the main form fields (2 columns)
                                 egui::Grid::new("create_product_form_grid")
                                     .min_col_width(
@@ -493,7 +484,12 @@ impl CreateProductForm {
                                     .striped(false)
                                     .show(ui, |ui| {
                                         // Left column form fields
+                                        self.create_product_tag_widget.configuration.min_size =
+                                            egui::vec2(ui.available_width(), 0.0);
                                         self.create_product_tag_widget.ui(ui);
+                                        self.create_product_category_widget
+                                            .configuration
+                                            .min_size = egui::vec2(ui.available_width(), 0.0);
                                         self.create_product_category_widget.ui(ui);
                                         ui.end_row();
 
@@ -506,18 +502,36 @@ impl CreateProductForm {
                                                     icons::ASTERISK.regular().text(),
                                                     &Size::Small,
                                                 );
+                                                self.create_product_name_widget
+                                                    .configuration
+                                                    .min_size =
+                                                    egui::vec2(ui.available_width(), 0.0);
                                                 self.create_product_name_widget.ui(ui);
                                             });
 
+                                        self.create_product_synonym_widget.configuration.min_size =
+                                            egui::vec2(ui.available_width(), 0.0);
                                         self.create_product_synonym_widget.ui(ui);
                                         ui.end_row();
 
                                         // Chemical identifier fields
+                                        self.create_product_empirical_formula_widget
+                                            .configuration
+                                            .min_size = egui::vec2(ui.available_width(), 0.0);
                                         self.create_product_empirical_formula_widget.ui(ui);
+                                        self.create_product_linear_formula_widget
+                                            .configuration
+                                            .min_size = egui::vec2(ui.available_width(), 0.0);
                                         self.create_product_linear_formula_widget.ui(ui);
                                         ui.end_row();
 
+                                        self.create_product_cas_number_widget
+                                            .configuration
+                                            .min_size = egui::vec2(ui.available_width(), 0.0);
                                         self.create_product_cas_number_widget.ui(ui);
+                                        self.create_product_ce_number_widget
+                                            .configuration
+                                            .min_size = egui::vec2(ui.available_width(), 0.0);
                                         self.create_product_ce_number_widget.ui(ui);
                                         ui.end_row();
 
