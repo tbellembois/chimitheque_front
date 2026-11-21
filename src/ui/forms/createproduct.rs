@@ -1,6 +1,9 @@
 //! Create product form.
 use base64::{Engine, engine::general_purpose};
-use chimitheque_utils::inchi::is_inchi;
+use chimitheque_utils::{
+    inchi::{is_inchi, is_inchikey},
+    smiles::is_canonical_smiles,
+};
 use egui::{Color32, Margin, Response, Stroke, TextBuffer};
 use egui_phosphor_icons::icons;
 use egui_select2::select2::{Configuration, EguiSelect2};
@@ -555,8 +558,9 @@ impl CreateProductForm {
                                                     .hint_text(t!("create_product_form_inchi")),
                                                 );
                                                 if response.changed() {
-                                                    self.inchi_is_valid = is_inchi(
-                                                        self.create_product_inchi.as_str(),
+                                                    self.inchi_is_valid = is_valid_optional(
+                                                        &self.create_product_inchi,
+                                                        is_inchi,
                                                     );
                                                 }
                                                 if !self.inchi_is_valid {
@@ -579,8 +583,9 @@ impl CreateProductForm {
                                                     .hint_text(t!("create_product_form_inchikey")),
                                                 );
                                                 if response.changed() {
-                                                    self.inchikey_is_valid = is_inchi(
-                                                        self.create_product_inchikey.as_str(),
+                                                    self.inchikey_is_valid = is_valid_optional(
+                                                        &self.create_product_inchikey,
+                                                        is_inchikey,
                                                     );
                                                 }
                                                 if !self.inchikey_is_valid {
@@ -604,8 +609,9 @@ impl CreateProductForm {
                                                     .hint_text(t!("create_product_form_smiles")),
                                                 );
                                                 if response.changed() {
-                                                    self.smiles_is_valid = is_inchi(
-                                                        self.create_product_smiles.as_str(),
+                                                    self.smiles_is_valid = is_valid_optional(
+                                                        &self.create_product_smiles,
+                                                        is_canonical_smiles,
                                                     );
                                                 }
                                                 if !self.smiles_is_valid {
@@ -831,4 +837,11 @@ impl CreateProductForm {
 
         response.response
     }
+}
+
+/// An optional identifier field is valid when empty or when `is_valid` accepts
+/// it, ignoring surrounding whitespace (the backend trims it too).
+fn is_valid_optional(value: &str, is_valid: fn(&str) -> bool) -> bool {
+    let value = value.trim();
+    value.is_empty() || is_valid(value)
 }

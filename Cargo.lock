@@ -831,17 +831,19 @@ dependencies = [
  "chimitheque_defines",
  "env_logger",
  "log",
+ "purr",
  "regex",
 ]
 
 [[package]]
 name = "chimitheque_utils"
 version = "0.1.0"
-source = "git+https://github.com/tbellembois/chimitheque_utils.git?branch=main#67eda1e0816b4d41263815273b1bb1eb3dd050dc"
+source = "git+https://github.com/tbellembois/chimitheque_utils.git?branch=main#ad4dfa6d1e34abfffb5aeede1787568087bf4246"
 dependencies = [
  "chimitheque_defines",
  "env_logger",
  "log",
+ "purr",
  "regex",
 ]
 
@@ -3574,6 +3576,12 @@ name = "pulp-wasm-simd-flag"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d8f70e07b9c3962945a74e59ca1c511bba65b6419468acc217c457d93f3c740"
+
+[[package]]
+name = "purr"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f65ecf8f6541cb5191a715bcd065373e1d49dfc64ad39f6a3d2cba4c8c20108a"
 
 [[package]]
 name = "pxfm"
