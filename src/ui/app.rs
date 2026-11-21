@@ -43,6 +43,7 @@ use chimitheque_types::product::Product;
 use chimitheque_types::pubchem::Autocomplete;
 use chimitheque_types::pubchemproduct::PubchemProduct;
 use chimitheque_types::requestfilter::RequestFilter;
+use chimitheque_types::sortorder::SortOrder;
 use chimitheque_types::storage::Storage;
 use chimitheque_types::storelocation::StoreLocation;
 use chimitheque_types::versioninfo::VersionInfo;
@@ -388,7 +389,7 @@ impl App {
     fn build_storages_filter(&self) -> RequestFilter {
         let mut filter = self.get_request_filter();
         filter.order_by = Some(self.storage_state.storages_order_by.to_string());
-        filter.order = self.storage_state.storages_order.to_string();
+        filter.order = SortOrder::from(&self.storage_state.storages_order);
         filter.storage_archive = Some(self.storage_state.storages_show_archives);
         filter
     }
@@ -606,7 +607,7 @@ impl eframe::App for App {
             // Get products.
             let mut request_filter = self.get_request_filter();
             request_filter.order_by = Some(self.product_state.products_order_by.to_string());
-            request_filter.order = self.product_state.products_order.to_string();
+            request_filter.order = SortOrder::from(&self.product_state.products_order);
 
             get_products(
                 &request_filter,
@@ -640,7 +641,7 @@ impl eframe::App for App {
                     let mut request_filter = self.get_request_filter();
                     request_filter.order_by =
                         Some(self.product_state.products_order_by.to_string());
-                    request_filter.order = self.product_state.products_order.to_string();
+                    request_filter.order = SortOrder::from(&self.product_state.products_order);
 
                     get_products(
                         &request_filter,
@@ -664,7 +665,9 @@ impl eframe::App for App {
                         &RequestFilter {
                             // limit: Some(SEARCH_LIMIT),
                             search: Some(self.store_location_state.search_store_location.clone()),
-                            order: self.store_location_state.store_locations_order.to_string(),
+                            order: SortOrder::from(
+                                &self.store_location_state.store_locations_order,
+                            ),
                             order_by: Some(
                                 self.store_location_state
                                     .store_locations_order_by
@@ -682,7 +685,7 @@ impl eframe::App for App {
                         &RequestFilter {
                             // limit: Some(SEARCH_LIMIT),
                             search: Some(self.entity_state.search_entity.clone()),
-                            order: self.entity_state.entities_order.to_string(),
+                            order: SortOrder::from(&self.entity_state.entities_order),
                             // order_by: Some(self.store_locations_order_by.to_string()),
                             ..Default::default()
                         },
@@ -724,7 +727,7 @@ impl eframe::App for App {
                         &RequestFilter {
                             // limit: Some(SEARCH_LIMIT),
                             search: Some(self.people_state.search_person.clone()),
-                            order: self.people_state.people_order.to_string(),
+                            order: SortOrder::from(&self.people_state.people_order),
                             // order_by: Some(self.store_locations_order_by.to_string()),
                             ..Default::default()
                         },

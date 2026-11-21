@@ -119,3 +119,12 @@ impl Display for GenericOrder {
         }
     }
 }
+
+impl From<&GenericOrder> for chimitheque_types::sortorder::SortOrder {
+    fn from(order: &GenericOrder) -> Self {
+        match order {
+            GenericOrder::Asc => Self::Asc,
+            GenericOrder::Desc => Self::Desc,
+        }
+    }
+}
