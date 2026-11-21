@@ -837,7 +837,7 @@ dependencies = [
 [[package]]
 name = "chimitheque_utils"
 version = "0.1.0"
-source = "git+https://github.com/tbellembois/chimitheque_utils.git?branch=main#f7f39a4cb26939ef99af3c4772419845cbf76a0b"
+source = "git+https://github.com/tbellembois/chimitheque_utils.git?branch=main#38167851ed71a83e6efe8f1d3255f94b220dcf1e"
 dependencies = [
  "chimitheque_defines",
  "env_logger",
