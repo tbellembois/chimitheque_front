@@ -829,7 +829,6 @@ name = "chimitheque_utils"
 version = "0.1.0"
 dependencies = [
  "chimitheque_defines",
- "env_logger",
  "log",
  "purr",
  "regex",

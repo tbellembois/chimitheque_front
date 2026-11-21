@@ -6,7 +6,6 @@ authors = ["Thomas Bellembois <thomas.bellembois@proton.me>"]
 description = "Frontend for Chimithèque"
 license = "GPL-3.0"
 repository = "https://github.com/tbellembois/chimitheque_front"
-homepage = "https://github.com/tbellembois/chimitheque_front"
 readme = "README.md"
 categories = ["database", "science"]
 keywords = ["chemistry", "biology", "database", "management"]
