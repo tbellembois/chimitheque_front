@@ -2,7 +2,7 @@
 use base64::{Engine, engine::general_purpose};
 use chimitheque_utils::{
     inchi::{is_inchi, is_inchikey},
-    smiles::is_canonical_smiles,
+    smiles::is_smiles,
 };
 use egui::{Color32, Margin, Response, Stroke, TextBuffer};
 use egui_phosphor_icons::icons;
@@ -611,7 +611,7 @@ impl CreateProductForm {
                                                 if response.changed() {
                                                     self.smiles_is_valid = is_valid_optional(
                                                         &self.create_product_smiles,
-                                                        is_canonical_smiles,
+                                                        is_smiles,
                                                     );
                                                 }
                                                 if !self.smiles_is_valid {
