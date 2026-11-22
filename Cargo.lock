@@ -836,10 +836,9 @@ dependencies = [
 [[package]]
 name = "chimitheque_utils"
 version = "0.1.0"
-source = "git+https://github.com/tbellembois/chimitheque_utils.git?branch=main#ad4dfa6d1e34abfffb5aeede1787568087bf4246"
+source = "git+https://github.com/tbellembois/chimitheque_utils.git?branch=main#db42748e836d05b7af4869fa936f6ba95eb15ad3"
 dependencies = [
  "chimitheque_defines",
- "env_logger",
  "log",
  "purr",
  "regex",
@@ -1338,26 +1337,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
-]
-
-[[package]]
-name = "env_filter"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "900d271a03799a1ee8d1ca9b19893b48ca674a9284fefcfb85f05e74ed314217"
-dependencies = [
- "log",
- "regex",
-]
-
-[[package]]
-name = "env_logger"
-version = "0.11.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de671bd27a75a797dc9ae289ba1e77276e75e2026408aab65185384e2d5cd3f6"
-dependencies = [
- "env_filter",
- "log",
 ]
 
 [[package]]
