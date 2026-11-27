@@ -55,3 +55,6 @@ crate-type = ["cdylib", "rlib"]
 
 [profile.dev]
 debug = false
+
+[patch."https://github.com/tbellembois/chimitheque_utils.git"]
+chimitheque_utils = { path = "../chimitheque_utils" }

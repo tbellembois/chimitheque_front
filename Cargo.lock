@@ -775,7 +775,7 @@ version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "chimitheque_types",
- "chimitheque_utils 0.1.0",
+ "chimitheque_utils",
  "eframe",
  "egui",
  "egui-elegance",
@@ -812,7 +812,7 @@ version = "0.1.0"
 dependencies = [
  "chimitheque_defines",
  "chimitheque_traits",
- "chimitheque_utils 0.1.0 (git+https://github.com/tbellembois/chimitheque_utils.git?branch=main)",
+ "chimitheque_utils",
  "chrono",
  "email_address",
  "jsonpath-rust",
@@ -826,17 +826,6 @@ dependencies = [
 [[package]]
 name = "chimitheque_utils"
 version = "0.1.0"
-dependencies = [
- "chimitheque_defines",
- "log",
- "purr",
- "regex",
-]
-
-[[package]]
-name = "chimitheque_utils"
-version = "0.1.0"
-source = "git+https://github.com/tbellembois/chimitheque_utils.git?branch=main#35b16544b695e233c56c43ec5fc8b969f7f83d22"
 dependencies = [
  "chimitheque_defines",
  "log",
