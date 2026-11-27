@@ -1,11 +1,5 @@
-use chimitheque_utils::string::{Transform::Uppercase, clean};
+use chimitheque_utils::string::{Transform::Uppercase, clean_required_text};
 
 pub fn validate(s: &str) -> Result<String, String> {
-    let cleaned = clean(s, Uppercase);
-
-    if cleaned.is_empty() {
-        Err("Input cannot be empty".to_string())
-    } else {
-        Ok(cleaned)
-    }
+    clean_required_text(s, Uppercase).ok_or_else(|| "Input cannot be empty".to_string())
 }
