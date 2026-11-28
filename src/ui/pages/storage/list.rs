@@ -27,7 +27,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
             egui::Layout::right_to_left(egui::Align::TOP),
             |ui| {
                 // if app.has_permission(
-                //     &chimitheque_types::permission::PermissionItem::Storages,
+                //     &chimitheque_types::permission::ProtectedItem::Storages,
                 //     None,
                 //     &ehttp::Method::POST,
                 //     &app.permissions.clone(),
@@ -67,7 +67,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
                 }
 
                 if app.has_permission(
-                    &chimitheque_types::permission::PermissionItem::Products,
+                    &chimitheque_types::permission::ProtectedItem::Products,
                     None,
                     &ehttp::Method::GET,
                     &app.permissions.clone(),

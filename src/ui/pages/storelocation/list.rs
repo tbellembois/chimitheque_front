@@ -23,7 +23,7 @@ pub fn update(app: &mut App, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         egui::Layout::right_to_left(egui::Align::Center),
         |ui| {
             if app.has_permission(
-                &chimitheque_types::permission::PermissionItem::StoreLocations,
+                &chimitheque_types::permission::ProtectedItem::StoreLocations,
                 None,
                 &ehttp::Method::POST,
                 &app.permissions.clone(),

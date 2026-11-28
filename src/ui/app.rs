@@ -37,7 +37,7 @@ use crate::ui::pages::main;
 use crate::ui::state::Action;
 use crate::{atomic, elog};
 use chimitheque_types::entity::Entity;
-use chimitheque_types::permission::PermissionItem;
+use chimitheque_types::permission::ProtectedItem;
 use chimitheque_types::person::Person;
 use chimitheque_types::product::Product;
 use chimitheque_types::pubchem::Autocomplete;
@@ -228,7 +228,7 @@ impl App {
     // Check if the user has permission to perform an action on a given entity.
     pub fn has_permission(
         &mut self,
-        permission_item: &PermissionItem,
+        permission_item: &ProtectedItem,
         permission_entity: Option<u64>,
         http_method: &ehttp::Method,
         shared_permissions: &SharedPermissionList,

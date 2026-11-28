@@ -1,4 +1,4 @@
-use chimitheque_types::permission::PermissionItem;
+use chimitheque_types::permission::ProtectedItem;
 use chimitheque_types::person::Person;
 use chimitheque_types::pubchem::Autocomplete;
 use chimitheque_types::pubchemproduct::PubchemProduct;
@@ -33,7 +33,7 @@ pub enum PermissionStatus {
 pub struct Permission {
     pub unique_id: usize,
     pub status: PermissionStatus,
-    pub item: PermissionItem,
+    pub item: ProtectedItem,
     pub entity: Option<u64>,
     pub http_method: ehttp::Method,
     pub granted: bool,
